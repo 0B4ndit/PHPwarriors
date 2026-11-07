@@ -83,7 +83,17 @@ Derived columns, following the challenge rules (statement, section 8.3), on `ses
 - `sem`: 1 or 2 by date (1st semester = September to January). Use it instead of `semestre`, which is wrong for 54 sessions.
 - `torn_actual`: `mati` if the session starts before 14:30, otherwise `tarda`. Compare it with `torn_requerit` for R1.
 
-Views `sessions51` to `sessions54` (planned, not created yet) have the same columns as `sessions`; the functions in `database/consultes.py` pick one with their `vista` parameter.
+Views `sessions51` to `sessions54`: the sessions as the solver's proposal for questions 5.1-5.4 leaves them
+(`solver/out/<q>/proposta.csv`, columns `id_sessio,dia,h_ini,aula`). Same columns as `sessions`, with `dia`, `h_ini`,
+`aula_partida` from the proposal and `data`, `h_fi`, `sem`, `torn_actual` recomputed; 5.3 and 5.4 also apply their
+scenario (new student counts, the new degree's sessions). Refresh them after every solver run:
+
+```bash
+python crea_vistes.py            # all questions with a proposal; or e.g. python crea_vistes.py 5.2
+```
+
+`migra_duckdb.py` calls it too, so rebuilding the database keeps them. The functions in `database/consultes.py` pick a
+view with their `vista` parameter.
 
 Querying from Python:
 
