@@ -2,7 +2,8 @@ from datetime import date, timedelta
 import json
 import sys
 
-from database.consultes import connectar
+from database.consultes import (obrir_db, consultar_totes_les_aules, consultar_sessions,
+                                consultar_calendari, consultar_proposta, VISTA_PER_DEFECTE)
 from horaris.model import Base, Aula, Sessio, Fila, DIES
 from horaris.check import _espai_ok
 
@@ -11,28 +12,13 @@ from horaris.check import _espai_ok
 # CÀRREGA DE DADES DIRECTAMENT DES DE DUCKDB
 # ============================================================
 
-def llegir_files(con, consulta):
-    resultat = con.execute(consulta)
-    columnes = [c[0] for c in resultat.description]
-    return [
-        dict(zip(columnes, fila))
-        for fila in resultat.fetchall()
-    ]
-
-
 def hora_a_minuts(hora):
     return hora.hour * 60 + hora.minute
 
 
-def carregar_base_db():
-    con = connectar()
-
-    try:
-        files_aules = llegir_files(con, """
-            SELECT aula, edifici, tipus, capacitat, descripcio
-            FROM aules
-            ORDER BY aula
-        """)
+def carregar_base_db(vista=VISTA_PER_DEFECTE):
+    with obrir_db() as (con, _):
+        files_aules = consultar_totes_les_aules(con=con)
 
         aules = {
             r["aula"]: Aula(
@@ -45,11 +31,7 @@ def carregar_base_db():
             for r in files_aules
         }
 
-        files_sessions = llegir_files(con, """
-            SELECT *
-            FROM sessions
-            ORDER BY id_sessio
-        """)
+        files_sessions = consultar_sessions(vista=vista, con=con)
 
         sessions = {}
         ordre = []
@@ -97,10 +79,7 @@ def carregar_base_db():
         # Calendari oficial.
         aturades = {}
 
-        files_calendari = llegir_files(con, """
-            SELECT data, h_ini, h_fi
-            FROM calendari
-        """)
+        files_calendari = consultar_calendari(con=con)
 
         for r in files_calendari:
             if r["h_ini"] is None:
@@ -121,33 +100,20 @@ def carregar_base_db():
             aturades=aturades
         )
 
-    finally:
-        con.close()
 
+def carregar_proposta_db(vista=VISTA_PER_DEFECTE):
+    files = consultar_proposta(vista=vista)
 
-def carregar_proposta_db():
-    con = connectar()
-
-    try:
-        files = llegir_files(con, """
-            SELECT id_sessio, dia, h_ini, aula
-            FROM proposta_partida
-            ORDER BY id_sessio
-        """)
-
-        return [
-            Fila(
-                id=r["id_sessio"],
-                dia=(r["dia"] or "").strip().upper(),
-                h_ini=r["h_ini"].strftime("%H:%M"),
-                aula=r["aula"] or "",
-                linia=i
-            )
-            for i, r in enumerate(files, start=1)
-        ]
-
-    finally:
-        con.close()
+    return [
+        Fila(
+            id=r["id_sessio"],
+            dia=(r["dia"] or "").strip().upper(),
+            h_ini=r["h_ini"].strftime("%H:%M"),
+            aula=r["aula"] or "",
+            linia=i
+        )
+        for i, r in enumerate(files, start=1)
+    ]
 
 
 BASE = carregar_base_db()
