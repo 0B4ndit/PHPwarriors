@@ -195,3 +195,75 @@ def consultar_calendari(con=None):
     """Dies del calendari oficial (festius, aturades...) per data. h_ini NULL = tot el dia."""
     with _con(con) as c:
         return _files(c, "SELECT * FROM calendari ORDER BY data")
+
+
+# ============================================================
+# API REST (Filtres específics) PER A LA GRAELLA
+# ============================================================
+
+def consultar_assignatura(codi_o_nom, vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna les sessions d'una assignatura buscant per codi o nom (coincidència parcial)."""
+    with _con(con) as c:
+        return _files(c, f"""
+            SELECT * FROM {taula_vista(vista)}
+            WHERE codi ILIKE ? OR assignatura ILIKE ?
+            ORDER BY data, h_ini
+        """, [f"%{codi_o_nom}%", f"%{codi_o_nom}%"])
+
+def consultar_professor(nom, vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna les sessions on el professor hi participa (coincidència parcial).
+       Com que `docents` és una llista a DuckDB, la passem a text per fer la cerca.
+    """
+    with _con(con) as c:
+        return _files(c, f"""
+            SELECT * FROM {taula_vista(vista)}
+            WHERE array_to_string(coalesce(docents, []), ' ') ILIKE ?
+            ORDER BY data, h_ini
+        """, [f"%{nom}%"])
+
+def consultar_sessions_aula(nom_aula, data_inici="", data_fi="", vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna l'horari d'una aula específica, opcionalment filtrat per dates."""
+    with _con(con) as c:
+        sql = f"""
+            SELECT * FROM {taula_vista(vista)}
+            WHERE (aula_partida = ? OR replace(aula_partida, '/', '-') = ?)
+        """
+        params = [nom_aula, nom_aula]
+        
+        # Si ens passen dates des del frontend, afegim el filtre
+        if data_inici and data_fi:
+            sql += " AND data >= CAST(? AS DATE) AND data <= CAST(? AS DATE)"
+            params.extend([data_inici, data_fi])
+            
+        sql += " ORDER BY data, h_ini"
+        
+        return _files(c, sql, params)
+
+def consultar_aules_lliures(data_str, hora_str, vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna les aules del catàleg que no tenen cap sessió solapada a la data i hora indicades."""
+    with _con(con) as c:
+        return _files(c, f"""
+            SELECT * FROM aules
+            WHERE aula NOT IN (
+                SELECT coalesce(aula_partida, '')
+                FROM {taula_vista(vista)}
+                WHERE data = CAST(? AS DATE)
+                  AND h_ini <= CAST(? AS TIME)
+                  AND h_fi > CAST(? AS TIME)
+            )
+            ORDER BY aula
+        """, [data_str, hora_str, hora_str])
+
+def llista_assignatures(vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna totes les assignatures úniques amb el seu codi."""
+    with _con(con) as c:
+        return _files(c, f"SELECT DISTINCT assignatura, codi FROM {taula_vista(vista)} WHERE assignatura IS NOT NULL ORDER BY assignatura")
+
+def llista_professors(vista=VISTA_PER_DEFECTE, con=None):
+    """Retorna tots els professors únics (desempaquetant la llista de docents)."""
+    with _con(con) as c:
+        return _files(c, f"""
+            SELECT DISTINCT profe 
+            FROM (SELECT unnest(docents) AS profe FROM {taula_vista(vista)}) 
+            WHERE profe IS NOT NULL ORDER BY profe
+        """)

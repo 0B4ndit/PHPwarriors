@@ -126,7 +126,8 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_json(self, obj, status_code=200):
-        body = json.dumps(obj).encode()
+        # AFEGIM default=str per formatar dates automàticament
+        body = json.dumps(obj, default=str).encode() 
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -134,9 +135,16 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        parts = [p for p in urlparse(self.path).path.split("/") if p]
+        from urllib.parse import parse_qs # Afegim el parsejador de paràmetres
+        from database import consultes    # Importem les teves noves funcions
+        parsed = urlparse(self.path)
+        
+        parts = [p for p in parsed.path.split("/") if p]
         if parts[:1] != ["api"]:
             return super().do_GET()
+        qs = parse_qs(parsed.query)
+        vista = qs.get('vista', [args.vista])[0]
+
         if parts == ["api", "layout"]:
             if state["layout"] is None:
                 return self.send_json({"ok": False, "errors": [state["error"] or "database not loaded yet"]}, 503)
@@ -147,6 +155,39 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(status())
         if parts == ["api", "events"]:
             return self.sse()
+        #API extra per a coses de la graella
+        if parts == ["api", "v1", "assignatura"]:
+            codi = qs.get('code', [''])[0]
+            dades = consultes.consultar_assignatura(codi, vista=vista)
+            return self.send_json(dades)
+
+        if parts == ["api", "v1", "aula"]:
+            nom = qs.get('id', [''])[0]
+            start = qs.get('start', [''])[0] # Nova línia
+            end = qs.get('end', [''])[0]     # Nova línia
+            dades = consultes.consultar_sessions_aula(nom, start, end, vista=vista)
+            return self.send_json(dades)
+
+        if parts == ["api", "v1", "professor"]:
+            nom = qs.get('id', [''])[0]
+            dades = consultes.consultar_professor(nom, vista=vista)
+            return self.send_json(dades)
+
+        if parts == ["api", "v1", "aules", "lliures"]:
+            # Agafem valors per defecte si no els passen
+            data_str = qs.get('day', ['2023-09-18'])[0] 
+            hora_str = qs.get('time', ['08:00'])[0]
+            dades = consultes.consultar_aules_lliures(data_str, hora_str, vista=vista)
+            return self.send_json(dades)
+        if parts == ["api", "v1", "llistes", "assignatures"]:
+            return self.send_json(consultes.llista_assignatures(vista=vista))
+            
+        if parts == ["api", "v1", "llistes", "professors"]:
+            return self.send_json(consultes.llista_professors(vista=vista))
+            
+        if parts == ["api", "v1", "llistes", "aules"]:
+            # Aprofitem la funció que ja tenies creada
+            return self.send_json(consultes.consultar_totes_les_aules())
         self.send_json({"ok": False, "errors": ["not found"]}, 404)
 
     def sse(self):

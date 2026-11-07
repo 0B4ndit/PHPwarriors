@@ -288,11 +288,11 @@
         </div>
         <div class="trow">
           <label>Setmana Concreta
-            <select id="aula-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-              <option value="3">Setmana 3 (29 Sep - 03 Oct)</option>
-            </select>
+            <div class="trow">
+              <label>Data (et mostrarem tota la seva setmana)
+                <input type="date" id="aula-data" value="2023-09-18">
+              </label>
+            </div>
           </label>
         </div>
         <button class="btn-block" onclick="carregarHorariAula()">Consultar Aula</button>
@@ -409,28 +409,33 @@
 <script>
   const DIES = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
   const HORA_INICI = 8;
-  const TOTAL_FRANGES = 26; // Franges de 30 minuts (8:00 a 21:00)
+  const TOTAL_FRANGES = 26; 
 
-  // 1. GESTIÓ DEL CANVI DE SECTORS / VISTES DE MENÚ
+  // --- NAVEGACIÓ DEL MENÚ ---
+  // --- NAVEGACIÓ DEL MENÚ ---
   document.querySelectorAll('#mode-selector button').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('#mode-selector button').forEach(b => b.classList.remove('on'));
       e.target.classList.add('on');
-
       const mode = e.target.getAttribute('data-mode');
       document.querySelectorAll('.filter-panel').forEach(p => p.classList.remove('active'));
       document.getElementById(`panel-${mode}`).classList.add('active');
-
       document.getElementById('d-type').textContent = mode.toUpperCase();
-      actualitzarApiPreview(`GET /api/v1/${mode}/list`);
+      
+      resetGraella(); // <--- AFEGIT: Neteja la graella al canviar de filtre
     });
   });
 
-  // 2. CONSTRUCCIÓ DE LA GRAELLA HORÀRIA
+  function resetGraella() {
+    construirEstructura();
+    document.getElementById('grid-title').textContent = 'VISTA: BUIDA';
+    document.getElementById('api-payload').textContent = 'Esperant consulta...';
+  }
+
+  // --- CONSTRUCCIÓ GRAELLA BUIDA ---
   function construirEstructura() {
     const grid = document.getElementById('horari-dom');
     grid.innerHTML = ''; 
-    
     const raco = document.createElement('div');
     raco.className = 'header-dia'; 
     raco.style.gridColumn = '1'; 
@@ -449,12 +454,8 @@
       const label = document.createElement('div');
       label.className = 'hora-label'; 
       label.style.gridRow = filaGrid;
-
-      if (i % 2 === 0) {
-        label.textContent = `${(HORA_INICI + (i / 2)).toString().padStart(2, '0')}:00`;
-      }
+      if (i % 2 === 0) label.textContent = `${(HORA_INICI + (i / 2)).toString().padStart(2, '0')}:00`;
       grid.appendChild(label);
-
       for (let dia = 0; dia < 5; dia++) {
         const cell = document.createElement('div');
         cell.className = 'grid-cell'; 
@@ -465,110 +466,184 @@
     }
   }
 
-  function resetGraella() {
-    construirEstructura();
-  }
-
   function afegirClasse(assignatura, infoExtra, aula, diaIndex, horaInici, duradaHores, color) {
-    const frangesOffset = (horaInici - HORA_INICI) * 2; 
-    const filaInici = 2 + frangesOffset; 
-    const frangesDurada = duradaHores * 2;
+    // 1. Assegurem que tenim números vàlids
+    const numDia = parseInt(diaIndex) || 0; 
+    const numHora = parseFloat(horaInici) || 8.0; // Si no hi ha hora, assumim 8:00
+    const numDurada = parseFloat(duradaHores) || 2.0; // Si no hi ha durada, assumim 2h
 
+    // 2. Calculem franges i files
+    const frangesOffset = (numHora - HORA_INICI) * 2; 
+    const filaInici = Math.max(2, Math.round(2 + frangesOffset)); 
+    const frangesDurada = Math.max(1, Math.round(numDurada * 2));
+
+    // 3. Calculem la columna correcta
+    // Columna 1 = Hores. Per tant, Dilluns (0) + 2 = Columna 2.
+    const columnaGrid = numDia + 2; 
+
+    // 4. Creem la targeta HTML
     const card = document.createElement('div');
     card.className = 'classe-card'; 
     card.style.background = color;
-    card.style.gridColumn = diaIndex + 2; 
+    card.style.gridColumn = columnaGrid; 
     card.style.gridRow = `${filaInici} / span ${frangesDurada}`;
+    
     card.innerHTML = `
       <div class="classe-titol">${assignatura}</div>
       <div class="classe-info">${infoExtra}</div>
       <div class="classe-info" style="margin-top:auto;">🚪 ${aula}</div>
     `;
+    
     document.getElementById('horari-dom').appendChild(card);
   }
 
-  function actualitzarApiPreview(url) {
-    document.getElementById('api-payload').textContent = url;
+  function horesAFloat(hora) {
+    if (!hora) return 8.0;
+    if (typeof hora === 'number') return hora;
+    const parts = hora.toString().split(':');
+    return parseInt(parts[0]) + (parseInt(parts[1] || 0) / 60);
   }
 
-  // --- HANDLERS PLACEHOLDER PER A CONNECTAR AMB EL BACKEND JAVA ---
+  const API_URL = "/api/v1";
 
-  // 1. CARREGAR HORARI D'UNA ASSIGNATURA
-  function carregarHorariAssignatura() {
-    resetGraella();
-    const grup = document.getElementById('select-grup').value;
-    document.getElementById('grid-title').textContent = `VISTA: ASSIGNATURA · PROG1 (${grup})`;
-    document.getElementById('d-target').textContent = `PROG1 - ${grup}`;
-    
-    // BACKEND HOOK: fetch(`/api/assignatura?code=PROG1&grup=${grup}`)
-    actualitzarApiPreview(`GET /api/v1/assignatura?code=PROG1&grup=${grup}`);
+  // --- CARREGAR LLISTES DINÀMIQUES SENSE PLACEHOLDERS ---
+  async function carregarLlistesDinamiques() {
+    try {
+      // Aules
+      const resAules = await fetch(`${API_URL}/llistes/aules`);
+      const aules = await resAules.json();
+      const selectAula = document.getElementById('select-aula');
+      selectAula.innerHTML = '';
+      aules.forEach(a => {
+        selectAula.innerHTML += `<option value="${a.aula}">${a.aula} (Cap: ${a.capacitat || '?'})</option>`;
+      });
 
-    afegirClasse('Programació 1', `Teoria · ${grup}`, 'Q2/1001', 0, 8.5, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', `Lab · ${grup}`, 'Q2/0001', 2, 11.0, 2, 'var(--color-lab)');
+      // Assignatures
+      const resAssig = await fetch(`${API_URL}/llistes/assignatures`);
+      const assignatures = await resAssig.json();
+      const listAssig = document.getElementById('list-assig');
+      listAssig.innerHTML = '';
+      assignatures.forEach((a, i) => {
+        listAssig.innerHTML += `
+          <li class="item-row ${i === 0 ? 'sel' : ''}" data-code="${a.codi}" onclick="marcarActiu(this, 'list-assig')">
+            <div><strong>${a.assignatura}</strong><br><span class="sub">${a.codi}</span></div>
+          </li>`;
+      });
+
+      // Professors
+      const resProfes = await fetch(`${API_URL}/llistes/professors`);
+      const profes = await resProfes.json();
+      const listProfe = document.getElementById('list-profe');
+      listProfe.innerHTML = '';
+      profes.forEach((p, i) => {
+        listProfe.innerHTML += `
+          <li class="item-row ${i === 0 ? 'sel' : ''}" data-prof="${p.profe}" onclick="marcarActiu(this, 'list-profe')">
+            <div><strong>${p.profe}</strong></div>
+          </li>`;
+      });
+    } catch (e) {
+      console.error("Error carregant filtres dinàmics:", e);
+    }
   }
 
-  // 2. CARREGAR HORARI SETMANAL D'UNA AULA
-  function carregarHorariAula() {
-    resetGraella();
+  // Petita funció per gestionar la UI visual de quina fila està clicada
+  function marcarActiu(element, idLlista) {
+    document.querySelectorAll(`#${idLlista} .item-row`).forEach(el => el.classList.remove('sel'));
+    element.classList.add('sel');
+  }
+
+  // --- CRIDES REALS A LES DADES DE L'HORARI ---
+  async function carregarHorariAssignatura() {
+    construirEstructura();
+    const assigActiva = document.querySelector('#list-assig .sel');
+    const codi = assigActiva ? assigActiva.getAttribute('data-code') : document.getElementById('search-assig').value;
+    document.getElementById('api-payload').textContent = `GET ${API_URL}/assignatura?code=${codi}`;
+    document.getElementById('grid-title').textContent = `VISTA: ASSIGNATURA · ${codi}`;
+
+    const resposta = await fetch(`${API_URL}/assignatura?code=${codi}`);
+    const sessions = await resposta.json();
+    sessions.forEach(s => afegirClasse(s.assignatura, `Grup ${s.grup || '?'}`, s.aula_partida || s.aula_assignada || 'TBD', s.dia_setmana || s.dia || 0, horesAFloat(s.hora_inici || s.h_ini), horesAFloat(s.durada || s.durada_min/60) || 2.0, 'var(--color-teoria)'));
+  }
+
+  async function carregarHorariAula() {
     const aula = document.getElementById('select-aula').value;
-    const setmana = document.getElementById('aula-setmana').value;
-
-    document.getElementById('grid-title').textContent = `VISTA: AULA · ${aula} (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `${aula} (S${setmana})`;
-
-    // BACKEND HOOK: fetch(`/api/aula?id=${aula}&week=${setmana}`)
-    actualitzarApiPreview(`GET /api/v1/aula?id=${encodeURIComponent(aula)}&week=${setmana}`);
-
-    afegirClasse('Física 1', 'Grup 10 · Prof. Gómez', aula, 0, 8.0, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', 'Grup 10 · Prof. Petit', aula, 1, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Bases de Dades', 'Grup 20 · Prof. Soler', aula, 3, 15.0, 2, 'var(--color-sem)');
-  }
-
-  // 3. CARREGAR HORARI D'UN PROFESSOR
-  function carregarHorariProfessor() {
-    resetGraella();
-    const setmana = document.getElementById('profe-setmana').value;
+    const dataInput = document.getElementById('aula-data').value;
     
-    document.getElementById('grid-title').textContent = `VISTA: PROFESSOR · Dr. Jordi Petit (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `Dr. Jordi Petit (S${setmana})`;
+    if (!dataInput) return alert("Si us plau, selecciona una data.");
 
-    // BACKEND HOOK: fetch(`/api/professor?id=P01&week=${setmana}`)
-    actualitzarApiPreview(`GET /api/v1/professor?id=P01&week=${setmana}`);
+    // 1. DEDUÏM EL DILLUNS I EL DIVENDRES MÀGICAMENT
+    const d = new Date(dataInput);
+    const diaSetmana = d.getDay() || 7; // Diumenge (0) passa a 7
+    
+    d.setDate(d.getDate() - diaSetmana + 1); // Retrocedim al Dilluns
+    const start = d.toISOString().split('T')[0];
+    
+    d.setDate(d.getDate() + 4); // Avancem al Divendres
+    const end = d.toISOString().split('T')[0];
 
-    afegirClasse('Programació 1', 'Teoria · Aula Q2/1001', 'Q2/1001', 0, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Estructura Dades', 'Lab · Aula Q2/0001', 'Q2/0001', 2, 12.0, 2, 'var(--color-lab)');
+    const url = `${API_URL}/aula?id=${encodeURIComponent(aula)}&start=${start}&end=${end}`;
+    
+    document.getElementById('api-payload').textContent = `GET ${url}`;
+    document.getElementById('grid-title').textContent = `VISTA: AULA · ${aula} (${start} a ${end})`;
+
+    const resposta = await fetch(url);
+    const sessions = await resposta.json();
+    
+    resetGraella(); // Neteja la visualització anterior abans de pintar
+
+    sessions.forEach(s => {
+      // 2. ADÉU AL BUG DEL DILLUNS: calculem la columna (0=Dll, 4=Div) directament des de s.data
+      const dataSessio = new Date(s.data);
+      const diaIndex = dataSessio.getDay() - 1; 
+
+      afegirClasse(
+        s.assignatura, 
+        `Grup ${s.grup || '?'}`, 
+        aula, 
+        diaIndex, 
+        horesAFloat(s.hora_inici || s.h_ini), 
+        horesAFloat(s.durada || s.durada_min/60) || 2.0, 
+        'var(--color-lab)'
+      );
+    });
   }
 
-  // 4. CERCAR AULES LLIURES EN UNA SETMANA CONCRETA
-  function cercarAulesLliures() {
-    const setmana = document.getElementById('lliures-setmana').value;
+  async function carregarHorariProfessor() {
+    construirEstructura();
+    const profeNode = document.querySelector('#list-profe .sel');
+    if(!profeNode) return;
+    const profeId = profeNode.getAttribute('data-prof');
+    document.getElementById('api-payload').textContent = `GET ${API_URL}/professor?id=${profeId}`;
+    document.getElementById('grid-title').textContent = `VISTA: PROFESSOR · ${profeId}`;
+
+    const resposta = await fetch(`${API_URL}/professor?id=${profeId}`);
+    const sessions = await resposta.json();
+    sessions.forEach(s => afegirClasse(s.assignatura, `Grup ${s.grup || '?'}`, s.aula_partida || s.aula_assignada || 'TBD', s.dia_setmana || s.dia || 0, horesAFloat(s.hora_inici || s.h_ini), horesAFloat(s.durada || s.durada_min/60) || 2.0, 'var(--color-sem)'));
+  }
+
+  async function cercarAulesLliures() {
     const dia = document.getElementById('lliures-dia').value;
     const hora = document.getElementById('lliures-hora').value;
-    const cap = document.getElementById('lliures-cap').value;
+    const dataMock = `2023-09-18`; // Canviar per data real segons el selector si vols ser precís
+    const queryUrl = `${API_URL}/aules/lliures?day=${dataMock}&time=${hora}`;
+    document.getElementById('api-payload').textContent = `GET ${queryUrl}`;
+    
+    const resposta = await fetch(queryUrl);
+    const aules = await resposta.json();
+    const resContainer = document.getElementById('results-lliures');
+    resContainer.innerHTML = ''; 
 
-    // BACKEND HOOK: fetch(`/api/aules/lliures?week=${setmana}&day=${dia}&time=${hora}&minCap=${cap}`)
-    actualitzarApiPreview(`GET /api/v1/aules/lliures?week=${setmana}&day=${dia}&time=${hora}&minCap=${cap}`);
-
-    document.getElementById('d-target').textContent = `Filtre Lliures (S${setmana}, Dia ${dia}, ${hora})`;
-
-    // Simulació de resposta del backend
-    const res = document.getElementById('results-lliures');
-    res.innerHTML = `
-      <li class="item-row" onclick="destacarAula('Q2/1002')"><span class="pill ok">Q2/1002</span> <span class="sub">Cap: 60</span></li>
-      <li class="item-row" onclick="destacarAula('Q2/0001')"><span class="pill ok">Q2/0001</span> <span class="sub">Cap: 30</span></li>
-      <li class="item-row" onclick="destacarAula('Q2/2005')"><span class="pill ok">Q2/2005</span> <span class="sub">Cap: 120</span></li>
-    `;
+    aules.forEach(a => {
+      resContainer.innerHTML += `
+        <li class="item-row" onclick="document.getElementById('select-aula').value='${a.aula}'; document.querySelector('[data-mode=aula]').click(); carregarHorariAula();">
+          <span class="pill ok">${a.aula}</span> <span class="sub">Cap: ${a.capacitat || '?'}</span>
+        </li>`;
+    });
   }
 
-  function destacarAula(aulaId) {
-    document.getElementById('select-aula').value = aulaId;
-    document.querySelector('[data-mode="aula"]').click();
-    carregarHorariAula();
-  }
-
-  // Inicialització automàtica
+  // Inicialització
   construirEstructura();
-  carregarHorariAssignatura();
+  carregarLlistesDinamiques();
 </script>
 </body>
 </html>
