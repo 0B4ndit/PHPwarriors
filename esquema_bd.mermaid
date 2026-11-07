@@ -1,0 +1,157 @@
+%% Esquema de dades/paquet.duckdb (el genera migra_duckdb.py a partir de paquet/).
+%% DuckDB no hi té claus foranes declarades: les relacions són les del DICCIONARI.md, comprovades amb consultes.
+%% Línia contínua = clau simple. Línia de punts = relació per una llista (VARCHAR[]), per data o per codi + grup.
+erDiagram
+
+    sessions {
+        VARCHAR id_sessio PK "S00001..."
+        VARCHAR activitat_id FK "activitats"
+        VARCHAR id_compartida "mateix valor = mateixa classe física"
+        VARCHAR codi "codi de l'assignatura"
+        VARCHAR assignatura
+        VARCHAR tipus "TE | PAUL | PLAB | SEM"
+        VARCHAR grup "TE/81, PAUL/811..."
+        VARCHAR semestre "C/1 | C/2 | A/0"
+        DATE data
+        VARCHAR setmana "ISO, 2026-W37 (no es pot canviar)"
+        VARCHAR dia "L M X J V"
+        TIME h_ini
+        TIME h_fi
+        INTEGER durada_min "no es pot canviar"
+        INTEGER alumnes
+        INTEGER capacitat_grup
+        VARCHAR aula_partida FK "aules; NULL a 5.914 sessions"
+        VARCHAR[] aules_addicionals_partida "aules"
+        VARCHAR[] plans "plans"
+        VARCHAR[] titulacions_curs "GED:1r..."
+        VARCHAR dc "P | S | NULL"
+        VARCHAR torn_requerit "mati | tarda"
+        VARCHAR fixada "NULL = es pot moure"
+        VARCHAR[] docents "D001..."
+        VARCHAR alumnes_origen "sigma | estimat | sense_dada"
+        BOOLEAN sense_espai "doble titulació, sense aula"
+    }
+
+    activitats {
+        VARCHAR activitat_id PK "A0001..."
+        VARCHAR codi
+        VARCHAR grup
+        VARCHAR semestre
+        VARCHAR dia
+        TIME h_ini
+        TIME h_fi
+        VARCHAR assignatura
+        VARCHAR tipus
+        INTEGER n_sessions
+        VARCHAR setmana_primera
+        VARCHAR setmana_ultima
+        INTEGER alumnes
+        VARCHAR[] aules_partida "aules"
+        INTEGER sessions_sense_aula
+        VARCHAR[] titulacions_curs
+        VARCHAR torn_requerit
+        VARCHAR fixada
+        VARCHAR[] docents
+        BOOLEAN sense_espai
+    }
+
+    aules {
+        VARCHAR aula PK "Q1/1011"
+        VARCHAR edifici
+        VARCHAR tipus "Aules docents, Laboratoris..."
+        VARCHAR descripcio
+        INTEGER capacitat
+        BOOLEAN ordinaria "compta per a la R8"
+    }
+
+    proposta_partida {
+        VARCHAR id_sessio PK, FK "sessions"
+        VARCHAR dia
+        TIME h_ini
+        VARCHAR aula FK "aules"
+    }
+
+    plans {
+        VARCHAR pla PK "1394..."
+        VARCHAR titulacions
+        VARCHAR descripcio
+        VARCHAR fitxer_origen
+        DATE data_extraccio
+    }
+
+    calendari {
+        DATE data PK
+        VARCHAR tipus "festiu | no_lectiu | aturada | avaluacio"
+        TIME h_ini "NULL = tot el dia"
+        TIME h_fi
+        VARCHAR motiu
+        VARCHAR font
+    }
+
+    cobertura {
+        VARCHAR clau PK
+        JSON valor
+    }
+
+    escenaris {
+        VARCHAR nom PK "contingencies | grau-nou-40"
+        BOOLEAN ficticia
+        VARCHAR[] descripcio
+    }
+
+    escenari_aules_tancades {
+        VARCHAR escenari FK "escenaris"
+        VARCHAR aula FK "aules"
+        DATE data_ini
+        DATE data_fi
+    }
+
+    escenari_alumnes {
+        VARCHAR escenari FK "escenaris"
+        VARCHAR codi "amb grup: sessions"
+        VARCHAR grup
+        INTEGER alumnes "nou nombre d'alumnes"
+    }
+
+    escenari_cancellades {
+        VARCHAR escenari FK "escenaris"
+        VARCHAR id_sessio FK "sessions"
+        DATE recuperar_fins
+    }
+
+    escenari_sessions_extra {
+        VARCHAR escenari FK "escenaris"
+        VARCHAR id_sessio "N00001..."
+        VARCHAR codi
+        VARCHAR assignatura
+        VARCHAR tipus
+        VARCHAR grup
+        DATE data
+        VARCHAR setmana
+        TIME h_ini
+        TIME h_fi
+        INTEGER durada_min
+        INTEGER alumnes
+        VARCHAR[] plans "NOU (no és a plans)"
+        VARCHAR[] docents "N001..."
+        VARCHAR etc "la resta de columnes de sessions"
+    }
+
+    %% Horari base
+    activitats ||--|{ sessions : "activitat_id"
+    sessions ||--|| proposta_partida : "id_sessio"
+    aules |o--o{ sessions : "aula_partida (407 fora d'inventari)"
+    aules |o--o{ proposta_partida : "aula"
+    plans }|..o{ sessions : "plans[]"
+    aules }o..o{ activitats : "aules_partida[]"
+    sessions }o..o{ sessions : "id_compartida"
+    calendari |o..o{ sessions : "data"
+
+    %% Escenaris
+    escenaris ||--o{ escenari_aules_tancades : "escenari"
+    escenaris ||--o{ escenari_alumnes : "escenari"
+    escenaris ||--o{ escenari_cancellades : "escenari"
+    escenaris ||--o{ escenari_sessions_extra : "escenari"
+    aules ||--o{ escenari_aules_tancades : "aula"
+    sessions ||--o{ escenari_cancellades : "id_sessio"
+    escenari_alumnes }o..|{ sessions : "codi + grup"
