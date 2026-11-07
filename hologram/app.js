@@ -11,6 +11,37 @@ const COLOR_LERP_SECONDS = 0.35;
 const GHOST_LINE = 0x2c6478;
 const OVER_COLOR = '#ff4fd8'; // "too many students"
 
+// ---------- database version selector ----------
+let window_seleccionat = '5.1';
+
+document.querySelectorAll('[data-version]').forEach((b) => {
+  b.addEventListener('click', () => {
+    window_seleccionat = b.dataset.version;
+
+    document.querySelectorAll('[data-version]').forEach((btn) => {
+      btn.classList.toggle('on', btn === b);
+    });
+
+    console.log('Versió seleccionada:', window_seleccionat);
+  });
+});
+
+// ---------- main view selector ----------
+// Cada opció obre una pàgina independent del navegador.
+document.querySelectorAll('[data-view]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const mode = button.dataset.view;
+
+    if (mode === 'hologram') {
+      window.location.href = '/';
+    } else if (mode === 'home') {
+      window.location.href = '/home/home.html';
+    } else if (mode === 'graella') {
+      window.location.href = '/graella/graella.html';
+    }
+  });
+});
+
 // ---------- scene ----------
 const canvasHost = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ antialias: true });

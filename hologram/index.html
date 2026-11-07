@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -77,12 +78,96 @@
   details { border-top:1px solid var(--line); padding:8px 12px; }
   summary { cursor:pointer; color:var(--dim); }
   pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fc3d3; font-size:10.5px; }
-  @media (max-width: 700px) { #app { flex-direction:column; } aside { width:100%; height:42%; border-left:0; border-top:1px solid var(--line); } }
+
+  @media (max-width: 700px) {
+    #app { flex-direction:column; }
+    aside { width:100%; height:42%; border-left:0; border-top:1px solid var(--line); }
+  }
+
+  /* SELECTORS GLOBALS */
+  #versions {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 3px;
+    padding: 4px;
+    background: rgba(7,18,26,.85);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+  }
+
+  #versions button {
+    min-width: 38px;
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
+  #versions button.on {
+    background: #0f3a4e;
+    border-color: var(--cyan);
+    color: #e6f7fb;
+  }
+
+  #views {
+    position: absolute;
+    top: 12px;
+    left: calc(50% + 125px);
+    z-index: 4;
+    display: flex;
+    gap: 3px;
+    padding: 4px;
+    background: rgba(7,18,26,.85);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+  }
+
+  #views button {
+    min-width: 42px;
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
+  #views button.on {
+    background: #0f3a4e;
+    border-color: var(--cyan);
+    color: #e6f7fb;
+  }
+
+  @media (max-width: 900px) {
+    #versions {
+      top: 12px;
+    }
+
+    #views {
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="scene">
+    <nav id="versions" aria-label="Versió de la base de dades">
+      <button data-version="BASE" class="on">BASE</button>
+      <button data-version="5.1">5.1</button>
+      <button data-version="5.2">5.2</button>
+      <button data-version="5.3">5.3</button>
+      <button data-version="5.4">5.4</button>
+    </nav>
+
+    <nav id="views" aria-label="Vista">
+      <button data-view="hologram" class="on">3D</button>
+      <button data-view="home">Home</button>
+      <button data-view="graella">Graella</button>
+    </nav>
+
     <nav id="floors" aria-label="Planta">
       <span>Planta</span>
       <button data-floor="3" title="planta tercera">P3</button>
@@ -132,3 +217,4 @@
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
