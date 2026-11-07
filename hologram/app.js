@@ -580,6 +580,7 @@ function focusRoom(id) {
   selected = id;
   const room = rooms.get(id);
   room.highlightTarget = 1;
+  setFloor(room.floor); // focus the room's planta (the others fade)
   focusTarget = room.mesh.position.clone();
   const row = document.querySelector(`[data-row="${id}"]`);
   if (row) { row.classList.add('sel'); row.scrollIntoView({ block: 'nearest' }); }
@@ -601,7 +602,9 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return; // a drag, not a click
   const rect = renderer.domElement.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
-  const hit = ray.intersectObjects([...rooms.values()].map((r) => r.mesh), false)[0];
+  const hits = ray.intersectObjects([...rooms.values()].map((r) => r.mesh), false);
+  // with a planta focused, a faded room of another floor in front does not steal the click
+  const hit = hits.find((h) => rooms.get(h.object.userData.roomId).floor === floorSel) || hits[0];
   if (hit) focusRoom(hit.object.userData.roomId);
   else clearSelection(); // click on empty space: drop the selection (bubble / list)
 });

@@ -27,9 +27,9 @@ Weekends, holidays, non-teaching days and the assessment weeks are excluded from
 
 **Click a room** (in 3D or in the list) for its classes: in **Hour** a floating bubble shows the class name, group and professor(s) at that moment (or "free"); in **Day / Week / Semester** a list appears under the room list: day = hours, week = weekday + hours, semester = weekly pattern with the number of occurrences (`×12`). Professors are the pseudonymous ids of the data (`Dnnn`) and belong to the group, not to each session.
 
-Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The floating **Planta** buttons over the scene (P3-P0 / Totes) keep one floor bright and fade the rooms, labels and corridors of the others (the room list fades them too).
+Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The floating **Planta** buttons over the scene (P3-P0 / Totes) keep one floor bright and fade the rooms, labels and corridors of the others (the room list fades them too). Selecting a room focuses its floor; while a floor is focused, a click in 3D prefers its rooms over faded ones in front.
 
-Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters go by month (September-January = 1). `db.py` holds the queries; `schedule.js` holds the time logic and has no browser dependencies.
+Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters come from `sessions.sem` (computed by `migra_duckdb.py`: September-January = 1). `db.py` holds the queries; `schedule.js` holds the time logic and has no browser dependencies.
 
 ## API
 
