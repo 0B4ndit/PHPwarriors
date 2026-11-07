@@ -65,3 +65,30 @@ git commit -m "chore: stop tracking venv"
 ```
 
 Check that `.gitignore` lists the venv folder first, or git will pick it up again on the next `git add .`.
+
+## DuckDB database
+
+`migra_duckdb.py` loads everything in `paquet/` (CSVs, `cobertura.json` and the scenarios) into one DuckDB file, `dades/paquet.duckdb`. The CSVs stay the source of truth, and the verifier (`python -m horaris`) still reads them directly. The database is rebuilt from scratch on every run and is not committed to git.
+
+```bash
+python migra_duckdb.py       # (re)build dades/paquet.duckdb
+```
+
+Tables: `sessions`, `aules`, `activitats`, `proposta_partida`, `plans`, `calendari`, `cobertura`, `escenaris`, `escenari_aules_tancades`, `escenari_alumnes`, `escenari_cancellades`, `escenari_sessions_extra`.
+
+Types: dates are `DATE`, `HH:MM` times are `TIME`, counts are `INTEGER`, 0/1 flags (`ordinaria`, `sense_espai`) are `BOOLEAN`, and `|`-separated fields (`docents`, `plans`, `titulacions_curs`, `aules_addicionals_partida`, `aules_partida`) are lists (`VARCHAR[]`). Codes such as `codi` and `pla` stay as text.
+
+Querying from Python:
+
+```python
+import duckdb
+con = duckdb.connect("dades/paquet.duckdb", read_only=True)
+con.execute("""
+    SELECT tipus, count(*) AS sense_aula
+    FROM sessions
+    WHERE aula_partida IS NULL AND NOT sense_espai
+    GROUP BY tipus
+""").df()
+```
+
+Note: DuckDB 2.0 removed `fetchone()` / `fetchall()` on `con.sql(...)` relations. Use `con.execute(...).fetchone()` or `.df()` instead.

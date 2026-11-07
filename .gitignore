@@ -23,6 +23,9 @@ pyvenv.cfg
 !.env.example
 
 # --- Python bytecode / caches ---
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
 __pycache__/
 *.py[cod]
 *$py.class
