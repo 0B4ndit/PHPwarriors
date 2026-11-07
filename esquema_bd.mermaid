@@ -1,5 +1,6 @@
 %% Esquema de dades/paquet.duckdb (el genera migra_duckdb.py a partir de paquet/).
 %% DuckDB no hi té claus foranes declarades: les relacions són les del DICCIONARI.md, comprovades amb consultes.
+%% Vistes sessions51..sessions54: mateixa estructura que sessions (no surten al diagrama).
 %% Línia contínua = clau simple. Línia de punts = relació per una llista (VARCHAR[]), per data o per codi + grup.
 erDiagram
 
@@ -30,6 +31,8 @@ erDiagram
         VARCHAR[] docents "D001..."
         VARCHAR alumnes_origen "sigma | estimat | sense_dada"
         BOOLEAN sense_espai "doble titulació, sense aula"
+        INTEGER sem "calculada: 1 o 2 per data"
+        VARCHAR torn_actual "calculada: mati si h_ini < 14:30"
     }
 
     activitats {
@@ -134,7 +137,7 @@ erDiagram
         INTEGER alumnes
         VARCHAR[] plans "NOU (no és a plans)"
         VARCHAR[] docents "N001..."
-        VARCHAR etc "la resta de columnes de sessions"
+        VARCHAR etc "la resta de columnes de sessions, sem i torn_actual inclosos"
     }
 
     %% Horari base
