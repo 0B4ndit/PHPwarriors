@@ -17,10 +17,22 @@
           --red:#d8364f; --green:#34c97c; --cyan:#3a8fb0; }
   * { box-sizing: border-box; }
   html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:12px/1.4 ui-monospace, Consolas, monospace; }
-  #app { display:flex; height:100%; }
+  #app { display:flex; height:100%; position:relative; }
+  
+  /* BARRA LATERAL FIXADA A LA ESQUERRA */
+  aside { 
+    width:280px; 
+    background:var(--panel); 
+    border-right:1px solid var(--line); 
+    display:flex; 
+    flex-direction:column; 
+    z-index:1; 
+    flex-shrink:0;
+  }
+  
   #scene { flex:1; min-width:0; position:relative; }
   #scene canvas { display:block; width:100%; height:100%; }
-  aside { width:280px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
+
   header { padding:12px; border-bottom:1px solid var(--line); }
   header h1 { margin:0 0 8px; font-size:13px; letter-spacing:.12em; color:var(--cyan); }
   .btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
@@ -35,12 +47,27 @@
   .seg button:first-child { border-radius:4px 0 0 4px; } .seg button:last-child { border-radius:0 4px 4px 0; border-left:0; }
   .seg button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
   .row.off, h3.off { opacity:.35; }
-  #floors { position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-direction:column; gap:4px;
-            padding:8px; background:rgba(7,18,26,.72); border:1px solid var(--line); border-radius:6px; backdrop-filter:blur(4px); }
+
+  /* SELECTOR DE PLANTES A LA DRETA DINS DE L'ESCENA 3D */
+  #floors { 
+    position:absolute; 
+    top:12px; 
+    right:12px; 
+    z-index:2; 
+    display:flex; 
+    flex-direction:column; 
+    gap:4px;
+    padding:8px; 
+    background:rgba(7,18,26,.72); 
+    border:1px solid var(--line); 
+    border-radius:6px; 
+    backdrop-filter:blur(4px); 
+  }
   #floors span { color:var(--dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase; text-align:center; margin-bottom:2px; }
   #floors button { min-width:56px; padding:5px 8px; }
   #floors button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
   #floors button:last-child { margin-top:4px; }
+
   .trow[hidden] { display:none; }
   .trow { display:flex; align-items:center; gap:6px; margin-top:8px; }
   .trow input, .trow select { flex:1; min-width:0; background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; font:inherit; color-scheme:dark; }
@@ -77,21 +104,44 @@
   details { border-top:1px solid var(--line); padding:8px 12px; }
   summary { cursor:pointer; color:var(--dim); }
   pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fc3d3; font-size:10.5px; }
-  @media (max-width: 700px) { #app { flex-direction:column; } aside { width:100%; height:42%; border-left:0; border-top:1px solid var(--line); } }
+
+  /* BOTÓ RODÓ DEL CHATBOT (SOTA-DRETA) */
+  #chatbot-btn {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 100;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #0f3a4e;
+    border: 1px solid var(--cyan);
+    color: #e6f7fb;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px rgba(58, 143, 176, 0.4);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  #chatbot-btn:hover {
+    transform: scale(1.1);
+    background: #144963;
+    box-shadow: 0 0 18px rgba(58, 143, 176, 0.7);
+    border-color: #e6f7fb;
+  }
+
+  @media (max-width: 700px) { 
+    #app { flex-direction:column; } 
+    aside { width:100%; height:42%; border-right:0; border-bottom:1px solid var(--line); } 
+    #chatbot-btn { bottom: 12px; right: 12px; width: 40px; height: 40px; font-size: 16px; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="scene">
-    <nav id="floors" aria-label="Planta">
-      <span>Planta</span>
-      <button data-floor="3" title="planta tercera">P3</button>
-      <button data-floor="2" title="planta segona">P2</button>
-      <button data-floor="1" title="planta primera">P1</button>
-      <button data-floor="0" title="planta baixa">P0</button>
-      <button data-floor="" class="on" title="totes les plantes">Totes</button>
-    </nav>
-  </div>
+  <!-- PANEL LATERAL ESQUERRA (SELECCIÓ D'AULES I FILTRES) -->
   <aside>
     <header>
       <h1>UAB · AULES EDIFICI Q <span id="counts"></span></h1>
@@ -128,6 +178,22 @@
       <pre id="api-example"></pre>
     </details>
   </aside>
+
+  <!-- ESCENA 3D A LA DRETA -->
+  <div id="scene">
+    <!-- SELECTOR DE PLANTES A LA DRETA DINS L'ESCENA -->
+    <nav id="floors" aria-label="Planta">
+      <span>Planta</span>
+      <button data-floor="3" title="planta tercera">P3</button>
+      <button data-floor="2" title="planta segona">P2</button>
+      <button data-floor="1" title="planta primera">P1</button>
+      <button data-floor="0" title="planta baixa">P0</button>
+      <button data-floor="" class="on" title="totes les plantes">Totes</button>
+    </nav>
+  </div>
+
+  <!-- BOTÓ RODÓ CHATBOT (SOTA-DRETA) -->
+  <button id="chatbot-btn" title="Obrir Chatbot Assistant" onclick="alert('Obrint assistent virtual...')">💬</button>
 </div>
 <script type="module" src="app.js"></script>
 </body>
