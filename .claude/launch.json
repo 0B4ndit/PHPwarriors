@@ -3,9 +3,7 @@
   "configurations": [
     {
       "name": "hologram",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd hologram && python3 server.py 8765"],
-      "port": 8765
+      "url": "http://localhost:8765"
     }
   ]
 }

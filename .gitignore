@@ -66,10 +66,5 @@ htmlcov/
 .DS_Store
 
 
-# hologram: generated state (written by server.py / nivell1.py)
-hologram/rooms.json
-hologram/colormap.json
-hologram/sessions-data.json
-hologram/*.tmp
 
 planols/*

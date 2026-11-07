@@ -1,11 +1,7 @@
 import * as THREE from 'three';
 
-// Muted palette: reads as "hologram" without blowing out under bloom.
-export const PALETTE = {
-  red: new THREE.Color(0xd8364f),
-  green: new THREE.Color(0x34c97c),
-  neutral: new THREE.Color(0x3a8fb0),
-};
+// Muted cyan: reads as "hologram" without blowing out under bloom. Start colour of every room.
+export const NEUTRAL = new THREE.Color(0x3a8fb0);
 
 const vertexShader = /* glsl */ `
   varying vec3 vWorldPos;
@@ -23,6 +19,7 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform float uSeed;
   uniform float uHighlight;
+  uniform float uDim;       // 1 = normal, lower = faded (room on a floor that is not selected)
   varying vec3 vWorldPos;
   varying vec3 vWorldNormal;
   void main() {
@@ -36,17 +33,18 @@ const fragmentShader = /* glsl */ `
 
     float intensity = 0.22 + fresnel * 0.35 + scan * 0.10 + uHighlight * 0.35;
     float alpha = 0.16 + fresnel * 0.22 + scan * 0.05 + uHighlight * 0.18;
-    gl_FragColor = vec4(uColor * intensity * flicker, alpha);
+    gl_FragColor = vec4(uColor * intensity * flicker, alpha * uDim);
   }
 `;
 
 export function createHologramMaterial(seed = 0) {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uColor: { value: PALETTE.neutral.clone() },
+      uColor: { value: NEUTRAL.clone() },
       uTime: { value: 0 },
       uSeed: { value: seed },
       uHighlight: { value: 0 },
+      uDim: { value: 1 },
     },
     vertexShader,
     fragmentShader,
