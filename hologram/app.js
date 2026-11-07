@@ -4,12 +4,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { PALETTE, createHologramMaterial } from './hologram-material.js';
+import { NEUTRAL, createHologramMaterial } from './hologram-material.js';
 import { Schedule, step, semOf, addWeekdays, isWeekend, hhmm, toMin, isoWeek } from './schedule.js';
 
 const COLOR_LERP_SECONDS = 0.35;
 const GHOST_LINE = 0x2c6478;
-const CMAP_V0 = 0.32; // brightness of a 0 % room (grey, still visible on the dark background)
+const OVER_COLOR = '#ff4fd8'; // "too many students"
 
 // ---------- scene ----------
 const canvasHost = document.getElementById('scene');
@@ -40,46 +40,56 @@ function resize() {
 new ResizeObserver(resize).observe(canvasHost);
 
 // ---------- helpers ----------
-// Label sprite sized to its text so nothing is clipped. `height` is the sprite's world height.
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const measureCtx = document.createElement('canvas').getContext('2d');
-function makeLabel(text, sub, height = 2.4, color = '#9fd8e6') {
-  const main = 'bold 44px monospace', small = '30px monospace';
-  measureCtx.font = main;
-  let w = measureCtx.measureText(text).width;
-  if (sub) { measureCtx.font = small; w = Math.max(w, measureCtx.measureText(sub).width); }
-  const pad = 20;
-  const c = document.createElement('canvas');
-  c.width = Math.ceil(w + pad * 2);
-  c.height = sub ? 100 : 64;
-  const g = c.getContext('2d');
-  g.textAlign = 'center';
-  g.textBaseline = 'alphabetic';
-  g.fillStyle = color;
-  g.font = main;
-  g.fillText(text, c.width / 2, sub ? 44 : 46);
-  if (sub) { g.fillStyle = '#5f9aab'; g.font = small; g.fillText(sub, c.width / 2, 86); }
+
+function canvasSprite(c, height, renderOrder) {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
   s.scale.set(height * (c.width / c.height), height, 1);
-  s.renderOrder = 10;
+  s.renderOrder = renderOrder;
   return s;
 }
 
-// room label, shrunk to the room's width so narrow rooms (e.g. QC-3115.x) do not overlap
-function roomLabel(code, sub, width) {
-  const l = makeLabel(code, sub, 2.2);
-  l.scale.multiplyScalar(Math.min(1, width / l.scale.x));
+// Text sprite sized to its lines so nothing is clipped. `scale` = world units per 100 canvas px,
+// so every label draws its text at the same size whatever its number of lines.
+function makeLabel(text, { tag = '', sub = '', scale = 2.4, color = '#9fd8e6' } = {}) {
+  const lines = [{ t: text, font: 'bold 44px monospace', color, h: 50 }];
+  if (tag) lines.push({ t: tag, font: '26px monospace', color: '#7fb8c8', h: 32 });
+  if (sub) lines.push({ t: sub, font: '30px monospace', color: '#5f9aab', h: 36 });
+  const pad = 20;
+  let w = 0;
+  for (const l of lines) { measureCtx.font = l.font; w = Math.max(w, measureCtx.measureText(l.t).width); }
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w + pad * 2);
+  c.height = lines.reduce((a, l) => a + l.h, 0) + 14;
+  const g = c.getContext('2d');
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+  let y = 4;
+  for (const l of lines) { y += l.h; g.font = l.font; g.fillStyle = l.color; g.fillText(l.t, c.width / 2, y - 8); }
+  return canvasSprite(c, scale * (c.height / 100), 10);
+}
+
+// Room label: code, room type and the current value, shrunk to the room's width so narrow rooms do not overlap.
+function roomLabel(room) {
+  const l = makeLabel(room.data.code, { tag: room.data.tipus, sub: room.labelSub, scale: 2.2 });
+  l.scale.multiplyScalar(Math.min(1, room.width / l.scale.x));
+  l.position.copy(room.labelPos);
+  l.material.opacity = floorDim[room.floor].v;
   return l;
 }
 
-const ghostLineMat =new THREE.LineBasicMaterial({ color: GHOST_LINE, transparent: true, opacity: 0.55 });
+const GHOST_OPACITY = 0.55;
+const ghostLineMat = new THREE.LineBasicMaterial({ color: GHOST_LINE, transparent: true, opacity: GHOST_OPACITY });
 const ghostFillMat = new THREE.MeshBasicMaterial({ color: 0x0c2a36, transparent: true, opacity: 0.12, depthWrite: false });
 
-function ghostBox(x0, x1, y0, y1, z0, z1, fill = true) {
+function ghostBox(x0, x1, y0, y1, z0, z1, fill = true, lineMat = ghostLineMat) {
   const geo = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
   const g = new THREE.Group();
-  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), ghostLineMat));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), lineMat));
   if (fill) g.add(new THREE.Mesh(geo, ghostFillMat));
   g.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
   return g;
@@ -95,21 +105,23 @@ function mulberry32(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-// ---------- colour model ----------
-// categories: red | green | neutral.
-// colormap: one hue (chosen in the UI); 0 % = no colour (dim grey), 100 % = full saturation and brightness.
-const cmap = { mode: 'categories', hue: 200 };
-try { cmap.hue = Number(JSON.parse(localStorage.getItem('hologram.hue') || '200')) || 200; } catch { /* ignore */ }
-const saveHue = () => { try { localStorage.setItem('hologram.hue', String(cmap.hue)); } catch { /* ignore */ } };
+function disposeGroup(g) {
+  g.traverse((o) => { o.geometry?.dispose?.(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
+}
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
-function cmapColor(v) {
-  const t = clamp01(v / 100);
-  const s = t;                              // saturation: 0 -> 1
-  const val = CMAP_V0 + (1 - CMAP_V0) * t;  // brightness: dim grey -> full
-  const l = val * (1 - s / 2);              // HSV -> HSL
+// ---------- colour ramp ----------
+// One hue (picked in the UI, remembered per browser); a room's value 0-100 drives it:
+// 0 % = dim grey (still visible on the dark background), 100 % = the hue at full saturation and brightness.
+const V0 = 0.32;
+let hue = 200;
+try { hue = Number(localStorage.getItem('hologram.hue')) || 200; } catch { /* storage unavailable */ }
+
+function rampColor(v) {
+  const t = Math.min(1, Math.max(0, v / 100));
+  const val = V0 + (1 - V0) * t;           // HSV: saturation = t, value = val
+  const l = val * (1 - t / 2);             // HSV -> HSL
   const sl = l === 0 || l === 1 ? 0 : (val - l) / Math.min(l, 1 - l);
-  return new THREE.Color().setHSL(cmap.hue / 360, sl, l, THREE.SRGBColorSpace);
+  return new THREE.Color().setHSL(hue / 360, sl, l, THREE.SRGBColorSpace);
 }
 
 // ---------- build from layout.json ----------
@@ -121,29 +133,42 @@ world.add(labelGroup);
 const ESPINA_ORDER = ['Q4', 'Q3', 'Q2', 'Q1']; // north -> south, as in the plans
 const PANEL_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'QC']; // room list groups
 const PLANTES = ['baixa', 'primera', 'segona', 'tercera'];
-let layout;
 
-function build() {
+// ---------- floor filter: the selected planta stays bright, the others fade ----------
+const DIM_OTHER_FLOORS = 0.15;
+let floorSel = null; // null = all floors
+const floorDim = PLANTES.map(() => ({ v: 1, target: 1 }));                   // eased in animate()
+const floorGhostMat = PLANTES.map(() => ghostLineMat.clone());              // corridors and ghost cells of each floor
+
+function setFloor(f) {
+  floorSel = f;
+  floorDim.forEach((d, i) => { d.target = f === null || f === i ? 1 : DIM_OTHER_FLOORS; });
+  document.querySelectorAll('[data-floor]').forEach((b) => b.classList.toggle('on', b.dataset.floor === (f === null ? '' : String(f))));
+  for (const r of rooms.values()) document.querySelector(`[data-row="${r.id}"]`)?.classList.toggle('off', f !== null && r.floor !== f);
+  document.querySelectorAll('#room-list h3').forEach((h) => h.classList.toggle('off', f !== null && Number(h.dataset.floor) !== f));
+}
+
+function build(layout) {
   const G = layout.geometry;
   const gap = 0.35;
   let seed = 0;
 
   for (const slab of layout.slabs) {
-    const y0 = PLANTES.indexOf(slab.planta) * G.floorHeight;
+    const floor = PLANTES.indexOf(slab.planta);
+    const y0 = floor * G.floorHeight;
     const inSpine = ESPINA_ORDER.includes(slab.espina);
     // Q1-Q4: cells laid along the espina by plan area. Q5, Q6, QC: each room carries its own x/z box.
     let spans = [];
     if (inSpine) {
       const z0 = ESPINA_ORDER.indexOf(slab.espina) * G.pitch;
       const z1 = z0 + G.slabDepth;
-      world.add(ghostBox(0, G.slabLength, y0, y0 + 0.25, z1, z1 + G.corridorDepth, false));
+      world.add(ghostBox(0, G.slabLength, y0, y0 + 0.25, z1, z1 + G.corridorDepth, false, floorGhostMat[floor]));
       spans = split(slab.rooms.map((r) => r.area), G.slabLength).map(([a, b]) => ({ x: [a, b], z: [z0, z1] }));
     }
 
     slab.rooms.forEach((r, i) => {
-      const box = inSpine ? spans[i] : r;
-      const [a, b] = box.x, [c, d] = box.z;
-      if (r.ghost) { world.add(ghostBox(a, b, y0, y0 + G.roomHeight, c, d, false)); return; }
+      const { x: [a, b], z: [c, d] } = inSpine ? spans[i] : r;
+      if (r.ghost) { world.add(ghostBox(a, b, y0, y0 + G.roomHeight, c, d, false, floorGhostMat[floor])); return; }
 
       const geo = new THREE.BoxGeometry(b - a - gap, G.roomHeight, d - c - gap);
       const mat = createHologramMaterial(seed++ * 1.7);
@@ -152,25 +177,26 @@ function build() {
       const id = `${slab.espina}-${r.code}`;
       mesh.userData.roomId = id;
 
-      const edgeMat = new THREE.LineBasicMaterial({ color: PALETTE.neutral.clone(), transparent: true, opacity: 0.75 });
+      const edgeMat = new THREE.LineBasicMaterial({ color: NEUTRAL.clone(), transparent: true, opacity: 0.75 });
       mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat));
       world.add(mesh);
 
-      const label = roomLabel(r.code, String(r.capacity), b - a);
-      label.position.set(mesh.position.x, y0 + G.roomHeight + 1.4, mesh.position.z);
-      labelGroup.add(label);
-
-      rooms.set(id, {
-        id, data: { ...r, espina: slab.espina, planta: slab.planta }, mesh, mat, edgeMat,
-        current: PALETTE.neutral.clone(), target: PALETTE.neutral.clone(), from: PALETTE.neutral.clone(),
-        t: 1, colorName: 'neutral', value: 0, highlight: 0, highlightTarget: 0,
-        label, labelPos: label.position.clone(), labelSub: String(r.capacity), labelWidth: b - a, tvalue: 0, tlabel: '', over: null,
-      });
+      const room = {
+        id, data: { ...r, espina: slab.espina, planta: slab.planta }, floor, mesh, mat, edgeMat,
+        current: NEUTRAL.clone(), target: NEUTRAL.clone(), from: NEUTRAL.clone(), t: 1,
+        highlight: 0, highlightTarget: 0,
+        value: 0, valueText: '', over: null, // time view: 0-100, label text, over-capacity marker
+        width: b - a, labelPos: new THREE.Vector3(mesh.position.x, y0 + G.roomHeight + 1.8, mesh.position.z),
+        labelSub: String(r.capacity),
+      };
+      room.label = roomLabel(room);
+      labelGroup.add(room.label);
+      rooms.set(id, room);
     });
   }
 
   for (const e of ESPINA_ORDER) {
-    const t = makeLabel(e, null, 3.2, '#cfeef5');
+    const t = makeLabel(e, { scale: 5, color: '#cfeef5' });
     t.position.set(G.slabLength + 6, 1.8, ESPINA_ORDER.indexOf(e) * G.pitch + G.slabDepth / 2);
     labelGroup.add(t);
   }
@@ -184,7 +210,7 @@ function build() {
         .map(([x, z]) => new THREE.Vector3(x, y, z));
       world.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(ring), ghostLineMat));
     }
-    const t = makeLabel(c.name, null, 3.4, '#5b95a6');
+    const t = makeLabel(c.name, { scale: 5.3, color: '#5b95a6' });
     t.position.set((c.x[0] + c.x[1]) / 2, c.floors * G.floorHeight + 2.4, (c.z[0] + c.z[1]) / 2);
     labelGroup.add(t);
   }
@@ -196,7 +222,7 @@ function build() {
   addTrees(G);
 }
 
-// ---------- trees (architectural-model style, deliberately muted so they never read as "green = status") ----------
+// ---------- trees (architectural-model style, deliberately muted so they never read as a status colour) ----------
 function addTrees(G) {
   const rnd = mulberry32(7);
   const lineMat = new THREE.LineBasicMaterial({ color: 0x7f9f98, transparent: true, opacity: 0.5 });
@@ -246,13 +272,8 @@ function frame() {
 }
 
 // ---------- recolouring ----------
-function targetFor(room) {
-  if (cmap.mode === 'colormap') return cmapColor(room.value);
-  if (cmap.mode === 'schedule') return cmapColor(room.tvalue);
-  return PALETTE[room.colorName];
-}
 function recolor(room, instant = false) {
-  const tgt = targetFor(room);
+  const tgt = rampColor(room.value);
   if (!tgt.equals(room.target)) {
     room.from.copy(instant ? tgt : room.current);
     room.target.copy(tgt);
@@ -261,44 +282,12 @@ function recolor(room, instant = false) {
   }
   updateRow(room);
 }
-const recolorAll = (instant = false) => { for (const r of rooms.values()) recolor(r, instant); updateSummary(); };
+function recolorAll(instant = false) {
+  for (const r of rooms.values()) recolor(r, instant);
+  $('counts').textContent = scheduleSummary;
+}
 
-// ---------- public API (also used by the live connection) ----------
-const VALID = new Set(['red', 'green', 'neutral']);
-
-window.setRoomColor = function setRoomColor(id, color) {
-  const room = rooms.get(id);
-  if (!room) { console.warn(`[hologram] unknown room id: ${id}`); return false; }
-  room.colorName = VALID.has(color) ? color : 'neutral';
-  recolor(room);
-  updateSummary();
-  return true;
-};
-window.setAllRoomColors = (map) => { for (const id of rooms.keys()) window.setRoomColor(id, (map && map[id]) || 'neutral'); };
-
-window.setRoomValue = function setRoomValue(id, v) {
-  const room = rooms.get(id);
-  if (!room) { console.warn(`[hologram] unknown room id: ${id}`); return false; }
-  room.value = typeof v === 'number' && isFinite(v) ? Math.min(100, Math.max(0, v)) : 0; // nothing scheduled = 0 %
-  recolor(room);
-  updateSummary();
-  return true;
-};
-window.setAllRoomValues = (map) => { for (const id of rooms.keys()) window.setRoomValue(id, map ? map[id] : null); };
-
-window.setMode = function setMode(m) {
-  cmap.mode = m === 'colormap' || m === 'schedule' ? m : 'categories';
-  document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === cmap.mode));
-  document.getElementById('cmap-controls').hidden = cmap.mode === 'categories';
-  document.getElementById('time-controls').hidden = cmap.mode !== 'schedule';
-  if (cmap.mode === 'schedule') applyView();
-  else for (const room of rooms.values()) { setLabelSub(room, String(room.data.capacity)); setOver(room, null); }
-  recolorAll();
-  updateBubble();
-  refreshDetail();
-};
-
-// ---------- schedule mode: time views driven by the session dataset (/api/sessions) ----------
+// ---------- time views, driven by the session dataset (/api/sessions) ----------
 // hour = students per room at that moment (colour = students / capacity; "TOO MANY STUDENTS" over capacity)
 // day | week | semester = % of the open time the room has a class (students are irrelevant)
 let sched = null;
@@ -309,36 +298,32 @@ const overLayer = new THREE.Group();
 world.add(overLayer);
 const winOf = () => (sched ? sched.window : FALLBACK_WINDOW);
 
-function disposeGroup(g) {
-  g.traverse((o) => { o.geometry?.dispose?.(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
-}
 function setLabelSub(room, sub) {
   if (room.labelSub === sub) return;
+  room.labelSub = sub;
   labelGroup.remove(room.label);
   disposeGroup(room.label);
-  room.label = roomLabel(room.data.code, sub, room.labelWidth);
-  room.label.position.copy(room.labelPos);
+  room.label = roomLabel(room);
   labelGroup.add(room.label);
-  room.labelSub = sub;
 }
+
 function setOver(room, info) {
   const txt = info ? `${info.n} / ${info.cap}` : '';
   if ((room.over?.txt || '') === txt) return;
   if (room.over) { overLayer.remove(room.over.group); disposeGroup(room.over.group); room.over = null; }
   if (!info) return;
   const p = room.mesh.geometry.parameters;
-  const mat = new THREE.LineBasicMaterial({ color: 0xff4fd8, transparent: true, opacity: 0.9 });
+  const mat = new THREE.LineBasicMaterial({ color: OVER_COLOR, transparent: true, opacity: 0.9 });
   const group = new THREE.Group();
   const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(p.width + 0.9, p.height + 0.9, p.depth + 0.9)), mat);
   box.position.copy(room.mesh.position);
-  const badge = makeLabel('TOO MANY STUDENTS', txt, 2.6, '#ff4fd8');
+  const badge = makeLabel('TOO MANY STUDENTS', { sub: txt, scale: 2.6, color: OVER_COLOR });
   badge.position.copy(room.labelPos).add(new THREE.Vector3(0, 3.6, 0));
   group.add(box, badge);
   overLayer.add(group);
   room.over = { group, mat, txt, badge };
 }
 
-const $ = (id) => document.getElementById(id);
 function syncTimeControls() {
   document.querySelectorAll('[data-scope]').forEach((b) => b.classList.toggle('on', b.dataset.scope === view.scope));
   $('row-sem').hidden = view.scope !== 'semester';
@@ -355,31 +340,28 @@ function syncTimeControls() {
 }
 
 function applyView() {
-  if (cmap.mode !== 'schedule') return;
-  const infoEl = $('t-info');
   syncTimeControls();
   if (!sched) {
-    for (const room of rooms.values()) { room.tvalue = 0; room.tlabel = '–'; setLabelSub(room, '–'); setOver(room, null); }
-    infoEl.textContent = 'No session data yet: run nivell1.py (or PUT /api/sessions).';
+    for (const room of rooms.values()) { room.value = 0; room.valueText = '–'; setLabelSub(room, '–'); setOver(room, null); }
+    $('t-info').textContent = dbError ? `Database: ${dbError}` : 'No sessions with a room of the hologram in the database.';
     scheduleSummary = 'no data';
-    recolorAll();
-    return;
+  } else {
+    if (!view.date) {
+      view.date = sched.semesters[view.sem]?.start || sched.semesters[1]?.start || '2026-09-07';
+      if (isWeekend(view.date)) view.date = addWeekdays(view.date, 1);
+      syncTimeControls();
+    }
+    const caps = new Map([...rooms].map(([id, r]) => [id, r.data.capacity]));
+    const res = sched.evaluate(view, caps);
+    for (const [id, v] of res.rooms) {
+      const room = rooms.get(id);
+      room.value = v.value; room.valueText = v.label;
+      setLabelSub(room, v.label);
+      setOver(room, v.over ? v : null);
+    }
+    $('t-info').textContent = res.info;
+    scheduleSummary = res.summary;
   }
-  if (!view.date) {
-    view.date = sched.semesters[view.sem]?.start || sched.semesters[1]?.start || '2026-09-07';
-    if (isWeekend(view.date)) view.date = addWeekdays(view.date, 1);
-    syncTimeControls();
-  }
-  const caps = new Map([...rooms].map(([id, r]) => [id, r.data.capacity]));
-  const res = sched.evaluate(view, caps);
-  for (const [id, v] of res.rooms) {
-    const room = rooms.get(id);
-    room.tvalue = v.value; room.tlabel = v.label;
-    setLabelSub(room, v.label);
-    setOver(room, v.over ? v : null);
-  }
-  infoEl.textContent = res.info;
-  scheduleSummary = res.summary;
   recolorAll();
   updateBubble();
   refreshDetail();
@@ -395,7 +377,7 @@ function stepDate(sgn) { // the date arrows move by the natural unit of the scop
   view.date = v.date; view.sem = v.sem;
   applyView();
 }
-function semesterStart(sem) { return sched?.semesters[sem]?.start || view.date; }
+const semesterStart = (sem) => sched?.semesters[sem]?.start || view.date;
 
 function initTimeControls() {
   $('d-close').addEventListener('click', clearSelection);
@@ -417,7 +399,7 @@ function initTimeControls() {
   $('h-next').addEventListener('click', () => navigate('right'));
   const keys = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
   document.addEventListener('keydown', (e) => {
-    if (cmap.mode !== 'schedule' || !keys[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!keys[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target.matches?.('input, select, textarea')) return; // let form fields use their own arrow keys
     e.preventDefault();
     navigate(keys[e.key]);
@@ -440,13 +422,7 @@ function makeBubble(lines) {
   g.beginPath(); g.roundRect(2, 2, c.width - 4, c.height - 4, 14); g.fill(); g.stroke();
   g.textAlign = 'center'; g.textBaseline = 'middle';
   lines.forEach((l, i) => { g.font = f(l); g.fillStyle = l.color || '#cfeef5'; g.fillText(l.t, c.width / 2, pad / 2 + lh * (i + 0.5)); });
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
-  const height = lines.length * 1.5 + 0.8;
-  s.scale.set(height * (c.width / c.height), height, 1);
-  s.renderOrder = 20;
-  return s;
+  return canvasSprite(c, lines.length * 1.5 + 0.8, 20);
 }
 
 const clip = (t, n) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
@@ -455,7 +431,7 @@ const teachersOf = (t) => (t ? t.split('|').join(', ') : '');
 function updateBubble() {
   disposeGroup(bubbleLayer); bubbleLayer.clear();
   for (const r of rooms.values()) if (r.over) r.over.badge.visible = true;
-  if (cmap.mode !== 'schedule' || view.scope !== 'hour' || !selected || !sched || !view.date) return;
+  if (view.scope !== 'hour' || !selected || !sched || !view.date) return;
   const room = rooms.get(selected);
   const list = sched.sessionsAt(selected, view.date, view.min);
   const lines = [];
@@ -473,7 +449,7 @@ function updateBubble() {
 
 function refreshDetail() {
   const box = $('detail');
-  if (cmap.mode !== 'schedule' || view.scope === 'hour' || !selected || !sched) { box.hidden = true; return; }
+  if (view.scope === 'hour' || !selected || !sched) { box.hidden = true; return; }
   const items = sched.listing(selected, view);
   const period = view.scope === 'day' ? view.date : view.scope === 'week' ? isoWeek(view.date) : `semester ${view.sem}`;
   $('d-title').textContent = `${selected} · ${period} · ${items.reduce((a, x) => a + x.count, 0)} classes`;
@@ -490,168 +466,117 @@ function refreshDetail() {
   box.hidden = false;
 }
 
-function clearSelection() {
-  if (selected) rooms.get(selected).highlightTarget = 0;
-  selected = null;
-  document.querySelectorAll('.row.sel').forEach((e) => e.classList.remove('sel'));
-  updateBubble(); refreshDetail();
-}
-const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+// ---------- data: everything comes from the DuckDB database through server.py ----------
+function setStatus(kind, text) { $('status').className = `pill ${kind}`; $('status').textContent = text; }
 
-async function fetchDataset() {
-  try { const ds = await api('GET', 'sessions'); sched = ds ? new Schedule(ds) : null; } catch { sched = null; }
-  applyView();
-}
-
-// ---------- live connection ----------
-const statusEl = document.getElementById('status');
-function setStatus(kind, text) { statusEl.className = `pill ${kind}`; statusEl.textContent = text; }
-
-function startPolling() {
-  setStatus('warn', 'polling files (no API)');
-  const tick = async () => {
-    try {
-      const res = await fetch('rooms.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error(res.status);
-      window.setAllRoomColors(await res.json());
-      try {
-        const c = await (await fetch('colormap.json', { cache: 'no-store' })).json();
-        window.setAllRoomValues(c.values || {});
-        window.setMode(c.mode);
-      } catch { /* colormap.json optional */ }
-      setStatus('warn', 'polling files (no API)');
-    } catch { setStatus('bad', 'no data source'); }
-  };
-  fetch('sessions-data.json', { cache: 'no-store' }).then((r) => r.json()).then((ds) => { sched = new Schedule(ds); applyView(); }).catch(() => {});
-  tick();
-  setInterval(tick, 2000);
-}
-
-function connect() {
-  if (!window.EventSource) return startPolling();
-  const es = new EventSource('api/events');
-  let gotData = false;
-  const on = (name, fn) => es.addEventListener(name, (e) => { gotData = true; fn(JSON.parse(e.data)); setStatus('ok', 'live · API connected'); });
-  on('mode', (d) => window.setMode(d.mode));
-  on('values', (d) => window.setAllRoomValues(d));
-  on('state', (d) => window.setAllRoomColors(d));
-  on('sessions', () => fetchDataset());
-  es.onerror = () => {
-    if (!gotData) { es.close(); startPolling(); }
-    else setStatus('warn', 'reconnecting…');
-  };
-}
-
-async function api(method, path, body) {
-  const r = await fetch(`api/${path}`, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(r.status);
+async function getJSON(path) {
+  const r = await fetch(`api/${path}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error((await r.json().catch(() => null))?.errors?.[0] || `HTTP ${r.status}`);
   return r.json();
 }
 
-// ---------- side panel ----------
-const list = document.getElementById('room-list');
-const summary = document.getElementById('counts');
+// capacity / type of the rooms, to notice when they change in the database
+const roomsKey = (layout) => JSON.stringify(layout.slabs.map((s) => s.rooms.map((r) => [r.code, r.capacity, r.tipus])));
+let builtKey = '';
+let dbError = '';
 
+async function loadLayout() {
+  for (;;) {
+    try { return await getJSON('layout'); } catch (e) {
+      setStatus('bad', 'waiting for the database');
+      $('t-info').textContent = `Cannot load the rooms: ${e.message}`;
+      await new Promise((ok) => setTimeout(ok, 3000));
+    }
+  }
+}
+
+async function onStatus(s) {
+  dbError = s.error || '';
+  if (s.error) setStatus('warn', `DuckDB · ${s.count ? 'last good data' : 'no data'}`);
+  else setStatus('ok', `live · DuckDB${s.snapshot ? ' (snapshot, file locked)' : ''}`);
+  $('status').title = s.error ? `${s.db}: ${s.error}` : `${s.db} · ${s.count} sessions · version ${s.version}`;
+  try {
+    if (builtKey && roomsKey(await getJSON('layout')) !== builtKey) { location.reload(); return; } // rooms changed: rebuild
+    const ds = await getJSON('sessions');
+    sched = ds ? new Schedule(ds) : null;
+  } catch { /* keep what is shown */ }
+  applyView();
+}
+
+function connect() {
+  const es = new EventSource('api/events');
+  es.addEventListener('status', (e) => onStatus(JSON.parse(e.data))); // on connect and on every reload of the database
+  es.onerror = () => setStatus('bad', 'server not reachable · retrying');
+}
+
+// ---------- side panel ----------
 function updateRow(room) {
   const row = document.querySelector(`[data-row="${room.id}"]`);
   if (!row) return;
   row.querySelector('.dot').style.background = `#${room.target.getHexString(THREE.SRGBColorSpace)}`;
   const val = row.querySelector('.val');
-  val.textContent = cmap.mode === 'colormap' ? `${Math.round(room.value)}%` : cmap.mode === 'schedule' ? room.tlabel : '';
-  val.style.color = cmap.mode === 'schedule' && room.over ? '#ff4fd8' : '';
-}
-
-function updateSummary() {
-  if (cmap.mode === 'schedule') {
-    summary.textContent = scheduleSummary;
-  } else if (cmap.mode === 'colormap') {
-    const vs = [...rooms.values()].map((r) => r.value);
-    const mean = Math.round(vs.reduce((a, b) => a + b, 0) / vs.length);
-    summary.textContent = `${vs.filter((v) => v > 0).length}/${rooms.size} in use · mean ${mean}%`;
-  } else {
-    const n = { red: 0, green: 0, neutral: 0 };
-    for (const r of rooms.values()) n[r.colorName]++;
-    summary.innerHTML = `<span class="dot red"></span>${n.red} <span class="dot green"></span>${n.green} <span class="dot neutral"></span>${n.neutral}`;
-  }
+  val.textContent = room.valueText;
+  val.style.color = room.over ? OVER_COLOR : '';
 }
 
 function refreshLegend() {
-  const stops = [0, 25, 50, 75, 100].map((p) => `#${cmapColor(p).getHexString(THREE.SRGBColorSpace)} ${p}%`).join(', ');
-  document.getElementById('legend-bar').style.background = `linear-gradient(90deg, ${stops})`;
-  document.getElementById('hue').value = cmap.hue;
-  document.getElementById('hue-n').textContent = `${Math.round(cmap.hue)}°`;
+  const stops = [0, 25, 50, 75, 100].map((p) => `#${rampColor(p).getHexString(THREE.SRGBColorSpace)} ${p}%`).join(', ');
+  $('legend-bar').style.background = `linear-gradient(90deg, ${stops})`;
+  $('hue').value = hue;
+  $('hue-n').textContent = `${Math.round(hue)}°`;
 }
 
 function buildPanel() {
+  const list = $('room-list');
   for (const e of PANEL_ORDER) {
     for (const p of PLANTES) {
       const group = [...rooms.values()].filter((r) => r.data.espina === e && r.data.planta === p);
       if (!group.length) continue;
-      const h = document.createElement('h3');
-      h.textContent = `${e} · planta ${p}`;
-      list.appendChild(h);
+      const h = el('h3', null, `${e} · planta ${p}`);
+      h.dataset.floor = String(PLANTES.indexOf(p));
+      list.append(h);
       for (const r of group) {
-        const row = document.createElement('div');
-        row.className = 'row';
+        const row = el('div', 'row');
         row.dataset.row = r.id;
-        row.innerHTML = `<span class="dot"></span><span class="code">${r.id}</span><span class="val"></span><span class="cap">${r.data.capacity}</span>`;
+        row.append(el('span', 'dot'), el('span', 'code', r.id), el('span', 'tag', r.data.tipus), el('span', 'val'), el('span', 'cap', String(r.data.capacity)));
         row.addEventListener('click', () => focusRoom(r.id));
-        list.appendChild(row);
+        list.append(row);
       }
     }
   }
+
   const rainbow = Array.from({ length: 13 }, (_, i) => `hsl(${i * 30} 100% 50%)`).join(', ');
-  document.getElementById('hue').style.background = `linear-gradient(90deg, ${rainbow})`;
-  document.getElementById('hue').addEventListener('input', (ev) => {
-    cmap.hue = Number(ev.target.value); saveHue(); refreshLegend(); recolorAll(true);
+  $('hue').style.background = `linear-gradient(90deg, ${rainbow})`;
+  $('hue').addEventListener('input', (ev) => {
+    hue = Number(ev.target.value);
+    try { localStorage.setItem('hologram.hue', String(hue)); } catch { /* storage unavailable */ }
+    refreshLegend();
+    recolorAll(true);
   });
-  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', async () => {
-    window.setMode(b.dataset.mode);                       // instant locally...
-    try { await api('PUT', 'mode', { mode: b.dataset.mode }); } catch { /* no API: local only */ } // ...and published for everyone
+  $('btn-labels').addEventListener('click', () => { labelGroup.visible = !labelGroup.visible; });
+  document.querySelectorAll('[data-floor]').forEach((b) => b.addEventListener('click', () => {
+    setFloor(b.dataset.floor === '' ? null : Number(b.dataset.floor));
   }));
   initTimeControls();
   refreshLegend();
-  updateSummary();
 
   const origin = location.origin.startsWith('http') ? location.origin : 'http://localhost:8000';
-  document.getElementById('api-example').textContent =
-`# categories
-curl -X PUT ${origin}/api/rooms/Q3-1007 \\
-  -H "Content-Type: application/json" -d '{"color":"red"}'
+  $('api-example').textContent =
+`# data source: dades/paquet.duckdb (reloaded when it changes)
+curl ${origin}/api/status
 
-# colormap: percentage 0-100 (unlisted rooms = 0%)
-curl -X POST ${origin}/api/values \\
-  -H "Content-Type: application/json" \\
-  -d '{"Q3-1007":82,"Q1-1011":15.5}'
+# rooms: geometry + capacity / tipus from 'aules'
+curl ${origin}/api/layout
 
-# switch what the page shows
-curl -X PUT ${origin}/api/mode \\
-  -H "Content-Type: application/json" -d '{"mode":"colormap"}'`;
+# sessions of the time views, from 'sessions' + 'calendari'
+curl ${origin}/api/sessions`;
 }
-
-document.getElementById('btn-labels').addEventListener('click', () => { labelGroup.visible = !labelGroup.visible; });
-
-// demo: random updates through the API, like an external client would
-let demoTimer = null;
-const demoBtn = document.getElementById('btn-demo');
-demoBtn.addEventListener('click', () => {
-  if (demoTimer) { clearInterval(demoTimer); demoTimer = null; demoBtn.textContent = 'Start demo'; return; }
-  demoBtn.textContent = 'Stop demo';
-  const ids = [...rooms.keys()];
-  demoTimer = setInterval(async () => {
-    const id = ids[Math.floor(Math.random() * ids.length)];
-    const useValue = cmap.mode === 'colormap';
-    const v = useValue ? Math.round(Math.random() * 1000) / 10 : ['red', 'green', 'neutral'][Math.floor(Math.random() * 3)];
-    try { await api('PUT', `${useValue ? 'values' : 'rooms'}/${id}`, useValue ? { value: v } : { color: v }); }
-    catch { useValue ? window.setRoomValue(id, v) : window.setRoomColor(id, v); }
-  }, 600);
-});
 
 // ---------- focus / pick ----------
 let selected = null, focusTarget = null;
 function focusRoom(id) {
   if (selected) rooms.get(selected).highlightTarget = 0;
-  document.querySelectorAll('.row.sel').forEach((el) => el.classList.remove('sel'));
+  document.querySelectorAll('.row.sel').forEach((e) => e.classList.remove('sel'));
   selected = id;
   const room = rooms.get(id);
   room.highlightTarget = 1;
@@ -661,11 +586,19 @@ function focusRoom(id) {
   updateBubble();
   refreshDetail();
 }
+function clearSelection() {
+  if (selected) rooms.get(selected).highlightTarget = 0;
+  selected = null;
+  document.querySelectorAll('.row.sel').forEach((e) => e.classList.remove('sel'));
+  updateBubble();
+  refreshDetail();
+}
+
 const ray = new THREE.Raycaster();
 let downAt = null;
 renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener('pointerup', (e) => {
-  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return;
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return; // a drag, not a click
   const rect = renderer.domElement.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
   const hit = ray.intersectObjects([...rooms.values()].map((r) => r.mesh), false)[0];
@@ -677,19 +610,28 @@ renderer.domElement.addEventListener('pointerup', (e) => {
 const clock = new THREE.Clock();
 function animate() {
   const dt = clock.getDelta(), time = clock.elapsedTime;
+  const pulse = 0.4 + 0.5 * (0.5 + 0.5 * Math.sin(time * 4));
+  floorDim.forEach((d, i) => {
+    d.v += (d.target - d.v) * Math.min(1, dt * 6);
+    floorGhostMat[i].opacity = GHOST_OPACITY * d.v;
+  });
   for (const room of rooms.values()) {
+    const dim = floorDim[room.floor].v;
     if (room.t < 1) {
       room.t = Math.min(1, room.t + dt / COLOR_LERP_SECONDS);
       room.current.copy(room.from).lerp(room.target, room.t);
     }
-    room.mat.uniforms.uColor.value.copy(room.current);
-    room.mat.uniforms.uTime.value = time;
     room.highlight += (room.highlightTarget - room.highlight) * Math.min(1, dt * 8);
-    room.mat.uniforms.uHighlight.value = room.highlight;
+    const u = room.mat.uniforms;
+    u.uColor.value.copy(room.current);
+    u.uTime.value = time;
+    u.uHighlight.value = room.highlight;
+    u.uDim.value = dim;
     room.edgeMat.color.copy(room.current).multiplyScalar(0.9 + room.highlight * 0.6);
+    room.edgeMat.opacity = 0.75 * dim;
+    room.label.material.opacity = dim;
+    if (room.over) { room.over.mat.opacity = pulse * dim; room.over.badge.material.opacity = dim; }
   }
-  const pulse = 0.4 + 0.5 * (0.5 + 0.5 * Math.sin(time * 4));
-  for (const r of rooms.values()) if (r.over) r.over.mat.opacity = pulse;
   if (focusTarget) {
     controls.target.lerp(focusTarget, Math.min(1, dt * 5));
     if (controls.target.distanceTo(focusTarget) < 0.05) focusTarget = null;
@@ -701,11 +643,12 @@ function animate() {
 
 // ---------- start ----------
 (async () => {
-  layout = await (await fetch('layout.json', { cache: 'no-store' })).json();
-  build();
+  const layout = await loadLayout();
+  builtKey = roomsKey(layout);
+  build(layout);
   buildPanel();
+  applyView();
   recolorAll(true);
-  window.setMode('categories');
   resize();
   frame();
   animate();

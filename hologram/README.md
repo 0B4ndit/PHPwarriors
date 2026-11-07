@@ -1,74 +1,54 @@
 # UAB hologram
 
-3D visualizer of every room of the Escola d'Enginyeria (Edifici Q) inventory, `paquet/aules.csv` (56 rooms: aules docents, aules d'informàtica, laboratoris and seminaris), traced from plans 2600002-2600005 (planta baixa to tercera). Colors are driven by an HTTP API: no manual controls, the page updates live.
+3D visualizer of every room of the Escola d'Enginyeria (Edifici Q) inventory (56 rooms: aules docents, aules d'informàtica, laboratoris and seminaris), traced from plans 2600002-2600005 (planta baixa to tercera). It shows the rooms over time (semester / week / day / hour). All the data comes from the project's DuckDB database, `dades/paquet.duckdb` (built by `migra_duckdb.py`): rooms from `aules`, classes from `sessions`, holidays and stoppages from `calendari`.
 
 ## Run
 
 ```
 cd hologram
-python server.py 8000        # Python 3, standard library only
+../.venv/bin/python server.py 8000          # needs duckdb (requirements.txt)
+#   --db PATH            another DuckDB file (default ../dades/paquet.duckdb)
+#   --criteri-informe    drop PLAB and double-degree sessions, as the report does
 ```
 Open http://localhost:8000. Three.js loads from a CDN.
 
-## API
+The server opens the database read-only for a moment on every load, and watches the file (and its `.wal`): when it changes the data is reloaded and open pages refresh by themselves (the whole page when a room's capacity or type changed). If another process holds the file (e.g. the `duckdb` CLI), DuckDB refuses even a read-only open: the server then reads a temporary copy, and the status pill says *snapshot, file locked*. If the database cannot be read at all, the page keeps the last good data and shows the error.
 
-Room ID = `<espina>-<code>`, e.g. `Q3-1007` (codes repeat across espines). Colors: `red`, `green`, `neutral`.
-
-| Method | Path | Body | Effect |
-|---|---|---|---|
-| GET | `/api/layout` | | list of rooms `{id, espina, planta, code, capacity}` |
-| GET | `/api/rooms` | | `{ "Q3-1007": "red", ... }` for every room |
-| GET | `/api/rooms/<id>` | | one room |
-| PUT | `/api/rooms/<id>` | `{"color":"red"}` | set one room |
-| POST | `/api/rooms` | `{"Q3-1007":"red","Q1-1011":"green"}` | merge; `?replace=1` resets unlisted rooms to neutral |
-| PUT | `/api/rooms` | map | replace everything |
-| DELETE | `/api/rooms` | | reset all to neutral |
-| GET | `/api/events` | | Server-Sent Events, event `state` = full map (what the page listens to) |
-
-Requests are validated all-or-nothing: unknown IDs or colors return `400` with `errors` and change nothing. CORS is open, so a scheduling tool can call it from anywhere.
-
-```
-curl -X POST localhost:8000/api/rooms -H "Content-Type: application/json" -d '{"Q3-1007":"red","Q1-1011":"green"}'
-```
-
-State persists in `rooms.json`; editing that file by hand also updates the page within ~1 s. Without the server (static hosting) the page falls back to polling `rooms.json`. The in-page "Start demo" button drives the API with random colors. The browser console also has `setRoomColor(id, color)` and `setAllRoomColors(map)`.
-
-## Colormap mode
-
-Besides red/green/neutral, each room can carry a percentage (0-100; default 0 = nothing scheduled). The page shows one mode at a time; switch with the Categories / Colormap buttons or via the API. You pick one hue in the web UI (remembered per browser); the percentage drives intensity: 0% is no color (dim grey), 100% is that hue at full saturation and brightness.
-
-| Method | Path | Body |
-|---|---|---|
-| GET | `/api/values`, `/api/values/<id>` | |
-| PUT | `/api/values/<id>` | `{"value": 73.5}` (`null` resets to 0) |
-| POST | `/api/values` | `{"Q3-1007": 73.5, ...}` merge; `?replace=1` resets the rest to 0 |
-| PUT / DELETE | `/api/values` | replace all / reset all to 0 |
-| GET / PUT | `/api/mode` | `{"mode": "categories" \| "colormap"}` |
-
-SSE events: `state` (colors), `values`, `mode`. Values and mode persist in `colormap.json`. Values outside 0-100 are rejected with `400`.
-
-## Time mode (semester / week / day / hour)
-
-Third mode, **Time**, driven by a session dataset that `nivell1.py` pushes (`PUT /api/sessions`). The page does the maths, so stepping through time is instant.
+## Time views
 
 | Scope | What a room shows |
 |---|---|
 | **Hour** (date + time) | students in the room at that moment; colour = students / capacity; a **TOO MANY STUDENTS** badge and pulsing outline when they exceed the capacity |
-| **Day / Week / Semester** | % of the open time (window 08:30-21:00, taken from the data) the room has a class; the number of students does not matter |
+| **Day / Week / Semester** | % of the open time (window taken from the data, e.g. 08:00-21:00) the room has a class; the number of students does not matter |
+
+Each room label shows its code, its type (Aula docent, Informàtica, Laboratori, Seminari, from `aules.tipus`) and the value of the current view. You pick the hue of the colour ramp in the panel (remembered per browser): 0% is dim grey, 100% is that hue at full saturation and brightness.
 
 Weekends, holidays, non-teaching days and the assessment weeks are excluded from the denominators; partial stoppages ("aturada") only remove their hours. Sessions without a room, or in a room that is not in the hologram, are ignored.
 
 **Click a room** (in 3D or in the list) for its classes: in **Hour** a floating bubble shows the class name, group and professor(s) at that moment (or "free"); in **Day / Week / Semester** a list appears under the room list: day = hours, week = weekday + hours, semester = weekly pattern with the number of occurrences (`×12`). Professors are the pseudonymous ids of the data (`Dnnn`) and belong to the group, not to each session.
 
-Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The hue picker works here too.
+Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The floating **Planta** buttons over the scene (P3-P0 / Totes) keep one floor bright and fade the rooms, labels and corridors of the others (the room list fades them too).
 
-Dataset shape (`GET/PUT/DELETE /api/sessions`, persisted in `sessions-data.json`): `{window:{start,end}, semesters:{"1":{start,end}}, calendar:[{date,tipus,h_ini,h_fi,motiu}], sessions:[[date,startMin,durMin,roomId,students,labelIdx]], labels:[[className,group,teachers]]}`. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. `PUT /api/mode` accepts `schedule`.
+Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters go by month (September-January = 1). `db.py` holds the queries; `schedule.js` holds the time logic and has no browser dependencies.
 
-From the analysis: `python nivell1.py --hologram http://localhost:8000` (`--mode categories|colormap|schedule` picks the view it leaves on; `--criteri-informe` also drops PLAB and double-degree sessions as the report does). `schedule.js` holds the logic and has no browser dependencies.
+## API
+
+Room ID = `<espina>-<code>`, e.g. `Q3-1007` (codes repeat across espines). CORS is open.
+
+Read-only; everything comes from the database.
+
+| Path | Returns |
+|---|---|
+| `/api/layout` | `layout.json` with `capacity`, `tipus` and `descripcio` of every room from `aules` (`503` until the database has been read once) |
+| `/api/sessions` | the session dataset (below), or `null` |
+| `/api/status` | `{version, count, snapshot, error, db}` |
+| `/api/events` | Server-Sent Events: `status` on connect and on every reload |
+
+Dataset shape: `{window:{start,end}, semesters:{"1":{start,end}}, calendar:[{date,tipus,h_ini,h_fi,motiu}], sessions:[[date,startMin,durMin,roomId,students,labelIdx]], labels:[[className,group,teachers]]}`.
 
 ## Layout
 
-`layout.json` holds geometry (metres) and the room list: one entry per room of `paquet/aules.csv`, ID = `aula` with `/` → `-` (`QC/3115.1` → `QC-3115.1`).
+`layout.json` holds only geometry (metres): one entry per room of the `aules` table, ID = `aula` with `/` → `-` (`QC/3115.1` → `QC-3115.1`). Capacity and type are added by the server from the database; a room missing from `aules` is logged and drawn with capacity 0. A new room in `aules` needs its box here to appear.
 
 - **Q1-Q4** (planta baixa, primera): cells along each espina, length proportional to the plan area, same depth. Cells marked `ghost` (Sala de graus, Sala d'estudis, servidors...) are not in the inventory and stay as dim wireframes.
 - **Q5, Q6** (Espines 5-6, planta baixa to segona) and **QC** (Cos Central seminaris, planta baixa and tercera): each room has an explicit `x`/`z` box measured on the plans (scale 22.1 m per 284 pt, the espina pitch; origin calibrated per plan on the Q4 walls).
