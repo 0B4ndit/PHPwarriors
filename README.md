@@ -78,6 +78,13 @@ Tables: `sessions`, `aules`, `activitats`, `proposta_partida`, `plans`, `calenda
 
 Types: dates are `DATE`, `HH:MM` times are `TIME`, counts are `INTEGER`, 0/1 flags (`ordinaria`, `sense_espai`) are `BOOLEAN`, and `|`-separated fields (`docents`, `plans`, `titulacions_curs`, `aules_addicionals_partida`, `aules_partida`) are lists (`VARCHAR[]`). Codes such as `codi` and `pla` stay as text.
 
+Derived columns, following the challenge rules (statement, section 8.3), on `sessions` and `escenari_sessions_extra`:
+
+- `sem`: 1 or 2 by date (1st semester = September to January). Use it instead of `semestre`, which is wrong for 54 sessions.
+- `torn_actual`: `mati` if the session starts before 14:30, otherwise `tarda`. Compare it with `torn_requerit` for R1.
+
+Views `sessions51` to `sessions54` (planned, not created yet) have the same columns as `sessions`; the functions in `database/consultes.py` pick one with their `vista` parameter.
+
 Querying from Python:
 
 ```python

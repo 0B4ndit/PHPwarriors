@@ -34,18 +34,24 @@
   .seg { display:flex; margin-top:10px; } .seg button { flex:1; border-radius:0; }
   .seg button:first-child { border-radius:4px 0 0 4px; } .seg button:last-child { border-radius:0 4px 4px 0; border-left:0; }
   .seg button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
-  #time-controls { margin-top:10px; }
+  .row.off, h3.off { opacity:.35; }
+  #floors { position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-direction:column; gap:4px;
+            padding:8px; background:rgba(7,18,26,.72); border:1px solid var(--line); border-radius:6px; backdrop-filter:blur(4px); }
+  #floors span { color:var(--dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase; text-align:center; margin-bottom:2px; }
+  #floors button { min-width:56px; padding:5px 8px; }
+  #floors button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
+  #floors button:last-child { margin-top:4px; }
   .trow[hidden] { display:none; }
   .trow { display:flex; align-items:center; gap:6px; margin-top:8px; }
   .trow input, .trow select { flex:1; min-width:0; background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; font:inherit; color-scheme:dark; }
   .trow label { display:flex; align-items:center; gap:8px; flex:1; color:var(--dim); }
   #t-info { margin-top:8px; font-size:11px; color:var(--fg); }
   #t-hint { margin-top:4px; font-size:10px; color:var(--dim); }
-  #cmap-controls { margin-top:10px; }
+  #legend { margin-top:10px; }
   #legend-bar { height:10px; border-radius:3px; }
   .legend-ends { display:flex; justify-content:space-between; color:var(--dim); font-size:10px; margin:2px 0 8px; }
-  #cmap-controls label { display:block; color:var(--dim); margin-bottom:6px; }
-  #cmap-controls label b { float:right; color:var(--fg); font-weight:normal; }
+  #legend label { display:block; color:var(--dim); margin-bottom:6px; }
+  #legend label b { float:right; color:var(--fg); font-weight:normal; }
   input[type=range].hue { display:block; width:100%; height:8px; margin:6px 0 0; border-radius:4px; -webkit-appearance:none; appearance:none; outline:none; }
   input[type=range].hue::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
   input[type=range].hue::-moz-range-thumb { width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
@@ -66,9 +72,8 @@
   .row:hover { background:#0a2230; }
   .row.sel { background:#0d3345; outline:1px solid var(--cyan); }
   .code { flex:1; } .cap { color:var(--dim); }
-  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex:none; margin:0 3px 0 6px; }
-  .row .dot { margin:0; }
-  .dot.neutral { background:var(--cyan); } .dot.red { background:var(--red); } .dot.green { background:var(--green); }
+  .tag { color:var(--dim); font-size:10px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex:none; background:var(--cyan); }
   details { border-top:1px solid var(--line); padding:8px 12px; }
   summary { cursor:pointer; color:var(--dim); }
   pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fc3d3; font-size:10.5px; }
@@ -77,17 +82,21 @@
 </head>
 <body>
 <div id="app">
-  <div id="scene"></div>
+  <div id="scene">
+    <nav id="floors" aria-label="Planta">
+      <span>Planta</span>
+      <button data-floor="3" title="planta tercera">P3</button>
+      <button data-floor="2" title="planta segona">P2</button>
+      <button data-floor="1" title="planta primera">P1</button>
+      <button data-floor="0" title="planta baixa">P0</button>
+      <button data-floor="" class="on" title="totes les plantes">Totes</button>
+    </nav>
+  </div>
   <aside>
     <header>
-      <h1>UAB · AULES DOCENTS <span id="counts"></span></h1>
+      <h1>UAB · AULES EDIFICI Q <span id="counts"></span></h1>
       <span id="status" class="pill warn">connecting…</span>
-      <div class="seg">
-        <button data-mode="categories" class="on">Categories</button>
-        <button data-mode="colormap">Colormap %</button>
-        <button data-mode="schedule">Time</button>
-      </div>
-      <div id="time-controls" hidden>
+      <div id="time-controls">
         <div class="seg">
           <button data-scope="semester">Semester</button>
           <button data-scope="week">Week</button>
@@ -100,13 +109,12 @@
         <div id="t-info"></div>
         <div id="t-hint"></div>
       </div>
-      <div id="cmap-controls" hidden>
+      <div id="legend">
         <div id="legend-bar"></div>
         <div class="legend-ends"><span>0%</span><span id="legend-hi">100%</span></div>
         <label>hue <b id="hue-n"></b><input id="hue" class="hue" type="range" min="0" max="360"></label>
       </div>
       <div class="btns">
-        <button id="btn-demo">Start demo</button>
         <button id="btn-labels">Toggle labels</button>
       </div>
     </header>
