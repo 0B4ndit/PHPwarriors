@@ -20,7 +20,7 @@ SHORT_TIPUS = {"Aules docents": "Aula docent", "Aules informàtiques": "Informà
                "Laboratoris docents": "Laboratori", "Seminaris": "Seminari"}
 
 # A shared class (id_compartida) is one physical session: its cohorts' students are added.
-# Only sessions in a room drawn by the hologram count. Semester by month: Sep-Jan = 1, Feb-Aug = 2.
+# Only sessions in a room drawn by the hologram count.
 SESSIONS_SQL = """
 WITH s AS (
     SELECT *, coalesce(id_compartida, id_sessio) AS clau, replace(aula_partida, '/', '-') AS room
@@ -41,10 +41,10 @@ GROUP BY clau
 ORDER BY data, ini, room
 """
 
+# sessions.sem is computed by migra_duckdb.py from the date (1 = September-January); Sigma's `semestre` is not reliable
 SEMESTERS_SQL = """
-SELECT CASE WHEN month(data) IN (9, 10, 11, 12, 1) THEN 1 ELSE 2 END AS semestre_n,
-       strftime(min(data), '%Y-%m-%d'), strftime(max(data), '%Y-%m-%d')
-FROM sessions GROUP BY 1 ORDER BY 1
+SELECT sem, strftime(min(data), '%Y-%m-%d'), strftime(max(data), '%Y-%m-%d')
+FROM sessions GROUP BY sem ORDER BY sem
 """
 
 CALENDAR_SQL = """

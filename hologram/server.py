@@ -115,7 +115,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=ROOT, **kw)
 
     def log_message(self, fmt, *a):
-        if "/api/events" not in (a[0] if a else ""):
+        if "/api/events" not in str(a[0] if a else ""):  # a[0] is the request line, or an HTTPStatus for errors
             sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % a))
 
     def end_headers(self):
