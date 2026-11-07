@@ -53,6 +53,8 @@ def load_rooms():
     rooms = []
     for slab in layout["slabs"]:
         for r in slab["rooms"]:
+            if r.get("ghost"):          # plan cell that is not in the inventory: drawn, not addressable
+                continue
             rooms.append({"id": f"{slab['espina']}-{r['code']}", "espina": slab["espina"],
                           "planta": slab["planta"], "code": r["code"], "capacity": r["capacity"]})
     return rooms

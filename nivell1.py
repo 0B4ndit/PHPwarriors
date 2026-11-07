@@ -175,7 +175,7 @@ for t_ in [24, 50, 63, 90, 100, 117, 130]:
     print(f"{t_:>7} | {ns:>8} | {dem:>10.0f} | {n:>16} | {ofe:>12} | {100*dem/max(ofe,1):>6.0f} %")
 
 # ---------- Holograma 3D: envia els resultats al servidor en viu ----------
-# Ocupació de cada aula docent (hores de classe/setmana sobre ~65 h possibles) -> mapa de color
+# Ocupació de cada aula de l'inventari (hores de classe/setmana sobre ~65 h possibles) -> mapa de color
 # Grups que no hi caben (troballa 4) -> aules en vermell (mode "categories")
 # Només std lib: si el servidor no hi és, l'script continua i només imprimeix.
 HORES_AULA_SETMANA = 65
@@ -195,8 +195,16 @@ if not args.no_hologram:
         ids = {x["id"] for x in holograma("GET", "/api/layout")}
         ident = lambda aula: aula.replace("/", "-")          # Q4/0011 -> Q4-0011
 
+        # Ocupació (2n semestre) de cada aula del holograma, és a dir de tot l'inventari (aules, informàtiques,
+        # laboratoris, seminaris). Mateix criteri que el mode temporal: per defecte qualsevol sessió amb aula
+        # (els laboratoris són gairebé tot PLAB); amb --criteri-informe, sense PLAB ni sessions sense espai.
+        oc = s2[s2["aula_partida"].notna()].copy()
+        if args.criteri_informe:
+            oc = oc[(oc["tipus"] != "PLAB") & (oc["sense_espai"] != 1)]
+        oc["clau"] = oc["id_compartida"].fillna(oc["id_sessio"])
+        hores_aula = oc.drop_duplicates("clau").groupby("aula_partida")["durada_min"].sum() / 60 / nsetm
         valors = {ident(k): round(min(100.0, h / HORES_AULA_SETMANA * 100), 1)
-                  for k, h in aul.items() if ident(k) in ids}
+                  for k, h in hores_aula.items() if ident(k) in ids}
         no_caben = g.loc[g["excedeix"], "aula_partida"].map(ident).unique()
         colors = {k: "red" for k in no_caben if k in ids}
 

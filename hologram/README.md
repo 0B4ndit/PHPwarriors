@@ -1,6 +1,6 @@
 # UAB hologram
 
-3D visualizer of the aules docents of the Escola d'Enginyeria (Edifici Q), traced from plans 2600002 (planta baixa) and 2600003 (planta primera). Colors are driven by an HTTP API: no manual controls, the page updates live.
+3D visualizer of every room of the Escola d'Enginyeria (Edifici Q) inventory, `paquet/aules.csv` (56 rooms: aules docents, aules d'informàtica, laboratoris and seminaris), traced from plans 2600002-2600005 (planta baixa to tercera). Colors are driven by an HTTP API: no manual controls, the page updates live.
 
 ## Run
 
@@ -68,6 +68,13 @@ From the analysis: `python nivell1.py --hologram http://localhost:8000` (`--mode
 
 ## Layout
 
-`layout.json` holds geometry (metres) and the room list (code, capacity, plan area). Rooms in an espina share the same depth and their length is proportional to the plan area. Muted wireframe trees in the courtyards are decoration only. Dim wireframes are the parts of the building that are not aulas docents (Q1/Q2 planta baixa rooms, passadissos, service spine, Cos Central, Espines 5-6).
+`layout.json` holds geometry (metres) and the room list: one entry per room of `paquet/aules.csv`, ID = `aula` with `/` → `-` (`QC/3115.1` → `QC-3115.1`).
 
-Known mismatch: the brief lists 4 rooms for Q3 planta baixa (0003/0009/0011/0013) but the plan shows 3 (0003/0007/0011). The brief's IDs are used, sized by capacity.
+- **Q1-Q4** (planta baixa, primera): cells along each espina, length proportional to the plan area, same depth. Cells marked `ghost` (Sala de graus, Sala d'estudis, servidors...) are not in the inventory and stay as dim wireframes.
+- **Q5, Q6** (Espines 5-6, planta baixa to segona) and **QC** (Cos Central seminaris, planta baixa and tercera): each room has an explicit `x`/`z` box measured on the plans (scale 22.1 m per 284 pt, the espina pitch; origin calibrated per plan on the Q4 walls).
+- Floors follow the plans: Q1-Q4 and the service spine have only baixa and primera (roof above), Espines 5-6 reach segona, and only the Cos Central has a tercera. Context volumes outline each floor. Trees are decoration only.
+
+Known mismatches between the plans and the inventory (the inventory wins, IDs are matched by door number):
+- Q3 planta baixa: the plan shows 0003 / 0007 / 0011; the inventory splits 0007 into 0007 (lab) + 0009 and 0011 into 0011 + 0013, sized by capacity.
+- QC planta baixa: the plan names differ (QC/0015 is 'Despatx + sala tutories', QC/0019 is 'Seminari B'); QC/0036.B is placed on the plan's 'Seminari D'.
+- QC/3115.1-.4 are one L-shaped 71 m2 'Espai' on the plan (a 53 m2 room plus a 17.5 m2 annex behind the lift): the room is split in 3 equal parts (.1-.3) and the annex is .4, all ~17.5 m2. The plan does not say which number is which part.
