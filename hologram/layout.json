@@ -1,5 +1,5 @@
 {
-  "_comment": "Traced from plans 2600002 (planta baixa) and 2600003 (planta primera). Metres. X runs along the espines (0 = west end, next to the service spine), Z runs from Q4 (north, 0) to Q1 (south). Room length along X is proportional to 'area' (m2 from the plan); all aula rooms in an espina share the same depth.",
+  "_comment": "Every room of paquet/aules.csv, traced from plans 2600002 (planta baixa), 2600003 (primera), 2600004 (segona) and 2600005 (tercera). Metres. X runs along the espines (0 = west end of Q1-Q4, next to the service spine), Z runs from Q4 (north, 0) to the Cos Central (south). Q1-Q4 slabs: room length along X is proportional to 'area' (m2 from the plan), all cells of an espina share the same depth; cells with 'ghost' are not in the inventory and are drawn as dim wireframes. Q5, Q6 and QC rooms carry explicit 'x'/'z' boxes measured on the plans (scale 22.1 m per 284 pt, the espina pitch). Floor counts: Q1-Q4 and the service spine are roof above planta primera, Espines 5-6 stop at planta segona, only the Cos Central has a planta tercera.",
   "geometry": {
     "slabLength": 41.6,
     "slabDepth": 8.9,
@@ -9,43 +9,92 @@
     "roomHeight": 3.6
   },
   "slabs": [
-    { "espina": "Q1", "planta": "baixa", "ghost": [105.79, 102.68, 50.41, 103.30], "rooms": [] },
+    { "espina": "Q1", "planta": "baixa", "rooms": [
+      { "ghost": "Sala de graus", "area": 105.79 },
+      { "code": "0007", "capacity": 54, "tipus": "Informàtica", "area": 102.68 },
+      { "ghost": "Sala operadors / servidors", "area": 50.41 },
+      { "code": "0019", "capacity": 54, "tipus": "Informàtica", "area": 103.30 } ] },
     { "espina": "Q1", "planta": "primera", "rooms": [
-      { "code": "1003", "capacity": 90,  "area": 105.90 },
-      { "code": "1007", "capacity": 90,  "area": 102.47 },
-      { "code": "1011", "capacity": 160, "area": 154.95 } ] },
+      { "code": "1003", "capacity": 90, "tipus": "Aula docent",  "area": 105.90 },
+      { "code": "1007", "capacity": 90, "tipus": "Aula docent",  "area": 102.47 },
+      { "code": "1011", "capacity": 160, "tipus": "Aula docent", "area": 154.95 } ] },
 
-    { "espina": "Q2", "planta": "baixa", "ghost": [105.79, 50.62, 50.62, 50.62, 50.62, 51.23], "rooms": [] },
+    { "espina": "Q2", "planta": "baixa", "rooms": [
+      { "ghost": "Sala d'estudis", "area": 105.79 },
+      { "code": "0007", "capacity": 24, "tipus": "Laboratori", "area": 50.62 },
+      { "code": "0011", "capacity": 24, "tipus": "Laboratori", "area": 50.62 },
+      { "code": "0013", "capacity": 24, "tipus": "Laboratori", "area": 50.62 },
+      { "code": "0017", "capacity": 24, "tipus": "Laboratori", "area": 50.62 },
+      { "code": "0019", "capacity": 24, "tipus": "Laboratori", "area": 51.23 } ] },
     { "espina": "Q2", "planta": "primera", "rooms": [
-      { "code": "1003", "capacity": 63, "area": 80.03 },
-      { "code": "1005", "capacity": 63, "area": 76.24 },
-      { "code": "1009", "capacity": 90, "area": 102.47 },
-      { "code": "1013", "capacity": 90, "area": 103.09 } ] },
+      { "code": "1003", "capacity": 63, "tipus": "Aula docent", "area": 80.03 },
+      { "code": "1005", "capacity": 63, "tipus": "Aula docent", "area": 76.24 },
+      { "code": "1009", "capacity": 90, "tipus": "Aula docent", "area": 102.47 },
+      { "code": "1013", "capacity": 90, "tipus": "Aula docent", "area": 103.09 } ] },
 
-    { "espina": "Q3", "planta": "baixa", "_note": "Brief lists 4 rooms here but the plan shows 3 (0003/0007/0011). Sized by capacity.", "rooms": [
-      { "code": "0003", "capacity": 100, "area": 100 },
-      { "code": "0009", "capacity": 48,  "area": 48 },
-      { "code": "0011", "capacity": 24,  "area": 24 },
-      { "code": "0013", "capacity": 48,  "area": 48 } ] },
+    { "espina": "Q3", "planta": "baixa", "_note": "The plan shows 3 rooms: 0003 (105.70), 0007 (128.55, doors 0007+0009) and 0011 (128.70, doors 0011+0013+0015). The inventory splits the last two by door: 0007 (lab) + 0009 and 0011 + 0013, sized here by capacity.", "rooms": [
+      { "code": "0003", "capacity": 100, "tipus": "Aula docent", "area": 105.70 },
+      { "code": "0007", "capacity": 24, "tipus": "Laboratori",  "area": 42.85 },
+      { "code": "0009", "capacity": 48, "tipus": "Aula docent",  "area": 85.70 },
+      { "code": "0011", "capacity": 24, "tipus": "Aula docent",  "area": 42.90 },
+      { "code": "0013", "capacity": 48, "tipus": "Aula docent",  "area": 85.80 } ] },
     { "espina": "Q3", "planta": "primera", "rooms": [
-      { "code": "1003", "capacity": 100, "area": 105.70 },
-      { "code": "1007", "capacity": 130, "area": 128.50 },
-      { "code": "1011", "capacity": 130, "area": 128.50 } ] },
+      { "code": "1003", "capacity": 100, "tipus": "Aula docent", "area": 105.70 },
+      { "code": "1007", "capacity": 130, "tipus": "Aula docent", "area": 128.50 },
+      { "code": "1011", "capacity": 130, "tipus": "Aula docent", "area": 128.50 } ] },
 
     { "espina": "Q4", "planta": "baixa", "rooms": [
-      { "code": "0003", "capacity": 90,  "area": 106.20 },
-      { "code": "0007", "capacity": 117, "area": 129.21 },
-      { "code": "0011", "capacity": 117, "area": 129.48 } ] },
+      { "code": "0003", "capacity": 90, "tipus": "Aula docent",  "area": 106.20 },
+      { "code": "0007", "capacity": 117, "tipus": "Aula docent", "area": 129.21 },
+      { "code": "0011", "capacity": 117, "tipus": "Aula docent", "area": 129.48 } ] },
     { "espina": "Q4", "planta": "primera", "rooms": [
-      { "code": "1003", "capacity": 48, "area": 80.30 },
-      { "code": "1005", "capacity": 50, "area": 76.40 },
-      { "code": "1009", "capacity": 88, "area": 102.90 },
-      { "code": "1013", "capacity": 88, "area": 103.70 } ] }
+      { "code": "1003", "capacity": 48, "tipus": "Aula docent", "area": 80.30 },
+      { "code": "1005", "capacity": 50, "tipus": "Aula docent", "area": 76.40 },
+      { "code": "1009", "capacity": 88, "tipus": "Aula docent", "area": 102.90 },
+      { "code": "1013", "capacity": 88, "tipus": "Aula docent", "area": 103.70 } ] },
+
+    { "espina": "Q6", "planta": "baixa", "rooms": [
+      { "code": "0006", "capacity": 48, "tipus": "Laboratori", "x": [61.94, 77.02], "z": [29.23, 40.95] } ] },
+    { "espina": "Q6", "planta": "primera", "rooms": [
+      { "code": "1006", "capacity": 32, "tipus": "Laboratori", "x": [62.10, 76.83], "z": [29.38, 38.62] },
+      { "code": "1012", "capacity": 40, "tipus": "Laboratori", "x": [85.69, 94.10], "z": [29.38, 38.62] } ] },
+    { "espina": "Q6", "planta": "segona", "rooms": [
+      { "code": "2004", "capacity": 24, "tipus": "Laboratori", "x": [59.28, 68.03], "z": [29.38, 38.62] },
+      { "code": "2005", "capacity": 28, "tipus": "Laboratori", "x": [68.03, 76.79], "z": [29.38, 38.62] },
+      { "code": "2007", "capacity": 24, "tipus": "Laboratori", "x": [76.79, 82.77], "z": [29.38, 38.62] },
+      { "code": "2008", "capacity": 40, "tipus": "Laboratori", "x": [82.77, 91.52], "z": [29.38, 38.62] },
+      { "code": "2009", "capacity": 24, "tipus": "Laboratori", "x": [91.52, 96.87], "z": [29.38, 38.62] } ] },
+
+    { "espina": "Q5", "planta": "baixa", "rooms": [
+      { "code": "0003", "capacity": 24, "tipus": "Laboratori", "x": [59.12, 67.88], "z": [58.65, 67.31] },
+      { "code": "0004", "capacity": 24, "tipus": "Laboratori", "x": [67.88, 77.02], "z": [58.65, 70.33] } ] },
+    { "espina": "Q5", "planta": "primera", "rooms": [
+      { "code": "1005", "capacity": 24, "tipus": "Laboratori", "x": [59.47, 67.98], "z": [58.90, 67.90] },
+      { "code": "1009", "capacity": 24, "tipus": "Laboratori", "x": [71.00, 79.85], "z": [58.90, 67.90] },
+      { "code": "1010", "capacity": 24, "tipus": "Laboratori", "x": [79.85, 85.69], "z": [58.90, 67.90] },
+      { "code": "1011", "capacity": 32, "tipus": "Laboratori", "x": [85.69, 97.02], "z": [58.90, 67.90] } ] },
+    { "espina": "Q5", "planta": "segona", "rooms": [
+      { "code": "2003", "capacity": 25, "tipus": "Laboratori", "x": [62.10, 70.85], "z": [58.90, 67.90] },
+      { "code": "2006", "capacity": 40, "tipus": "Laboratori", "x": [70.85, 79.70], "z": [58.90, 67.90] },
+      { "code": "2007", "capacity": 12, "tipus": "Laboratori", "x": [79.70, 85.69], "z": [58.90, 67.90] },
+      { "code": "2008", "capacity": 28, "tipus": "Laboratori", "x": [85.69, 91.52], "z": [58.90, 67.90] },
+      { "code": "2009", "capacity": 28, "tipus": "Laboratori", "x": [91.52, 96.87], "z": [58.90, 67.90] } ] },
+
+    { "espina": "QC", "planta": "baixa", "_note": "Placed by door code: QC/0011 = plan 'Seminari A', QC/0015 = plan 'Despatx + sala tutories', QC/0019 = plan 'Seminari B', QC/0036.B = plan 'Seminari D'. The inventory names (A-D) were renamed since the plan.", "rooms": [
+      { "code": "0011",   "capacity": 34, "tipus": "Seminari", "x": [0.00, 12.01],    "z": [88.17, 93.64] },
+      { "code": "0015",   "capacity": 24, "tipus": "Seminari", "x": [12.01, 20.83],   "z": [88.17, 93.64] },
+      { "code": "0019",   "capacity": 10, "tipus": "Seminari", "x": [20.83, 26.71],   "z": [88.17, 93.64] },
+      { "code": "0036.B", "capacity": 30, "tipus": "Seminari", "x": [-65.42, -60.23], "z": [88.17, 93.17] } ] },
+    { "espina": "QC", "planta": "tercera", "_note": "Plan 2600005 shows one L-shaped 71 m2 'Espai' QC/3115: a 53 m2 room on the facade plus a 17.5 m2 annex behind the lift (inner door). The inventory splits it in 4 seminaris of ~17.5 m2: the main room in 3 equal parts (.1-.3, west to east) and the annex (.4). Which number is which part is not on the plan.", "rooms": [
+      { "code": "3115.1", "capacity": 20, "tipus": "Seminari", "x": [70.91, 73.86], "z": [96.57, 102.49] },
+      { "code": "3115.2", "capacity": 20, "tipus": "Seminari", "x": [73.86, 76.81], "z": [96.57, 102.49] },
+      { "code": "3115.3", "capacity": 16, "tipus": "Seminari", "x": [76.81, 79.76], "z": [96.57, 102.49] },
+      { "code": "3115.4", "capacity": 20, "tipus": "Seminari", "x": [79.76, 85.65], "z": [99.61, 102.49] } ] }
   ],
   "context": [
-    { "name": "Servei / escales", "x": [-9, 0],      "z": [-1, 88.6],  "floors": 2 },
-    { "name": "Cos central",      "x": [-69, 101.5], "z": [88.6, 103], "floors": 3 },
-    { "name": "Espina 5",         "x": [53.7, 101.5], "z": [59.7, 70.6], "floors": 3 },
-    { "name": "Espina 6",         "x": [53.7, 101.5], "z": [29.8, 40.8], "floors": 3 }
+    { "name": "Servei / escales", "x": [-9, 0],      "z": [-1, 88.2],  "floors": 2 },
+    { "name": "Cos central",      "x": [-69, 101.5], "z": [88.2, 103], "floors": 4 },
+    { "name": "Espina 5",         "x": [53.7, 101.5], "z": [58.7, 70.4], "floors": 3 },
+    { "name": "Espina 6",         "x": [53.7, 101.5], "z": [29.2, 40.9], "floors": 3 }
   ]
 }

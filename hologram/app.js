@@ -66,7 +66,14 @@ function makeLabel(text, sub, height = 2.4, color = '#9fd8e6') {
   return s;
 }
 
-const ghostLineMat = new THREE.LineBasicMaterial({ color: GHOST_LINE, transparent: true, opacity: 0.55 });
+// room label, shrunk to the room's width so narrow rooms (e.g. QC-3115.x) do not overlap
+function roomLabel(code, sub, width) {
+  const l = makeLabel(code, sub, 2.2);
+  l.scale.multiplyScalar(Math.min(1, width / l.scale.x));
+  return l;
+}
+
+const ghostLineMat =new THREE.LineBasicMaterial({ color: GHOST_LINE, transparent: true, opacity: 0.55 });
 const ghostFillMat = new THREE.MeshBasicMaterial({ color: 0x0c2a36, transparent: true, opacity: 0.12, depthWrite: false });
 
 function ghostBox(x0, x1, y0, y1, z0, z1, fill = true) {
@@ -112,7 +119,8 @@ scene.add(world);
 const labelGroup = new THREE.Group();
 world.add(labelGroup);
 const ESPINA_ORDER = ['Q4', 'Q3', 'Q2', 'Q1']; // north -> south, as in the plans
-const PLANTES = ['baixa', 'primera'];
+const PANEL_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'QC']; // room list groups
+const PLANTES = ['baixa', 'primera', 'segona', 'tercera'];
 let layout;
 
 function build() {
@@ -121,25 +129,26 @@ function build() {
   let seed = 0;
 
   for (const slab of layout.slabs) {
-    const z0 = ESPINA_ORDER.indexOf(slab.espina) * G.pitch;
     const y0 = PLANTES.indexOf(slab.planta) * G.floorHeight;
-    const z1 = z0 + G.slabDepth;
-
-    world.add(ghostBox(0, G.slabLength, y0, y0 + 0.25, z1, z1 + G.corridorDepth, false));
-
-    if (slab.ghost) {
-      for (const [a, b] of split(slab.ghost, G.slabLength)) {
-        world.add(ghostBox(a, b, y0, y0 + G.roomHeight, z0, z1, false));
-      }
+    const inSpine = ESPINA_ORDER.includes(slab.espina);
+    // Q1-Q4: cells laid along the espina by plan area. Q5, Q6, QC: each room carries its own x/z box.
+    let spans = [];
+    if (inSpine) {
+      const z0 = ESPINA_ORDER.indexOf(slab.espina) * G.pitch;
+      const z1 = z0 + G.slabDepth;
+      world.add(ghostBox(0, G.slabLength, y0, y0 + 0.25, z1, z1 + G.corridorDepth, false));
+      spans = split(slab.rooms.map((r) => r.area), G.slabLength).map(([a, b]) => ({ x: [a, b], z: [z0, z1] }));
     }
 
-    const spans = split(slab.rooms.map((r) => r.area), G.slabLength);
     slab.rooms.forEach((r, i) => {
-      const [a, b] = spans[i];
-      const geo = new THREE.BoxGeometry(b - a - gap, G.roomHeight, G.slabDepth - gap);
+      const box = inSpine ? spans[i] : r;
+      const [a, b] = box.x, [c, d] = box.z;
+      if (r.ghost) { world.add(ghostBox(a, b, y0, y0 + G.roomHeight, c, d, false)); return; }
+
+      const geo = new THREE.BoxGeometry(b - a - gap, G.roomHeight, d - c - gap);
       const mat = createHologramMaterial(seed++ * 1.7);
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(a + (b - a) / 2, y0 + G.roomHeight / 2, z0 + G.slabDepth / 2);
+      mesh.position.set((a + b) / 2, y0 + G.roomHeight / 2, (c + d) / 2);
       const id = `${slab.espina}-${r.code}`;
       mesh.userData.roomId = id;
 
@@ -147,7 +156,7 @@ function build() {
       mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat));
       world.add(mesh);
 
-      const label = makeLabel(r.code, String(r.capacity), 2.2);
+      const label = roomLabel(r.code, String(r.capacity), b - a);
       label.position.set(mesh.position.x, y0 + G.roomHeight + 1.4, mesh.position.z);
       labelGroup.add(label);
 
@@ -155,7 +164,7 @@ function build() {
         id, data: { ...r, espina: slab.espina, planta: slab.planta }, mesh, mat, edgeMat,
         current: PALETTE.neutral.clone(), target: PALETTE.neutral.clone(), from: PALETTE.neutral.clone(),
         t: 1, colorName: 'neutral', value: 0, highlight: 0, highlightTarget: 0,
-        label, labelPos: label.position.clone(), labelSub: String(r.capacity), tvalue: 0, tlabel: '', over: null,
+        label, labelPos: label.position.clone(), labelSub: String(r.capacity), labelWidth: b - a, tvalue: 0, tlabel: '', over: null,
       });
     });
   }
@@ -168,6 +177,13 @@ function build() {
 
   for (const c of layout.context) {
     world.add(ghostBox(c.x[0], c.x[1], 0, c.floors * G.floorHeight, c.z[0], c.z[1]));
+    // one outline per floor slab, so each planta reads as its own level
+    for (let f = 1; f < c.floors; f++) {
+      const y = f * G.floorHeight;
+      const ring = [[c.x[0], c.z[0]], [c.x[1], c.z[0]], [c.x[1], c.z[1]], [c.x[0], c.z[1]]]
+        .map(([x, z]) => new THREE.Vector3(x, y, z));
+      world.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(ring), ghostLineMat));
+    }
     const t = makeLabel(c.name, null, 3.4, '#5b95a6');
     t.position.set((c.x[0] + c.x[1]) / 2, c.floors * G.floorHeight + 2.4, (c.z[0] + c.z[1]) / 2);
     labelGroup.add(t);
@@ -300,7 +316,7 @@ function setLabelSub(room, sub) {
   if (room.labelSub === sub) return;
   labelGroup.remove(room.label);
   disposeGroup(room.label);
-  room.label = makeLabel(room.data.code, sub, 2.2);
+  room.label = roomLabel(room.data.code, sub, room.labelWidth);
   room.label.position.copy(room.labelPos);
   labelGroup.add(room.label);
   room.labelSub = sub;
@@ -567,7 +583,7 @@ function refreshLegend() {
 }
 
 function buildPanel() {
-  for (const e of [...ESPINA_ORDER].reverse()) {
+  for (const e of PANEL_ORDER) {
     for (const p of PLANTES) {
       const group = [...rooms.values()].filter((r) => r.data.espina === e && r.data.planta === p);
       if (!group.length) continue;

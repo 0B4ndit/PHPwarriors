@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hologram",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd hologram && python3 server.py 8765"],
+      "port": 8765
+    }
+  ]
+}
