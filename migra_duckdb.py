@@ -13,6 +13,8 @@ Tipus:
 
 Columnes afegides a `sessions` i `escenari_sessions_extra`: `sem` (semestre per data) i `torn_actual`
 (per l'hora d'inici).
+
+En acabar crida crea_vistes.py: les vistes sessions51..54 de les propostes de solver/out/, si ja n'hi ha.
 """
 from __future__ import annotations
 
@@ -159,6 +161,9 @@ def migra(paquet: Path, db: Path) -> None:
         carrega_escenaris(con, paquet / "escenaris")
         afegeix_derivades(con)
 
+        from crea_vistes import crea_vistes   # vistes sessions51..54 de les propostes del solver, si n'hi ha
+        vistes = crea_vistes(con, ARREL / "solver" / "out")
+
         for taula, clau in CLAUS.items():
             n, dist, nuls = con.execute(f"SELECT count(*), count(DISTINCT {clau}), count(*) - count({clau}) "
                                         f"FROM {taula}").fetchone()
@@ -167,6 +172,8 @@ def migra(paquet: Path, db: Path) -> None:
     finally:
         con.close()
     os.replace(tmp, db)
+    print("Vistes de les propostes (crea_vistes.py):")
+    print("\n".join(vistes))
 
 
 def main() -> None:
