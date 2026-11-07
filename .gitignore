@@ -1,5 +1,64 @@
-paquet/
+# --- Virtual environment created in the project root (python3 -m venv .) ---
+/bin/
+/include/
+/lib/
+/lib64/
+/share/
+/etc/
+/pyvenv.cfg
+
+# --- Virtual environments ---
 venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+pyvenv.cfg
+
+# --- Environment variables / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Python bytecode / caches ---
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# --- Packaging / build ---
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+wheels/
+
+# --- Testing / coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Type checkers / linters ---
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# --- Jupyter ---
 .ipynb_checkpoints/
+
+# --- Editors / IDEs ---
+.vscode/
+.idea/
+*.swp
+*~
+
+# --- macOS ---
+.DS_Store
+
