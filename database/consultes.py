@@ -144,8 +144,8 @@ def consultar_semestres(vista=VISTA_PER_DEFECTE, con=None):
     """[{sem, inici, fi}] amb les dates 'AAAA-MM-DD'. `sem` el calcula migra_duckdb.py per la data."""
     with _con(con) as c:
         return _files(c, f"""
-            SELECT sem, strftime(min(data), '%Y-%m-%d') AS inici, strftime(max(data), '%Y-%m-%d') AS fi
-            FROM {taula_vista(vista)} GROUP BY sem ORDER BY sem
+            SELECT semestre, strftime(min(data), '%Y-%m-%d') AS inici, strftime(max(data), '%Y-%m-%d') AS fi
+            FROM {taula_vista(vista)} GROUP BY semestre ORDER BY semestre
         """)
 
 
