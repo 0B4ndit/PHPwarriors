@@ -1,5 +1,9 @@
 paquet/
 venv/
+.venv/
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
