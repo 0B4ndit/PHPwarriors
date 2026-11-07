@@ -73,6 +73,5 @@ hologram/*.tmp
 
 
 # solver (generated: facts, solutions, proposta, verifier report)
-solver/out/
 
 planols/*
