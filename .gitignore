@@ -71,3 +71,5 @@ hologram/rooms.json
 hologram/colormap.json
 hologram/sessions-data.json
 hologram/*.tmp
+
+planols/*
