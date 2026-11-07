@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Serves the hologram with its data read from the project's DuckDB database.
 
-    python server.py [port] [--db PATH] [--criteri-informe] [--vista sessions|sessions_s2]    (default 8000, ../dades/paquet.duckdb)
+    python server.py [port] [--db PATH] [--criteri-informe] [--vista sessions|sessions51..54]    (default 8000, ../dades/paquet.duckdb)
 
   GET /api/layout     layout.json (geometry) with each room's capacity, tipus and descripcio from the 'aules' table
   GET /api/sessions   dataset for the time views, built from the 'sessions' and 'calendari' tables (see schedule.js):
@@ -34,8 +34,8 @@ ap = argparse.ArgumentParser(description="Hologram server (data from DuckDB).")
 ap.add_argument("port", nargs="?", type=int, default=8000)
 ap.add_argument("--db", default=DEFAULT_DB, help="DuckDB file (default: ../dades/paquet.duckdb)")
 ap.add_argument("--criteri-informe", action="store_true", help="drop PLAB and double-degree sessions, as the report does")
-ap.add_argument("--vista", default=db.VISTA_PER_DEFECTE, choices=sorted(db.VISTES),
-                help="sessions view to read (default: sessions = all; sessions_s2 / s2 = 2nd semester)")
+ap.add_argument("--vista", default=db.VISTA_PER_DEFECTE, choices=db.VISTES,
+                help="sessions view to read (default: sessions, the whole table)")
 args = ap.parse_args()
 DB_PATH = os.path.abspath(args.db)
 

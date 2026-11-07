@@ -12,7 +12,7 @@ Tipus:
   - codis i identificadors (codi, pla, id_sessio...) es queden com a text
 
 Columnes afegides a `sessions` i `escenari_sessions_extra`: `sem` (semestre per data) i `torn_actual`
-(per l'hora d'inici). Vista `sessions_s2`: les sessions del 2n semestre, el que avalua el nivell 2.
+(per l'hora d'inici).
 """
 from __future__ import annotations
 
@@ -129,7 +129,7 @@ def carrega_escenaris(con: duckdb.DuckDBPyConnection, dir_esc: Path) -> None:
 
 
 def afegeix_derivades(con: duckdb.DuckDBPyConnection) -> None:
-    """Columnes calculades segons les regles de l'enunciat (apartat 8.3), i la vista del 2n semestre.
+    """Columnes calculades segons les regles de l'enunciat (apartat 8.3).
 
     sem         1 o 2 segons la data (1r = setembre a gener). El camp `semestre` de Sigma no és fiable.
     torn_actual 'mati' si la sessió comença abans de les 14.30; si no, 'tarda'. Es compara amb torn_requerit.
@@ -140,7 +140,6 @@ def afegeix_derivades(con: duckdb.DuckDBPyConnection) -> None:
         con.sql(f"""UPDATE {taula} SET
             sem = CASE WHEN month(data) IN (9, 10, 11, 12, 1) THEN 1 ELSE 2 END,
             torn_actual = CASE WHEN h_ini < TIME '14:30' THEN 'mati' ELSE 'tarda' END""")
-    con.sql("CREATE VIEW sessions_s2 AS SELECT * FROM sessions WHERE sem = 2")
 
 
 def migra(paquet: Path, db: Path) -> None:

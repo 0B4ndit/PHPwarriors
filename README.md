@@ -83,7 +83,7 @@ Derived columns, following the challenge rules (statement, section 8.3), on `ses
 - `sem`: 1 or 2 by date (1st semester = September to January). Use it instead of `semestre`, which is wrong for 54 sessions.
 - `torn_actual`: `mati` if the session starts before 14:30, otherwise `tarda`. Compare it with `torn_requerit` for R1.
 
-The view `sessions_s2` holds the 2nd-semester sessions, which is what level 2 is evaluated on (`--semestre 2` in the verifier).
+Views `sessions51` to `sessions54` (planned, not created yet) have the same columns as `sessions`; the functions in `database/consultes.py` pick one with their `vista` parameter.
 
 Querying from Python:
 

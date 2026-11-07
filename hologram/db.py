@@ -26,7 +26,7 @@ def _hhmm(t):
 
 
 def load(path, room_ids, criteri_informe=False, vista=VISTA_PER_DEFECTE):
-    """All the queries live in database/consultes.py; `vista` picks the sessions view (sessions, sessions_s2)."""
+    """All the queries live in database/consultes.py; `vista` picks the sessions view (sessions, sessions51..54)."""
     with obrir_db(path) as (con, snapshot):
         aules = consultar_totes_les_aules(con=con)
         rows = [tuple(r[c] for c in SESSION_COLS)

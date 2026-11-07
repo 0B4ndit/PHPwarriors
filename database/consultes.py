@@ -2,17 +2,19 @@
 
 Les consultes sobre sessions reben el paràmetre `vista`, que diu de quina vista de sessions es llegeix:
 
-    "sessions"     totes les sessions (per defecte)
-    "sessions_s2"  només les del 2n semestre (el que avalua el nivell 2); també es pot escriure "s2"
+    "sessions"                            la taula amb totes les sessions (per defecte)
+    "sessions51" ... "sessions54"         vistes amb la mateixa estructura que `sessions`
+
+Si la vista encara no existeix a la BD, la consulta falla (duckdb.CatalogException).
 
 Cada funció accepta també `con`: si se li passa una connexió oberta (amb `obrir_db()`), la reutilitza;
 si no, n'obre una de només lectura i la tanca en acabar.
 
     from database.consultes import consultar_sessio, obrir_db
-    consultar_sessio("S00001")                       # vista de totes les sessions
-    consultar_sessio("S00001", vista="s2")           # només si és del 2n semestre
+    consultar_sessio("S00001")                       # taula sessions
+    consultar_sessio("S00001", vista="sessions51")   # vista sessions51
     with obrir_db() as (con, _):                     # diverses consultes amb una sola connexió
-        sessions = consultar_sessions(vista="s2", con=con)
+        sessions = consultar_sessions(vista="sessions52", con=con)
         aules = consultar_totes_les_aules(con=con)
 """
 import os
@@ -26,22 +28,16 @@ import duckdb
 PROJECTE = Path(__file__).resolve().parent.parent
 DB_PATH = PROJECTE / "dades" / "paquet.duckdb"
 
-# Vistes de sessions que es poden consultar: nom que es passa -> taula o vista real de la BD.
-VISTES = {
-    "sessions": "sessions",
-    "totes": "sessions",
-    "sessions_s2": "sessions_s2",
-    "s2": "sessions_s2",
-}
+# Vistes de sessions que es poden consultar (totes amb les columnes de `sessions`).
+VISTES = ("sessions", "sessions51", "sessions52", "sessions53", "sessions54")
 VISTA_PER_DEFECTE = "sessions"
 
 
 def taula_vista(vista=VISTA_PER_DEFECTE):
-    """Nom real de la vista. Només deixa passar les de VISTES (el nom va dins l'SQL, no pot ser lliure)."""
-    try:
-        return VISTES[vista]
-    except KeyError:
-        raise ValueError(f"vista desconeguda: {vista!r}; opcions: {', '.join(VISTES)}") from None
+    """Comprova el nom de la vista. Només deixa passar les de VISTES (el nom va dins l'SQL, no pot ser lliure)."""
+    if vista not in VISTES:
+        raise ValueError(f"vista desconeguda: {vista!r}; opcions: {', '.join(VISTES)}")
+    return vista
 
 
 # ============================================================
@@ -144,8 +140,8 @@ def consultar_semestres(vista=VISTA_PER_DEFECTE, con=None):
     """[{sem, inici, fi}] amb les dates 'AAAA-MM-DD'. `sem` el calcula migra_duckdb.py per la data."""
     with _con(con) as c:
         return _files(c, f"""
-            SELECT semestre, strftime(min(data), '%Y-%m-%d') AS inici, strftime(max(data), '%Y-%m-%d') AS fi
-            FROM {taula_vista(vista)} GROUP BY semestre ORDER BY semestre
+            SELECT sem, strftime(min(data), '%Y-%m-%d') AS inici, strftime(max(data), '%Y-%m-%d') AS fi
+            FROM {taula_vista(vista)} GROUP BY sem ORDER BY sem
         """)
 
 
