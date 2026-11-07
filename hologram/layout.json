@@ -1,0 +1,51 @@
+{
+  "_comment": "Traced from plans 2600002 (planta baixa) and 2600003 (planta primera). Metres. X runs along the espines (0 = west end, next to the service spine), Z runs from Q4 (north, 0) to Q1 (south). Room length along X is proportional to 'area' (m2 from the plan); all aula rooms in an espina share the same depth.",
+  "geometry": {
+    "slabLength": 41.6,
+    "slabDepth": 8.9,
+    "corridorDepth": 3.9,
+    "pitch": 22.1,
+    "floorHeight": 4.5,
+    "roomHeight": 3.6
+  },
+  "slabs": [
+    { "espina": "Q1", "planta": "baixa", "ghost": [105.79, 102.68, 50.41, 103.30], "rooms": [] },
+    { "espina": "Q1", "planta": "primera", "rooms": [
+      { "code": "1003", "capacity": 90,  "area": 105.90 },
+      { "code": "1007", "capacity": 90,  "area": 102.47 },
+      { "code": "1011", "capacity": 160, "area": 154.95 } ] },
+
+    { "espina": "Q2", "planta": "baixa", "ghost": [105.79, 50.62, 50.62, 50.62, 50.62, 51.23], "rooms": [] },
+    { "espina": "Q2", "planta": "primera", "rooms": [
+      { "code": "1003", "capacity": 63, "area": 80.03 },
+      { "code": "1005", "capacity": 63, "area": 76.24 },
+      { "code": "1009", "capacity": 90, "area": 102.47 },
+      { "code": "1013", "capacity": 90, "area": 103.09 } ] },
+
+    { "espina": "Q3", "planta": "baixa", "_note": "Brief lists 4 rooms here but the plan shows 3 (0003/0007/0011). Sized by capacity.", "rooms": [
+      { "code": "0003", "capacity": 100, "area": 100 },
+      { "code": "0009", "capacity": 48,  "area": 48 },
+      { "code": "0011", "capacity": 24,  "area": 24 },
+      { "code": "0013", "capacity": 48,  "area": 48 } ] },
+    { "espina": "Q3", "planta": "primera", "rooms": [
+      { "code": "1003", "capacity": 100, "area": 105.70 },
+      { "code": "1007", "capacity": 130, "area": 128.50 },
+      { "code": "1011", "capacity": 130, "area": 128.50 } ] },
+
+    { "espina": "Q4", "planta": "baixa", "rooms": [
+      { "code": "0003", "capacity": 90,  "area": 106.20 },
+      { "code": "0007", "capacity": 117, "area": 129.21 },
+      { "code": "0011", "capacity": 117, "area": 129.48 } ] },
+    { "espina": "Q4", "planta": "primera", "rooms": [
+      { "code": "1003", "capacity": 48, "area": 80.30 },
+      { "code": "1005", "capacity": 50, "area": 76.40 },
+      { "code": "1009", "capacity": 88, "area": 102.90 },
+      { "code": "1013", "capacity": 88, "area": 103.70 } ] }
+  ],
+  "context": [
+    { "name": "Servei / escales", "x": [-9, 0],      "z": [-1, 88.6],  "floors": 2 },
+    { "name": "Cos central",      "x": [-69, 101.5], "z": [88.6, 103], "floors": 3 },
+    { "name": "Espina 5",         "x": [53.7, 101.5], "z": [59.7, 70.6], "floors": 3 },
+    { "name": "Espina 6",         "x": [53.7, 101.5], "z": [29.8, 40.8], "floors": 3 }
+  ]
+}

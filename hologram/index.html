@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAB Hologram</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root { --bg:#03070c; --panel:#07121a; --line:#123846; --fg:#bfe3ec; --dim:#6a98a8;
+          --red:#d8364f; --green:#34c97c; --cyan:#3a8fb0; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:12px/1.4 ui-monospace, Consolas, monospace; }
+  #app { display:flex; height:100%; }
+  #scene { flex:1; min-width:0; position:relative; }
+  #scene canvas { display:block; width:100%; height:100%; }
+  aside { width:280px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
+  header { padding:12px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0 0 8px; font-size:13px; letter-spacing:.12em; color:var(--cyan); }
+  .btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  button { background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 8px; font:inherit; cursor:pointer; }
+  button:hover { border-color:var(--cyan); }
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
+  .pill.ok { color:var(--green); border-color:var(--green); }
+  .pill.warn { color:#e0b04a; border-color:#e0b04a; }
+  .pill.bad { color:var(--red); border-color:var(--red); }
+  #counts { display:block; margin:4px 0 8px; font-size:11px; font-weight:normal; letter-spacing:0; color:var(--dim); }
+  .seg { display:flex; margin-top:10px; } .seg button { flex:1; border-radius:0; }
+  .seg button:first-child { border-radius:4px 0 0 4px; } .seg button:last-child { border-radius:0 4px 4px 0; border-left:0; }
+  .seg button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
+  #time-controls { margin-top:10px; }
+  .trow[hidden] { display:none; }
+  .trow { display:flex; align-items:center; gap:6px; margin-top:8px; }
+  .trow input, .trow select { flex:1; min-width:0; background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; font:inherit; color-scheme:dark; }
+  .trow label { display:flex; align-items:center; gap:8px; flex:1; color:var(--dim); }
+  #t-info { margin-top:8px; font-size:11px; color:var(--fg); }
+  #t-hint { margin-top:4px; font-size:10px; color:var(--dim); }
+  #cmap-controls { margin-top:10px; }
+  #legend-bar { height:10px; border-radius:3px; }
+  .legend-ends { display:flex; justify-content:space-between; color:var(--dim); font-size:10px; margin:2px 0 8px; }
+  #cmap-controls label { display:block; color:var(--dim); margin-bottom:6px; }
+  #cmap-controls label b { float:right; color:var(--fg); font-weight:normal; }
+  input[type=range].hue { display:block; width:100%; height:8px; margin:6px 0 0; border-radius:4px; -webkit-appearance:none; appearance:none; outline:none; }
+  input[type=range].hue::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
+  input[type=range].hue::-moz-range-thumb { width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
+  #detail { border-top:1px solid var(--line); max-height:38%; display:flex; flex-direction:column; }
+  #detail[hidden] { display:none; }
+  .d-head { display:flex; align-items:center; justify-content:space-between; padding:8px 12px 4px; color:var(--cyan); font-size:11px; }
+  .d-head button { padding:0 6px; }
+  #d-list { overflow-y:auto; padding:0 12px 8px; }
+  .d-row { display:flex; gap:8px; padding:3px 0; border-bottom:1px solid #0c2230; font-size:11px; }
+  .d-when { flex:none; width:104px; color:var(--cyan); }
+  .d-name { flex:1; } .d-name i { color:var(--dim); font-style:normal; }
+  .d-n { flex:none; color:var(--dim); }
+  .d-empty { color:var(--dim); padding:6px 0; font-size:11px; }
+  .val { color:var(--fg); min-width:34px; text-align:right; }
+  #room-list { overflow-y:auto; flex:1; padding:0 12px 8px; }
+  h3 { margin:12px 0 3px; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .row { display:flex; align-items:center; gap:8px; padding:2px 4px; border-radius:4px; cursor:pointer; }
+  .row:hover { background:#0a2230; }
+  .row.sel { background:#0d3345; outline:1px solid var(--cyan); }
+  .code { flex:1; } .cap { color:var(--dim); }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex:none; margin:0 3px 0 6px; }
+  .row .dot { margin:0; }
+  .dot.neutral { background:var(--cyan); } .dot.red { background:var(--red); } .dot.green { background:var(--green); }
+  details { border-top:1px solid var(--line); padding:8px 12px; }
+  summary { cursor:pointer; color:var(--dim); }
+  pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fc3d3; font-size:10.5px; }
+  @media (max-width: 700px) { #app { flex-direction:column; } aside { width:100%; height:42%; border-left:0; border-top:1px solid var(--line); } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="scene"></div>
+  <aside>
+    <header>
+      <h1>UAB · AULES DOCENTS <span id="counts"></span></h1>
+      <span id="status" class="pill warn">connecting…</span>
+      <div class="seg">
+        <button data-mode="categories" class="on">Categories</button>
+        <button data-mode="colormap">Colormap %</button>
+        <button data-mode="schedule">Time</button>
+      </div>
+      <div id="time-controls" hidden>
+        <div class="seg">
+          <button data-scope="semester">Semester</button>
+          <button data-scope="week">Week</button>
+          <button data-scope="day">Day</button>
+          <button data-scope="hour" class="on">Hour</button>
+        </div>
+        <div class="trow" id="row-sem" hidden><label>Semester <select id="t-sem"><option value="1">1r · Sep–Jan</option><option value="2">2n · Feb–May</option></select></label></div>
+        <div class="trow" id="row-date"><button id="d-prev" title="previous">◀</button><input type="date" id="t-date"><button id="d-next" title="next">▶</button></div>
+        <div class="trow" id="row-time"><button id="h-prev" title="−30 min">◀</button><input type="time" id="t-time" step="900"><button id="h-next" title="+30 min">▶</button></div>
+        <div id="t-info"></div>
+        <div id="t-hint"></div>
+      </div>
+      <div id="cmap-controls" hidden>
+        <div id="legend-bar"></div>
+        <div class="legend-ends"><span>0%</span><span id="legend-hi">100%</span></div>
+        <label>hue <b id="hue-n"></b><input id="hue" class="hue" type="range" min="0" max="360"></label>
+      </div>
+      <div class="btns">
+        <button id="btn-demo">Start demo</button>
+        <button id="btn-labels">Toggle labels</button>
+      </div>
+    </header>
+    <div id="room-list"></div>
+    <div id="detail" hidden>
+      <div class="d-head"><b id="d-title"></b><button id="d-close" title="close">✕</button></div>
+      <div id="d-list"></div>
+    </div>
+    <details>
+      <summary>API</summary>
+      <pre id="api-example"></pre>
+    </details>
+  </aside>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
