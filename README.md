@@ -61,6 +61,30 @@ Run every command **from the project root** unless a step says otherwise.
   results are already committed in `final/solver/out/`.
 - Only for the Ornith chat with the LLM: the event's LLM gateway key (`UTH_KEY`).
 
+### Input data: `final/paquet/`
+
+Every script reads the challenge data package from **`final/paquet/`** (not from the root `paquet/`, which is no
+longer used). The repository already includes it. If you get a new version of the package, copy its files there,
+keeping the same names and folders:
+
+```
+final/paquet/
+├── sessions.csv            every session of the 2026-27 year (the base the verifier checks against)
+├── aules.csv               rooms: type, capacity, ordinary or not
+├── activitats.csv          sessions grouped by group, day and hour over the semester (informative)
+├── proposta_partida.csv    today's timetable in the delivery format (the starting point)
+├── plans.csv               study plans included and the date of each extract
+├── calendari.csv           holidays, non-teaching days, stoppages and assessment weeks
+├── cobertura.json          counts of the package (sessions, sessions with no room…)
+├── DICCIONARI.md           what every file and column means
+└── escenaris/
+    ├── contingencies/escenari.json                 question 5.3
+    └── grau-nou-40/escenari.json, sessions_extra.csv  question 5.4
+```
+
+After changing anything in `final/paquet/`, rebuild the database (step 6) and, if you want new proposals, the
+timetables (step 5).
+
 ### 1. Python environment
 
 ```bash

@@ -25,7 +25,7 @@ També funciona des del xat del holograma (`web/server.py`, botó 💬). El serv
 pregunta ─▶ LLM de l'event (dcc-llm-gw.uab.cat, model ornith)
               │ tria una eina i els paràmetres
               ▼
-           ornith/eines.py ── deterministes, només lectura ──▶ dades (paquet/*.csv + solver/out/<q>/proposta.csv)
+           ornith/eines.py ── deterministes, només lectura ──▶ dades (final/paquet/*.csv + final/solver/out/<q>/proposta.csv)
               │                                                carregades amb el model del verificador oficial
               │ resultat entre <dades>…</dades> + fonts (id_sessio)
               ▼
@@ -58,9 +58,9 @@ Per defecte totes les eines responen sobre la **proposta 5.2** (torns nous, 2n s
 
 ## Com es comprova el que diu
 
-1. **Cada resposta porta les seves fonts.** Al peu de la resposta hi ha els `id_sessio` que la demostren. Per comprovar-ho, n'hi ha prou de buscar-los al CSV de la vista (`solver/out/5.2/proposta.csv` + `paquet/sessions.csv`), o amb DuckDB:
+1. **Cada resposta porta les seves fonts.** Al peu de la resposta hi ha els `id_sessio` que la demostren. Per comprovar-ho, n'hi ha prou de buscar-los al CSV de la vista (`final/solver/out/5.2/proposta.csv` + `final/paquet/sessions.csv`), o amb DuckDB:
    ```sql
-   SELECT * FROM 'solver/out/5.2/proposta.csv' p JOIN 'paquet/sessions.csv' s USING (id_sessio)
+   SELECT * FROM 'final/solver/out/5.2/proposta.csv' p JOIN 'final/paquet/sessions.csv' s USING (id_sessio)
    WHERE id_sessio IN ('S09642', 'S09643');
    ```
 2. **Comprovació posterior automàtica** (`agent.comprova`). Abans de mostrar la resposta, es comproven dues coses:
