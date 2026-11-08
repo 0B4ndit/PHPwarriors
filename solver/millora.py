@@ -51,11 +51,27 @@ PRIORITY = {
     '5.4': (0, 1, 2, 3, 4, 5, 6),
 }
 PRIO = PRIORITY['5.2']
+# Weighted mode (--pesos or solver/pesos-<q>.txt): minimise  sum_k  w_k * objective_k / REF_k , where REF is the value of
+# each objective in the SAT proposal (so that weights of objectives with very different sizes are comparable).
+WEIGHTS: dict = {}
+REF = (1,) * len(ORDER)
+NOROOM: set = set()       # R5-SENSE-AULA declared in the folder's relaxacions.csv (out/truc): never get a room
 
 
 def key(v):
-    """Objective vector in priority order (lexicographic comparison)."""
+    """What is compared: the vector in priority order (lexicographic), or the weighted sum (weighted mode)."""
+    if WEIGHTS:
+        return (sum(w * v[i] / REF[i] for i, w in WEIGHTS.items()),)
     return tuple(v[i] for i in PRIO)
+
+
+def parse_weights(text):
+    out = {}
+    for part in text.replace(';', ',').split(','):
+        if part.strip():
+            k, v = part.split('=')
+            out[ORDER.index(k.strip())] = float(v)
+    return out
 
 
 def vsub(a, b):
@@ -103,7 +119,8 @@ class Timetable:
             fixed = any(s.fixada for s in ss)
             self.can_time[i] = with_time and inside and not fixed       # 5.1: times never move
             needs = [s for s in ss if not s.sense_espai and s.tipus != 'PLAB']
-            locked = any(s.fixada and s.aula and not a_traslladar(s.aula) for s in needs)
+            locked = (any(s.fixada and s.aula and not a_traslladar(s.aula) for s in needs)
+                      or any(s.id in NOROOM for s in ss))
             self.can_room[i] = inside and bool(needs) and not locked
             self.allowed[i] = self._allowed_rooms(needs) if self.can_room[i] else []
 
@@ -329,7 +346,7 @@ class Timetable:
 # ---------------------------------------------------------------------------------------- the two phases
 def better(d):
     for x in key(d):
-        if x:
+        if abs(x) > 1e-12:
             return x < 0
     return False
 
@@ -373,7 +390,7 @@ def phase_time(T: Timetable, log):
             d = T.delta(new)
             if better(d):
                 cands.append((d, new))
-        cands.sort(key=lambda x: x[0])
+        cands.sort(key=lambda x: key(x[0]))
         for d, new in cands:
             if not T.time_ok(new, unit):
                 continue
@@ -418,7 +435,7 @@ def phase_rooms(T: Timetable, log):
             d = T.delta(new)
             if better(d):
                 cands.append((d, r, new))
-        cands.sort(key=lambda x: x[0])
+        cands.sort(key=lambda x: key(x[0]))
         for d, r, new in cands:
             if T.room_ok(new, unit):
                 T.move(new)
@@ -533,7 +550,39 @@ def rows_from_pos(sid, p, prop):
 
 
 def show(v):
-    return '  '.join(f'{ORDER[i]}={v[i]}' for i in PRIO)
+    order = list(WEIGHTS) + [i for i in PRIO if i not in WEIGHTS] if WEIGHTS else PRIO
+    txt = '  '.join(f'{ORDER[i]}={v[i]}' for i in order)
+    return txt + (f'  [score {key(v)[0]:.4f}]' if WEIGHTS else '')
+
+
+def starting_points(d: Path, src: Path):
+    """For --des-de millor: the best-scored verified variant(s) and the previous proposal."""
+    out = []
+    vd = d / 'variants'
+    scores = {}
+    for t in sorted(vd.glob('puntuacions*.txt')):
+        for line in open(t, encoding='utf-8-sig'):
+            parts = line.replace(';', ' ').split()
+            if len(parts) >= 2:
+                scores[parts[0]] = parts[1]
+    for t in sorted(vd.glob('ronda*.csv')):
+        text = open(t, encoding='utf-8-sig').read()
+        dialect = csv.Sniffer().sniff(text.splitlines()[0], delimiters=',;\t')
+        for r in csv.DictReader(text.splitlines(), dialect=dialect):
+            sc = (scores.get(r['variant']) or r.get('puntuacio') or '').strip().replace(',', '.')
+            if sc and r['veredicte'].startswith('VALIDA'):
+                scores[r['variant']] = sc
+            elif r['variant'] in scores and not r['veredicte'].startswith('VALIDA'):
+                scores.pop(r['variant'])
+    ranked = sorted(((float(v), k) for k, v in scores.items() if (vd / f'{k}.csv').exists()), reverse=True)
+    if ranked:
+        top = ranked[0][0]
+        out += [vd / f'{k}.csv' for v, k in ranked if v == top]   # every variant tied for the best score
+        print(f'  best xaman score so far: {top:g} ({", ".join(k for v, k in ranked if v == top)})')
+    for prev in (d / 'proposta-anterior.csv', src):
+        if prev.exists():
+            out.append(prev)
+    return out
 
 
 # ---------------------------------------------------------------------------------------- main
@@ -552,8 +601,15 @@ def main():
     ap.add_argument('--temps', type=int, default=180, help='seconds of LAHC (0 = greedy only)')
     ap.add_argument('--fils', type=int, default=min(8, os.cpu_count() or 1), help='parallel LAHC workers')
     ap.add_argument('--llavor', type=int, default=1, help='first random seed')
+    ap.add_argument('--pesos', help='weighted mode, e.g. "canvis_aula=3,desplacaments_aula=1" '
+                                    '(default: solver/pesos-<q>.txt if it exists, else the priority order)')
+    ap.add_argument('--ordre', action='store_true', help='ignore pesos-<q>.txt and use the priority order')
+    ap.add_argument('--sortida', type=Path, help='write the proposal here instead of out/<q>/proposta.csv')
+    ap.add_argument('--des-de', dest='des_de', default='sat',
+                    help='start from: "sat" (the SAT proposal), "millor" (the best known: the best-scored variant, '
+                         'the previous proposta.csv or the SAT one, whichever is best) or a proposal file')
     a = ap.parse_args()
-    global PRIO, _T
+    global PRIO, _T, WEIGHTS, REF
     if a.pregunta not in SCOPE:
         print(f'{a.pregunta}: nothing to improve (its objective is the fewest changes w.r.t. 5.2)')
         return
@@ -562,21 +618,58 @@ def main():
     if not keep.exists():
         shutil.copy(src, keep)
     base = load(a.pregunta)
-    with open(keep, encoding='utf-8') as f:
-        rd = csv.DictReader(f)
-        fields = rd.fieldnames
-        prop = {r['id_sessio']: r for r in rd}
+
+    def read(path):
+        with open(path, encoding='utf-8') as f:
+            rd = csv.DictReader(f)
+            return rd.fieldnames, {r['id_sessio']: r for r in rd}
+
+    fields, prop = read(keep)
     relaxed = set()
     rel = d / 'relaxacions.csv'
     if rel.exists():
         for r in csv.DictReader(open(rel, encoding='utf-8')):
             if r['restriccio'] == 'R1-TORN':
                 relaxed |= set(r['sessions'].split('|'))
+            if r['restriccio'] == 'R5-SENSE-AULA':
+                NOROOM.update(r['sessions'].split('|'))
+    if NOROOM:
+        print(f'  {len(NOROOM)} sessions declared R5-SENSE-AULA: they keep no room')
     scope, with_time = SCOPE[a.pregunta]
     PRIO = PRIORITY[a.pregunta]
-    print('priority: ' + ' > '.join(ORDER[i] for i in PRIO))
+    # a folder of its own (--dir, e.g. out/truc/5.2) learns its own weights: <dir>/pesos.txt
+    wfile = (d / 'pesos.txt') if a.dir else HERE / f'pesos-{a.pregunta}.txt'
+    text = a.pesos or (wfile.read_text(encoding='utf-8').strip() if wfile.exists() and not a.ordre else '')
+    if text:
+        WEIGHTS = parse_weights(text)
+        print('weighted: ' + ' + '.join(f'{w:g}*{ORDER[i]}' for i, w in WEIGHTS.items())
+              + ('' if a.pesos else f'   (from {wfile.name})'))
+    else:
+        print('priority: ' + ' > '.join(ORDER[i] for i in PRIO))
     t0 = time.time()
     T = Timetable(base, prop, relaxed, scope, with_time)
+    REF = tuple(max(1, x) for x in T.total())       # weights are always relative to the SAT proposal
+    if a.des_de != 'sat':
+        cands = [Path(a.des_de)] if a.des_de != 'millor' else starting_points(d, src)
+        best_t, best_name = T, keep.name
+        for c in cands:
+            try:
+                _, pc = read(c)
+                if a.pregunta == '5.4':
+                    # 5.4 sits on top of 5.2: a start built on an older 5.2 would bring back thousands of changes
+                    stale = sum(1 for sid, r in prop.items() if not sid.startswith('N') and pc.get(sid) != r)
+                    if stale:
+                        print(f'  (skipping {c.name}: {stale} sessions of 5.2 differ from the current 5.2)')
+                        continue
+                Tc = Timetable(base, pc, relaxed, scope, with_time)
+            except (OSError, KeyError, ValueError) as e:
+                print(f'  (skipping {c.name}: {e})')
+                continue
+            print(f'  candidate start {c.name}: ' + show(Tc.total()))
+            if key(Tc.total()) < key(best_t.total()) or (a.des_de != 'millor' and best_name == keep.name):
+                best_t, best_name, prop = Tc, c.name, pc
+        T = best_t
+        print(f'  starting from {best_name}')
     start = T.total()
     print(f'{a.pregunta}: {len(T.units)} units ({sum(T.can_time.values())} may move, '
           f'{sum(T.can_room.values())} may change room)')
@@ -614,7 +707,8 @@ def main():
             greedy(T, 'polish')
     end = T.total()
     print('  end    ' + show(end))
-    with open(src, 'w', encoding='utf-8', newline='') as f:
+    out = a.sortida or src
+    with open(out, 'w', encoding='utf-8', newline='') as f:
         w = csv.writer(f)
         w.writerow(fields)
         for sid in base.ordre:
@@ -622,7 +716,7 @@ def main():
             row = {'id_sessio': sid, 'dia': DIES[date.weekday()], 'h_ini': f'{ini // 60:02d}:{ini % 60:02d}',
                    'aula': room, 'data': prop[sid].get('data', '')}
             w.writerow([row[k] for k in fields])
-    print(f'improved proposal -> {src} (the SAT one stays in {keep.name})')
+    print(f'improved proposal -> {out} (the SAT one stays in {keep.name})')
 
 
 if __name__ == '__main__':
