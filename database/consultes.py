@@ -195,3 +195,138 @@ def consultar_calendari(con=None):
     """Dies del calendari oficial (festius, aturades...) per data. h_ini NULL = tot el dia."""
     with _con(con) as c:
         return _files(c, "SELECT * FROM calendari ORDER BY data")
+
+
+# ============================================================
+# GRAELLA (horaris setmanals: assignatura, aula, docent i aules lliures)
+# ============================================================
+# Totes són SELECT. Les setmanes s'identifiquen pel dilluns ('AAAA-MM-DD'); les hores van en minuts des de
+# mitjanit (ini, fi). Una classe compartida (id_compartida) es mostra un sol cop, amb tots els grups, si les
+# seves sessions coincideixen en data, hora i aula (a les propostes 5.x no sempre és així).
+
+def _sessions_graella(c, vista, dilluns, filtre, params):
+    """Sessions de la setmana que compleixen `filtre` (SQL sobre les columnes de la vista), agrupades."""
+    return _files(c, f"""
+        WITH v AS (
+            SELECT *, coalesce(id_compartida, id_sessio) AS clau
+            FROM {taula_vista(vista)}
+            WHERE CAST(date_trunc('week', data) AS DATE) = CAST($dilluns AS DATE)
+        ), sel AS (
+            SELECT DISTINCT clau FROM v WHERE {filtre}
+        )
+        SELECT min(id_sessio)                                                              AS id,
+               strftime(data, '%Y-%m-%d')                                                  AS data,
+               any_value(dia)                                                              AS dia,
+               CAST(extract(epoch FROM h_ini) / 60 AS INTEGER)                             AS ini,
+               CAST(extract(epoch FROM h_fi) / 60 AS INTEGER)                              AS fi,
+               list_sort(list_distinct(list(codi)))                                        AS codis,
+               array_to_string(list_sort(list_distinct(list(assignatura))), ' + ')         AS assignatura,
+               list_sort(list_distinct(list(grup)))                                        AS grups,
+               array_to_string(list_sort(list_distinct(list(tipus))), '+')                 AS tipus,
+               list_sort(list_distinct(flatten(list(coalesce(docents, [])))))              AS docents,
+               aula_partida                                                                AS aula,
+               list_sort(list_distinct(flatten(list(coalesce(aules_addicionals_partida, []))))) AS aules_extra,
+               CAST(coalesce(sum(alumnes), 0) AS INTEGER)                                  AS alumnes,
+               list_sort(list_distinct(flatten(list(coalesce(titulacions_curs, [])))))     AS titulacions
+        FROM v JOIN sel USING (clau)
+        GROUP BY clau, data, h_ini, h_fi, aula_partida
+        ORDER BY data, ini, aula NULLS LAST, id
+    """, {"dilluns": dilluns, **params})
+
+
+def _calendari_setmana(c, dilluns):
+    """Festius, aturades i altres dies especials de la setmana (dl-dv)."""
+    return _files(c, """
+        SELECT strftime(data, '%Y-%m-%d') AS data, tipus, motiu,
+               CAST(extract(epoch FROM h_ini) / 60 AS INTEGER) AS ini,
+               CAST(extract(epoch FROM h_fi) / 60 AS INTEGER)  AS fi
+        FROM calendari
+        WHERE data BETWEEN CAST($dilluns AS DATE) AND CAST($dilluns AS DATE) + 4
+        ORDER BY data, ini NULLS FIRST
+    """, {"dilluns": dilluns})
+
+
+def consultar_opcions_graella(vista=VISTA_PER_DEFECTE, con=None):
+    """Llistes per als filtres de la graella: setmanes, assignatures, aules i docents de la vista."""
+    with _con(con) as c:
+        t = taula_vista(vista)
+        setmanes = _files(c, f"""
+            SELECT strftime(date_trunc('week', data), '%Y-%m-%d') AS dilluns,
+                   any_value(setmana) AS setmana, min(sem) AS sem, count(*) AS n
+            FROM {t} GROUP BY 1 ORDER BY 1
+        """)
+        assignatures = _files(c, f"""
+            SELECT codi, any_value(assignatura) AS assignatura,
+                   list_sort(list_distinct(list(grup)))                                    AS grups,
+                   list_sort(list_distinct(list(sem)))                                     AS sems,
+                   list_sort(list_distinct(flatten(list(coalesce(titulacions_curs, []))))) AS titulacions,
+                   list_sort(list_distinct(list(strftime(date_trunc('week', data), '%Y-%m-%d')))) AS setmanes,
+                   count(*) AS n
+            FROM {t} GROUP BY codi ORDER BY assignatura, codi
+        """)
+        aules = _files(c, f"""
+            WITH us AS (
+                SELECT a AS aula, count(*) AS n
+                FROM (SELECT unnest(list_prepend(aula_partida, coalesce(aules_addicionals_partida, []))) AS a
+                      FROM {t} WHERE aula_partida IS NOT NULL)
+                GROUP BY a
+            )
+            SELECT coalesce(a.aula, us.aula) AS aula, a.tipus, a.descripcio, a.capacitat,
+                   a.aula IS NOT NULL AS cataleg, coalesce(us.n, 0) AS n
+            FROM aules a FULL JOIN us ON us.aula = a.aula
+            ORDER BY cataleg DESC, aula
+        """)
+        docents = _files(c, f"""
+            SELECT d AS docent, count(*) AS n,
+                   list_sort(list_distinct(list(assignatura)))[1:3] AS assignatures,
+                   count(DISTINCT codi) AS n_assignatures,
+                   list_sort(list_distinct(list(strftime(date_trunc('week', data), '%Y-%m-%d')))) AS setmanes
+            FROM (SELECT unnest(docents) AS d, assignatura, codi, data FROM {t})
+            GROUP BY d ORDER BY d
+        """)
+    return {"setmanes": setmanes, "assignatures": assignatures, "aules": aules, "docents": docents}
+
+
+def consultar_horari_assignatura(codi, dilluns, grup=None, vista=VISTA_PER_DEFECTE, con=None):
+    """Sessions d'una assignatura (i, si es dona, d'un grup) la setmana del dilluns `dilluns`."""
+    with _con(con) as c:
+        return {"sessions": _sessions_graella(c, vista, dilluns, "codi = $codi AND ($grup IS NULL OR grup = $grup)",
+                                              {"codi": codi, "grup": grup or None}),
+                "calendari": _calendari_setmana(c, dilluns)}
+
+
+def consultar_horari_aula(aula, dilluns, vista=VISTA_PER_DEFECTE, con=None):
+    """Sessions que ocupen una aula (com a aula principal o addicional) la setmana del dilluns `dilluns`."""
+    with _con(con) as c:
+        return {"aula": _una(c, "SELECT * FROM aules WHERE aula = ?", [aula]),
+                "sessions": _sessions_graella(c, vista, dilluns,
+                                              "aula_partida = $aula OR list_contains(aules_addicionals_partida, $aula)",
+                                              {"aula": aula}),
+                "calendari": _calendari_setmana(c, dilluns)}
+
+
+def consultar_horari_docent(docent, dilluns, vista=VISTA_PER_DEFECTE, con=None):
+    """Sessions d'un docent la setmana del dilluns `dilluns`."""
+    with _con(con) as c:
+        return {"sessions": _sessions_graella(c, vista, dilluns, "list_contains(docents, $docent)", {"docent": docent}),
+                "calendari": _calendari_setmana(c, dilluns)}
+
+
+def consultar_ocupacio_aules(dilluns, vista=VISTA_PER_DEFECTE, con=None):
+    """Per a les aules lliures: aules del catàleg i franges ocupades de cadascuna la setmana del dilluns `dilluns`."""
+    with _con(con) as c:
+        ocupades = _files(c, f"""
+            SELECT DISTINCT a AS aula, strftime(data, '%Y-%m-%d') AS data,
+                   CAST(extract(epoch FROM h_ini) / 60 AS INTEGER) AS ini,
+                   CAST(extract(epoch FROM h_fi) / 60 AS INTEGER)  AS fi
+            FROM (SELECT unnest(list_prepend(aula_partida, coalesce(aules_addicionals_partida, []))) AS a,
+                         data, h_ini, h_fi
+                  FROM {taula_vista(vista)}
+                  WHERE aula_partida IS NOT NULL
+                    AND CAST(date_trunc('week', data) AS DATE) = CAST($dilluns AS DATE))
+            WHERE a IN (SELECT aula FROM aules)
+            ORDER BY aula, data, ini
+        """, {"dilluns": dilluns})
+        return {"aules": _files(c, "SELECT aula, tipus, descripcio, capacitat FROM aules ORDER BY aula"),
+                "ocupades": ocupades,
+                "calendari": _calendari_setmana(c, dilluns)}

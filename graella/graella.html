@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ca">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UAB · Sistema de Gestió d'Horaris i Aules</title>
+<title>UAB · Graella d'horaris i aules</title>
 
 <style>
   :root {
@@ -16,16 +15,16 @@
     --cyan: #3a8fb0;
     --green: #34c97c;
     --red: #d8364f;
+    --amber: #e0b04a;
 
     --color-teoria: rgba(58, 143, 176, 0.35);
     --color-lab: rgba(52, 201, 124, 0.35);
+    --color-paul: rgba(224, 176, 74, 0.30);
     --color-sem: rgba(167, 139, 250, 0.35);
     --color-warning: rgba(216, 54, 79, 0.45);
   }
 
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   html, body {
     margin: 0;
@@ -36,82 +35,22 @@
     overflow: hidden;
   }
 
-  /* SELECTORS GLOBALS COMPACTES */
-
-  #versions {
-    position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
+  /* SELECTORS GLOBALS COMPACTES (a la barra de la graella) */
+  #versions, #views {
     display: flex;
     gap: 3px;
-    padding: 4px;
+    padding: 3px;
     background: rgba(7,18,26,.85);
     border: 1px solid var(--line);
     border-radius: 6px;
-    backdrop-filter: blur(4px);
   }
+  #versions button { min-width: 38px; padding: 3px 7px; font-size: 11px; }
+  #views button { min-width: 42px; padding: 3px 7px; font-size: 11px; }
+  #versions button.on, #views button.on { background: #0f3a4e; border-color: var(--cyan); color: #e6f7fb; }
 
-  #versions button {
-    min-width: 38px;
-    padding: 4px 7px;
-    font-size: 11px;
-  }
-
-  #versions button.on {
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
-
-  #views {
-    position: absolute;
-    top: 12px;
-    left: calc(50% + 125px);
-    z-index: 4;
-    display: flex;
-    gap: 3px;
-    padding: 4px;
-    background: rgba(7,18,26,.85);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-  }
-
-  #views button {
-    min-width: 42px;
-    padding: 4px 7px;
-    font-size: 11px;
-  }
-
-  #views button.on {
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
-
-  @media (max-width: 900px) {
-    #versions {
-      top: 12px;
-    }
-
-    #views {
-      top: 52px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-  }
-
-  #app {
-    display: flex;
-    height: 100%;
-    padding: 10px;
-    gap: 10px;
-  }
+  #app { display: flex; height: 100%; padding: 10px; gap: 10px; }
 
   /* --- BARRA LATERAL --- */
-
   aside {
     width: 310px;
     background: var(--panel);
@@ -120,81 +59,24 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    min-height: 0;
   }
 
-  header {
-    padding: 12px;
-    border-bottom: 1px solid var(--line);
-  }
+  header { padding: 12px; border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0 0 6px; font-size: 12px; letter-spacing: .12em; color: var(--cyan); text-transform: uppercase; }
+  #counts { font-size: 10px; font-weight: normal; color: var(--dim); letter-spacing: 0; text-transform: none; }
 
-  header h1 {
-    margin: 0 0 6px;
-    font-size: 12px;
-    letter-spacing: .12em;
-    color: var(--cyan);
-    text-transform: uppercase;
-  }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); font-size: 10px; white-space: nowrap; }
+  .pill.ok { color: var(--green); border-color: var(--green); }
+  .pill.warn { color: var(--amber); border-color: var(--amber); }
+  .pill.bad { color: var(--red); border-color: var(--red); }
 
-  #counts {
-    font-size: 10px;
-    font-weight: normal;
-    color: var(--dim);
-  }
-
-  .pill {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    font-size: 10px;
-  }
-
-  .pill.ok {
-    color: var(--green);
-    border-color: var(--green);
-  }
-
-  .pill.warn {
-    color: #e0b04a;
-    border-color: #e0b04a;
-  }
-
-  .pill.bad {
-    color: var(--red);
-    border-color: var(--red);
-  }
-
-  /* Botons de filtratge */
-
-  .seg {
-    display: flex;
-    margin-top: 10px;
-  }
-
-  .seg button {
-    flex: 1;
-    border-radius: 0;
-    padding: 5px 2px;
-    font-size: 10.5px;
-    text-align: center;
-  }
-
-  .seg button:first-child {
-    border-radius: 4px 0 0 4px;
-  }
-
-  .seg button:last-child {
-    border-radius: 0 4px 4px 0;
-    border-left: 0;
-  }
-
-  .seg button.on {
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
-
-  /* Elements de formulari */
+  .seg { display: flex; margin-top: 10px; }
+  .seg button { flex: 1; border-radius: 0; padding: 5px 2px; font-size: 10.5px; text-align: center; }
+  .seg button:first-child { border-radius: 4px 0 0 4px; }
+  .seg button:last-child { border-radius: 0 4px 4px 0; }
+  .seg button + button { border-left: 0; }
+  .seg button.on { background: #0f3a4e; border-color: var(--cyan); color: #e6f7fb; }
 
   button {
     background: #0a2230;
@@ -206,45 +88,15 @@
     cursor: pointer;
     transition: all 0.15s ease;
   }
+  button:hover { border-color: var(--cyan); color: #e6f7fb; }
+  button:disabled { opacity: .4; cursor: default; }
 
-  button:hover {
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
+  .trow { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .trow label { display: flex; flex-direction: column; gap: 4px; flex: 1; color: var(--dim); font-size: 10.5px; }
 
-  .btn-block {
+  input[type=text], input[type=search], input[type=number], select {
     width: 100%;
-    margin-top: 8px;
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-    padding: 6px;
-  }
-
-  .btn-block:hover {
-    background: #144963;
-  }
-
-  .trow {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-  }
-
-  .trow label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    color: var(--dim);
-    font-size: 10.5px;
-  }
-
-  input[type=text],
-  input[type=number],
-  select {
-    width: 100%;
+    min-width: 0;
     background: #0a2230;
     color: var(--fg);
     border: 1px solid var(--line);
@@ -254,46 +106,27 @@
     color-scheme: dark;
     outline: none;
   }
+  input:focus, select:focus { border-color: var(--cyan); }
 
-  input:focus,
-  select:focus {
-    border-color: var(--cyan);
-  }
+  #week-row select { flex: 1; }
 
   /* Zona de filtres */
-
-  #filter-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .filter-panel {
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .filter-panel.active {
-    display: flex;
-  }
+  #filter-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .filter-panel { display: none; flex-direction: column; gap: 8px; }
+  .filter-panel.active { display: flex; }
+  .hint { color: var(--dim); font-size: 10.5px; }
 
   /* Llistes */
-
   .item-list {
     border: 1px solid var(--line);
     border-radius: 4px;
     background: #040a10;
-    max-height: 140px;
+    max-height: 260px;
     overflow-y: auto;
     list-style: none;
     padding: 2px;
-    margin: 4px 0 0;
+    margin: 0;
   }
-
   .item-row {
     padding: 5px 8px;
     border-bottom: 1px solid #0c2230;
@@ -302,105 +135,59 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
   }
-
-  .item-row:hover {
-    background: #0a2230;
-  }
-
-  .item-row.sel {
-    background: #0d3345;
-    outline: 1px solid var(--cyan);
-  }
-
-  .item-row .sub {
-    color: var(--dim);
-    font-size: 10px;
-  }
+  .item-row:hover { background: #0a2230; }
+  .item-row.sel { background: #0d3345; outline: 1px solid var(--cyan); }
+  .item-row .sub { color: var(--dim); font-size: 10px; }
+  .item-row.more { cursor: default; color: var(--dim); font-size: 10px; justify-content: center; }
+  .item-row.more:hover { background: none; }
 
   /* Panell de detalls */
-
-  #detail {
-    border-top: 1px solid var(--line);
-    background: #050d14;
-    padding: 8px 12px;
-  }
-
-  .d-head {
-    display: flex;
-    justify-content: space-between;
-    color: var(--cyan);
-    font-size: 11px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-
-  .d-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10.5px;
-    padding: 2px 0;
-    border-bottom: 1px solid #0c2230;
-  }
-
-  .d-row span {
-    color: var(--dim);
-  }
+  #detail { border-top: 1px solid var(--line); background: #050d14; padding: 8px 12px; max-height: 40%; overflow-y: auto; }
+  .d-head { display: flex; justify-content: space-between; color: var(--cyan); font-size: 11px; font-weight: bold; margin-bottom: 4px; }
+  .d-row { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; padding: 2px 0; border-bottom: 1px solid #0c2230; }
+  .d-row > span { color: var(--dim); flex-shrink: 0; }
+  .d-row b { text-align: right; color: var(--fg); }
+  .link { color: var(--cyan); cursor: pointer; text-decoration: underline dotted; }
 
   /* Inspector API */
-
-  details {
-    border-top: 1px solid var(--line);
-    padding: 6px 12px;
-    background: #020508;
-  }
-
-  summary {
-    cursor: pointer;
-    color: var(--dim);
-    font-size: 10px;
-  }
-
-  pre {
-    margin: 6px 0 0;
-    white-space: pre-wrap;
-    word-break: break-all;
-    color: #8fc3d3;
-    font-size: 10px;
-  }
+  details { border-top: 1px solid var(--line); padding: 6px 12px; background: #020508; }
+  summary { cursor: pointer; color: var(--dim); font-size: 10px; }
+  pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-all; color: #8fc3d3; font-size: 10px; }
 
   /* --- GRAELLA HORÀRIA --- */
-
   main.schedule-container {
     flex: 1;
+    min-width: 0;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 4px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
   }
 
   .grid-tools {
-    padding: 8px 12px;
-    padding-right: 245px;
+    padding: 6px 12px;
     border-bottom: 1px solid var(--line);
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 8px;
     background: #040a10;
   }
+  .grid-tools .tools { display: flex; gap: 6px; margin-left: auto; }
+  .title-view { padding: 6px 12px; border-bottom: 1px solid var(--line); font-weight: bold; color: var(--cyan); letter-spacing: 0.05em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .grid-tools .title-view {
-    font-weight: bold;
-    color: var(--cyan);
-    letter-spacing: 0.05em;
-  }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; padding: 5px 12px; border-bottom: 1px solid var(--line); font-size: 10px; color: var(--dim); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; border: 1px solid var(--line); }
 
   .grid-horari {
     display: grid;
-    grid-template-columns: 55px repeat(5, 1fr);
-    grid-template-rows: 30px repeat(26, minmax(26px, 1fr));
+    grid-template-columns: 55px repeat(5, minmax(0, 1fr));
+    grid-template-rows: 38px repeat(26, minmax(26px, 1fr));
     flex: 1;
     overflow-y: auto;
     position: relative;
@@ -414,12 +201,17 @@
     border-bottom: 1px solid var(--line);
     border-right: 1px solid var(--line);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: 11px;
     color: var(--cyan);
     text-transform: uppercase;
+    line-height: 1.15;
+    overflow: hidden;
   }
+  .header-dia small { color: var(--dim); font-size: 9.5px; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; padding: 0 4px; }
+  .header-dia small.cal { color: var(--amber); }
 
   .hora-label {
     border-right: 1px solid var(--line);
@@ -427,105 +219,117 @@
     color: var(--dim);
     font-size: 10px;
     text-align: center;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
     padding-top: 2px;
     grid-column: 1;
-    z-index: 1;
     background: var(--panel);
   }
 
-  .grid-cell {
+  .day-col {
+    position: relative;
+    grid-row: 2 / span 26;
     border-right: 1px solid var(--line);
-    border-bottom: 1px dashed #0c2230;
-    z-index: 0;
+    background-image: repeating-linear-gradient(to bottom,
+      transparent 0, transparent calc(100% / 26 - 1px), #0c2230 calc(100% / 26 - 1px), #0c2230 calc(100% / 26));
   }
 
   .classe-card {
-    margin: 2px 3px;
-    padding: 4px 6px;
+    position: absolute;
+    padding: 3px 5px;
     border-radius: 3px;
     font-size: 10px;
     line-height: 1.2;
     border: 1px solid var(--cyan);
     border-left: 3px solid var(--cyan);
-    backdrop-filter: blur(4px);
     cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: box-shadow 0.1s;
     z-index: 5;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     color: #e6f7fb;
   }
+  .classe-card:hover { z-index: 20; box-shadow: 0 0 10px rgba(58, 143, 176, 0.6); }
+  .classe-card.sel { outline: 2px solid #e6f7fb; z-index: 21; }
+  .classe-card.over { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+  .classe-titol { font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .classe-info { color: #9cc7d4; font-size: 9px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .classe-info.bottom { margin-top: auto; }
 
-  .classe-card:hover {
-    transform: scale(1.01);
-    z-index: 20;
-    box-shadow: 0 0 10px rgba(58, 143, 176, 0.4);
+  .closed {
+    position: absolute;
+    left: 0; right: 0;
+    background: repeating-linear-gradient(45deg, rgba(224,176,74,.10) 0 6px, transparent 6px 12px);
+    border-top: 1px solid rgba(224,176,74,.35);
+    border-bottom: 1px solid rgba(224,176,74,.35);
+    color: var(--amber);
+    font-size: 9.5px;
+    padding: 2px 4px;
+    z-index: 3;
+    pointer-events: none;
+    overflow: hidden;
   }
 
-  .classe-titol {
-    font-weight: bold;
-    color: #fff;
+  .slot-cell {
+    position: absolute;
+    left: 2px; right: 2px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #e6f7fb;
+    cursor: pointer;
+    z-index: 4;
   }
+  .slot-cell:hover { outline: 1px solid var(--cyan); }
+  .slot-cell.sel { outline: 2px solid #e6f7fb; z-index: 6; }
+  .slot-cell.none { color: var(--red); }
 
-  .classe-info {
+  .empty-msg {
+    position: absolute;
+    left: 50%; top: 55%;
+    transform: translate(-50%, -50%);
+    background: rgba(4,10,16,.92);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 16px;
     color: var(--dim);
-    font-size: 9px;
-    margin-top: 2px;
+    text-align: center;
+    z-index: 25;
+    max-width: 80%;
   }
+  .empty-msg button { margin-top: 8px; }
 
   @media (max-width: 800px) {
-    #app {
-      flex-direction: column;
-    }
-
-    aside {
-      width: 100%;
-      height: 48%;
-    }
-
-    .grid-tools {
-      padding-right: 12px;
-      padding-top: 48px;
-    }
+    html, body { overflow: auto; }
+    #app { flex-direction: column; height: auto; }
+    aside { width: 100%; }
+    main.schedule-container { height: 80vh; }
   }
 </style>
 </head>
 
 <body>
 
-<!-- SELECTOR DE VERSIÓ -->
-<nav id="versions" aria-label="Versió de la base de dades">
-  <button data-version="BASE" class="on">BASE</button>
-  <button data-version="5.1">5.1</button>
-  <button data-version="5.2">5.2</button>
-  <button data-version="5.3">5.3</button>
-  <button data-version="5.4">5.4</button>
-</nav>
-
-<!-- SELECTOR DE VISTA -->
-<nav id="views" aria-label="Vista">
-  <button data-view="hologram">3D</button>
-  <button data-view="home">Home</button>
-  <button data-view="graella" class="on">Graella</button>
-</nav>
-
 <div id="app">
 
   <!-- BARRA LATERAL -->
   <aside>
     <header>
-      <h1>UAB · GESTOR HORARIS <span id="counts">v2.0</span></h1>
-      <span id="status" class="pill warn">BACKEND READY</span>
+      <h1>UAB · Gestor horaris <span id="counts"></span></h1>
+      <span id="status" class="pill warn">connectant…</span>
 
       <div class="seg" id="mode-selector">
         <button data-mode="assignatura" class="on">Assig</button>
         <button data-mode="aula">Aula</button>
-        <button data-mode="profe">Profe</button>
+        <button data-mode="docent">Profe</button>
         <button data-mode="lliures">Lliures</button>
+      </div>
+
+      <div class="trow" id="week-row">
+        <button id="w-prev" title="setmana anterior">◀</button>
+        <select id="sel-setmana" aria-label="Setmana"></select>
+        <button id="w-next" title="setmana següent">▶</button>
       </div>
     </header>
 
@@ -533,168 +337,39 @@
 
       <!-- FILTRE: ASSIGNATURA -->
       <div id="panel-assignatura" class="filter-panel active">
-        <div class="trow">
-          <label>Cercar Assignatura
-            <input type="text" id="search-assig" placeholder="Ex: Programació 1, PG1...">
-          </label>
-        </div>
-
-        <ul class="item-list" id="list-assig">
-          <li class="item-row sel" data-code="PROG1">
-            <div>
-              <strong>Programació 1</strong><br>
-              <span class="sub">GEI · 1r Semestre</span>
-            </div>
-            <span class="pill ok">GEI</span>
-          </li>
-
-          <li class="item-row" data-code="EDA">
-            <div>
-              <strong>Estructura de Dades</strong><br>
-              <span class="sub">GEI · 2n Semestre</span>
-            </div>
-            <span class="pill ok">GEI</span>
-          </li>
-
-          <li class="item-row" data-code="FIS">
-            <div>
-              <strong>Física</strong><br>
-              <span class="sub">GEI · 1r Semestre</span>
-            </div>
-            <span class="pill ok">GEI</span>
-          </li>
-        </ul>
-
+        <label class="trow"><input type="search" id="search-assignatura" placeholder="Cerca per nom, codi o titulació…"></label>
+        <ul class="item-list" id="list-assignatura"></ul>
         <div class="trow">
           <label>Grup
-            <select id="select-grup">
-              <option value="G10">Grup 10 (Matí)</option>
-              <option value="G20">Grup 20 (Tarda)</option>
-              <option value="G71">Grup 71 (Pràctiques)</option>
-            </select>
+            <select id="select-grup"><option value="">Tots els grups</option></select>
           </label>
         </div>
-
-        <button class="btn-block" onclick="carregarHorariAssignatura()">Carregar Horari</button>
       </div>
 
       <!-- FILTRE: AULA -->
       <div id="panel-aula" class="filter-panel">
-        <div class="trow">
-          <label>Seleccionar Aula
-            <select id="select-aula">
-              <option value="Q2/1001">Q2/1001 (Aula Teoria - Cap: 80)</option>
-              <option value="Q2/1002">Q2/1002 (Aula Teoria - Cap: 60)</option>
-              <option value="Q2/0001">Q2/0001 (Laboratori PC - Cap: 30)</option>
-              <option value="Q2/0002">Q2/0002 (Laboratori PC - Cap: 30)</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="trow">
-          <label>Setmana Concreta
-            <select id="aula-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-              <option value="3">Setmana 3 (29 Sep - 03 Oct)</option>
-            </select>
-          </label>
-        </div>
-
-        <button class="btn-block" onclick="carregarHorariAula()">Consultar Aula</button>
+        <label class="trow"><input type="search" id="search-aula" placeholder="Cerca aula, tipus o descripció…"></label>
+        <ul class="item-list" id="list-aula"></ul>
       </div>
 
-      <!-- FILTRE: PROFESSOR -->
-      <div id="panel-profe" class="filter-panel">
-        <div class="trow">
-          <label>Professor / Docent
-            <input type="text" id="input-profe" placeholder="Ex: Dr. Jordi Petit...">
-          </label>
-        </div>
-
-        <ul class="item-list" id="list-profe">
-          <li class="item-row sel" data-prof="P01">
-            <div>
-              <strong>Dr. Jordi Petit</strong><br>
-              <span class="sub">Dept. Ciències de la Computació</span>
-            </div>
-          </li>
-
-          <li class="item-row" data-prof="P02">
-            <div>
-              <strong>Dra. Marta Gómez</strong><br>
-              <span class="sub">Dept. Arquitectura de Computadors</span>
-            </div>
-          </li>
-        </ul>
-
-        <div class="trow">
-          <label>Setmana
-            <select id="profe-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-            </select>
-          </label>
-        </div>
-
-        <button class="btn-block" onclick="carregarHorariProfessor()">Veure Agenda Profe</button>
+      <!-- FILTRE: DOCENT -->
+      <div id="panel-docent" class="filter-panel">
+        <label class="trow"><input type="search" id="search-docent" placeholder="Cerca codi de docent o assignatura…"></label>
+        <ul class="item-list" id="list-docent"></ul>
       </div>
 
       <!-- FILTRE: AULES LLIURES -->
       <div id="panel-lliures" class="filter-panel">
         <div class="trow">
-          <label>Setmana
-            <select id="lliures-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-            </select>
+          <label>Capacitat mínima
+            <input type="number" id="lliures-cap" value="30" min="0" step="5">
+          </label>
+          <label>Tipus d'aula
+            <select id="lliures-tipus"><option value="">Totes</option></select>
           </label>
         </div>
-
-        <div class="trow">
-          <label>Dia de la setmana
-            <select id="lliures-dia">
-              <option value="0">Dilluns</option>
-              <option value="1">Dimarts</option>
-              <option value="2">Dimecres</option>
-              <option value="3">Dijous</option>
-              <option value="4">Divendres</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="trow">
-          <label>Franja Horària
-            <select id="lliures-hora">
-              <option value="08:00">08:00 - 10:00</option>
-              <option value="10:00">10:00 - 12:00</option>
-              <option value="12:00">12:00 - 14:00</option>
-              <option value="15:00">15:00 - 17:00</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="trow">
-          <label>Capacitat Mínima
-            <input type="number" id="lliures-cap" value="30" min="10" step="5">
-          </label>
-        </div>
-
-        <button class="btn-block" onclick="cercarAulesLliures()">Cercar Aules Lliures</button>
-
-        <div style="margin-top: 6px;">
-          <span style="font-size:10px; color:var(--dim);">Aules Disponibles Trobades:</span>
-          <ul class="item-list" id="results-lliures" style="max-height: 90px;">
-            <li class="item-row">
-              <span class="pill ok">Q2/1002</span>
-              <span class="sub">Capacitat: 60</span>
-            </li>
-            <li class="item-row">
-              <span class="pill ok">Q2/0001</span>
-              <span class="sub">Capacitat: 30</span>
-            </li>
-          </ul>
-        </div>
+        <span class="hint" id="lliures-hint">Cada franja mostra quantes aules del catàleg estan lliures. Clica-la per veure quines.</span>
+        <ul class="item-list" id="results-lliures"></ul>
       </div>
 
     </div>
@@ -702,255 +377,628 @@
     <!-- DETALLS DE SELECCIÓ -->
     <div id="detail">
       <div class="d-head">
-        <span id="d-title">DETALLS SELECCIÓ</span>
-        <span class="pill ok" id="d-tag">ACTIVE</span>
+        <span id="d-title">DETALLS</span>
+        <span class="pill" id="d-tag"></span>
       </div>
-
-      <div class="d-row">
-        <span>Consulta actual:</span>
-        <b id="d-type" style="color:var(--fg)">Assignatura</b>
-      </div>
-
-      <div class="d-row">
-        <span>Element:</span>
-        <b id="d-target" style="color:var(--cyan)">Programació 1 (G10)</b>
-      </div>
+      <div id="d-rows"></div>
     </div>
 
     <!-- INSPECTOR API -->
     <details>
-      <summary>BACKEND API PAYLOAD</summary>
-      <pre id="api-payload">GET /api/v1/horari?type=assignatura&id=PROG1&grup=G10</pre>
+      <summary>BACKEND API</summary>
+      <pre id="api-payload"></pre>
     </details>
   </aside>
 
   <!-- GRAELLA HORÀRIA -->
   <main class="schedule-container">
     <div class="grid-tools">
-      <span class="title-view" id="grid-title">VISTA: HORARI ASSIGNATURA · PROG1 (G10)</span>
-
-      <div style="display:flex; gap:6px;">
-        <button onclick="alert('Exportant a PDF/CSV...')">Exportar</button>
-        <button onclick="resetGraella()">Netejar</button>
+      <!-- SELECTOR DE VERSIÓ: cada botó llegeix una vista de la BD (sessions, sessions51..54) -->
+      <nav id="versions" aria-label="Versió de la base de dades">
+        <button data-version="BASE" class="on">BASE</button>
+        <button data-version="5.1">5.1</button>
+        <button data-version="5.2">5.2</button>
+        <button data-version="5.3">5.3</button>
+        <button data-version="5.4">5.4</button>
+      </nav>
+      <!-- SELECTOR DE VISTA -->
+      <nav id="views" aria-label="Vista">
+        <button data-view="hologram">3D</button>
+        <button data-view="home">Home</button>
+        <button data-view="graella" class="on">Graella</button>
+      </nav>
+      <div class="tools">
+        <button id="btn-export" title="Descarrega el que es veu a la graella en CSV">Exportar CSV</button>
+        <button id="btn-reset" title="Treu la selecció d'aquesta vista">Netejar</button>
       </div>
     </div>
-
-    <div class="grid-horari" id="horari-dom">
-      <!-- Generat dinàmicament per JS -->
-    </div>
+    <div class="title-view" id="grid-title">VISTA</div>
+    <div class="legend" id="legend"></div>
+    <div class="grid-horari" id="horari-dom"></div>
   </main>
 
 </div>
 
 <script>
-  // SELECTOR DE VERSIÓ
-  let window_seleccionat = '5.1';
-
-  document.querySelectorAll('[data-version]').forEach((button) => {
-    button.addEventListener('click', () => {
-      window_seleccionat = button.dataset.version;
-
-      document.querySelectorAll('[data-version]').forEach((btn) => {
-        btn.classList.toggle('on', btn === button);
-      });
-
-      console.log('Versió seleccionada:', window_seleccionat);
-    });
-  });
-
-  // SELECTOR DE VISTA
-  document.querySelectorAll('[data-view]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const mode = button.dataset.view;
-
-      if (mode === 'hologram') {
-        window.location.href = '/';
-      } else if (mode === 'home') {
-        window.location.href = '/home/home.html';
-      } else if (mode === 'graella') {
-        window.location.href = '/graella/graella.html';
-      }
-    });
-  });
-
+  // ---------- constants ----------
+  const API = '/api/graella';
+  const VERSION_VISTA = { BASE: 'sessions', '5.1': 'sessions51', '5.2': 'sessions52', '5.3': 'sessions53', '5.4': 'sessions54' };
+  const VERSION_KEY = 'hologram.version';          // la mateixa clau que el holograma: la versió es comparteix
   const DIES = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
-  const HORA_INICI = 8;
-  const TOTAL_FRANGES = 26;
+  const START = 8 * 60, END = 21 * 60, SLOT = 30, SLOTS = (END - START) / SLOT;   // 08:00-21:00, 26 franges
+  const TIPUS = {
+    TE:   { nom: 'Teoria',            color: 'var(--color-teoria)', vora: '#3a8fb0' },
+    PLAB: { nom: 'Pràctiques de lab', color: 'var(--color-lab)',    vora: '#34c97c' },
+    PAUL: { nom: "Pràctiques d'aula", color: 'var(--color-paul)',   vora: '#e0b04a' },
+    SEM:  { nom: 'Seminari',          color: 'var(--color-sem)',    vora: '#a78bfa' },
+  };
+  const LIMIT_LLISTA = 150;
 
-  // 1. CANVI DE SECTORS / VISTES DE MENÚ
-  document.querySelectorAll('#mode-selector button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('#mode-selector button').forEach(b => b.classList.remove('on'));
-      e.target.classList.add('on');
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const addDays = (iso, n) => { const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const ddmm = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+  const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const tipusInfo = (t) => TIPUS[String(t).split('+')[0]] || { nom: t, color: 'rgba(106,152,168,.3)', vora: '#6a98a8' };
+  function mondayOf(date) { const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10); }
+  function storage(key, value) {
+    try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch { /* sense emmagatzematge */ }
+    return null;
+  }
 
-      const mode = e.target.getAttribute('data-mode');
+  // ---------- estat ----------
+  const st = {
+    version: VERSION_VISTA[storage(VERSION_KEY)] ? storage(VERSION_KEY) : 'BASE',
+    mode: 'assignatura',
+    setmana: null,
+    opcions: null,
+    sel: { assignatura: null, grup: '', aula: null, docent: null },
+    lliures: { cap: 30, tipus: '', slot: null },
+    data: null,        // última resposta de l'API per a la vista actual
+    card: null,        // sessió seleccionada a la graella
+    req: 0,
+  };
 
-      document.querySelectorAll('.filter-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(`panel-${mode}`).classList.add('active');
+  // ---------- API ----------
+  async function api(consulta, params = {}) {
+    const qs = new URLSearchParams({ vista: VERSION_VISTA[st.version] });
+    for (const [k, v] of Object.entries(params)) if (v) qs.set(k, v);
+    const url = `${API}/${consulta}?${qs}`;
+    $('api-payload').textContent = `GET ${url}`;
+    const r = await fetch(url, { cache: 'no-store' });
+    const body = await r.json().catch(() => null);
+    if (!r.ok || !body?.ok) throw new Error(body?.errors?.[0] || `HTTP ${r.status}`);
+    return body;
+  }
 
-      document.getElementById('d-type').textContent = mode.toUpperCase();
-      actualitzarApiPreview(`GET /api/v1/${mode}/list`);
+  function setStatus(kind, text, title = '') {
+    $('status').className = `pill ${kind}`;
+    $('status').textContent = text;
+    $('status').title = title;
+  }
+
+  // ---------- versió i vista ----------
+  function markVersion() {
+    document.querySelectorAll('[data-version]').forEach((b) => b.classList.toggle('on', b.dataset.version === st.version));
+  }
+  document.querySelectorAll('[data-version]').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.version === st.version) return;
+    st.version = b.dataset.version;
+    storage(VERSION_KEY, st.version);
+    markVersion();
+    loadOpcions();
+  }));
+
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+    const url = { hologram: '/', home: '/home/home.html', graella: '/graella/graella.html' }[b.dataset.view];
+    if (url) window.location.href = url;
+  }));
+
+  // ---------- modes ----------
+  function setMode(mode) {
+    st.mode = mode;
+    st.card = null;
+    document.querySelectorAll('#mode-selector button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
+    document.querySelectorAll('.filter-panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${mode}`));
+    loadView();
+  }
+  document.querySelectorAll('#mode-selector button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+  // Obre una altra vista amb un element triat (des del detall o de les aules lliures)
+  function goTo(mode, value) {
+    if (mode === 'aula') st.sel.aula = value;
+    if (mode === 'docent') st.sel.docent = value;
+    if (mode === 'assignatura') { st.sel.assignatura = value; st.sel.grup = ''; fillGrups(); }
+    $(`search-${mode}`).value = value;   // perquè l'element triat es vegi a la llista
+    renderLists();
+    setMode(mode);
+  }
+
+  // ---------- setmanes ----------
+  const weeks = () => st.opcions?.setmanes || [];
+  function fillWeeks() {
+    $('sel-setmana').innerHTML = weeks().map((w) =>
+      `<option value="${w.dilluns}">${esc(w.setmana)} · ${ddmm(w.dilluns)}–${ddmm(addDays(w.dilluns, 4))} · S${w.sem} · ${w.n} ses.</option>`).join('');
+  }
+  function pickWeek(preferred) {
+    const ws = weeks().map((w) => w.dilluns);
+    if (!ws.length) return null;
+    if (ws.includes(preferred)) return preferred;
+    return ws.find((d) => d >= preferred) || ws[ws.length - 1];
+  }
+  function setWeek(dilluns) {
+    st.setmana = dilluns;
+    $('sel-setmana').value = dilluns || '';
+    const i = weeks().findIndex((w) => w.dilluns === dilluns);
+    $('w-prev').disabled = i <= 0;
+    $('w-next').disabled = i < 0 || i >= weeks().length - 1;
+    st.lliures.slot = null;
+    st.card = null;
+  }
+  $('sel-setmana').addEventListener('change', (e) => { setWeek(e.target.value); loadView(); });
+  function stepWeek(d) {
+    const ws = weeks();
+    const i = ws.findIndex((w) => w.dilluns === st.setmana);
+    if (ws[i + d]) { setWeek(ws[i + d].dilluns); loadView(); }
+  }
+  $('w-prev').addEventListener('click', () => stepWeek(-1));
+  $('w-next').addEventListener('click', () => stepWeek(1));
+
+  // ---------- llistes de selecció ----------
+  const LLISTES = {
+    assignatura: {
+      items: () => st.opcions?.assignatures || [],
+      key: (a) => a.codi,
+      text: (a) => `${a.assignatura} ${a.codi} ${a.titulacions.join(' ')}`,
+      row: (a) => `<div><strong>${esc(a.assignatura)}</strong><br><span class="sub">${esc(a.codi)} · ${esc(a.titulacions.join(', ') || '—')} · S${a.sems.join('+')}</span></div>
+                   <span class="pill">${a.grups.length} gr.</span>`,
+      pick: (a) => { st.sel.assignatura = a.codi; st.sel.grup = ''; fillGrups(); jumpToWeekWith(a.setmanes); },
+    },
+    aula: {
+      items: () => st.opcions?.aules || [],
+      key: (a) => a.aula,
+      text: (a) => `${a.aula} ${a.tipus || ''} ${a.descripcio || ''}`,
+      row: (a) => `<div><strong>${esc(a.aula)}</strong><br><span class="sub">${esc(a.cataleg ? `${a.tipus} · ${a.descripcio}` : 'fora del catàleg (altres edificis)')}</span></div>
+                   <span class="pill ${a.cataleg ? 'ok' : ''}">${a.capacitat ?? '?'} pl.</span>`,
+      pick: () => {},
+    },
+    docent: {
+      items: () => st.opcions?.docents || [],
+      key: (d) => d.docent,
+      text: (d) => `${d.docent} ${d.assignatures.join(' ')}`,
+      row: (d) => `<div><strong>${esc(d.docent)}</strong><br><span class="sub">${esc(d.assignatures.join(', '))}${d.n_assignatures > d.assignatures.length ? '…' : ''}</span></div>
+                   <span class="pill">${d.n_assignatures} assig.</span>`,
+      pick: (d) => jumpToWeekWith(d.setmanes),
+    },
+  };
+
+  function renderList(mode) {
+    const L = LLISTES[mode];
+    const q = norm($(`search-${mode}`).value).trim();
+    const all = L.items().filter((it) => !q || norm(L.text(it)).includes(q));
+    const shown = all.slice(0, LIMIT_LLISTA);
+    $(`list-${mode}`).innerHTML = shown.map((it) =>
+      `<li class="item-row ${L.key(it) === st.sel[mode] ? 'sel' : ''}" data-key="${esc(L.key(it))}">${L.row(it)}</li>`).join('')
+      + (all.length > shown.length ? `<li class="item-row more">… ${all.length - shown.length} més: afina la cerca</li>` : '')
+      + (all.length ? '' : '<li class="item-row more">Cap resultat</li>');
+  }
+  function renderLists() { Object.keys(LLISTES).forEach(renderList); }
+
+  for (const mode of Object.keys(LLISTES)) {
+    $(`search-${mode}`).addEventListener('input', () => renderList(mode));
+    $(`list-${mode}`).addEventListener('click', (e) => {
+      const row = e.target.closest('.item-row[data-key]');
+      if (!row) return;
+      const it = LLISTES[mode].items().find((x) => LLISTES[mode].key(x) === row.dataset.key);
+      if (!it) return;
+      st.sel[mode] = LLISTES[mode].key(it);
+      LLISTES[mode].pick(it);
+      renderList(mode);
+      st.card = null;
+      loadView();
     });
-  });
+  }
 
-  // 2. CONSTRUCCIÓ DE LA GRAELLA HORÀRIA
-  function construirEstructura() {
-    const grid = document.getElementById('horari-dom');
+  // Si l'element triat no té classes la setmana actual, salta a la setmana més propera que en tingui
+  function jumpToWeekWith(setmanes) {
+    if (!setmanes?.length || setmanes.includes(st.setmana)) return;
+    const next = setmanes.find((d) => d >= st.setmana) || setmanes[setmanes.length - 1];
+    setWeek(next);
+  }
+
+  function fillGrups() {
+    const a = (st.opcions?.assignatures || []).find((x) => x.codi === st.sel.assignatura);
+    $('select-grup').innerHTML = '<option value="">Tots els grups</option>'
+      + (a ? a.grups.map((g) => `<option value="${esc(g)}">${esc(g)}</option>`).join('') : '');
+    if (a && !a.grups.includes(st.sel.grup)) st.sel.grup = '';
+    $('select-grup').value = st.sel.grup;
+  }
+  $('select-grup').addEventListener('change', (e) => { st.sel.grup = e.target.value; loadView(); });
+
+  $('lliures-cap').addEventListener('input', (e) => { st.lliures.cap = Number(e.target.value) || 0; st.lliures.slot = null; render(); });
+  $('lliures-tipus').addEventListener('change', (e) => { st.lliures.tipus = e.target.value; st.lliures.slot = null; render(); });
+
+  // ---------- càrrega ----------
+  async function loadOpcions() {
+    setStatus('warn', 'carregant…');
+    try {
+      st.opcions = await api('opcions');
+    } catch (e) {
+      st.opcions = null;
+      setStatus('bad', 'error', e.message);
+      showEmpty(`No s'han pogut carregar les dades: ${e.message}`);
+      return;
+    }
+    fillWeeks();
+    setWeek(pickWeek(st.setmana || mondayOf(new Date())));
+    // les seleccions que no existeixen en aquesta versió es treuen
+    for (const mode of Object.keys(LLISTES)) {
+      if (st.sel[mode] && !LLISTES[mode].items().some((it) => LLISTES[mode].key(it) === st.sel[mode])) st.sel[mode] = null;
+    }
+    fillGrups();
+    const tipus = [...new Set(st.opcions.aules.filter((a) => a.cataleg).map((a) => a.tipus))].sort();
+    $('lliures-tipus').innerHTML = '<option value="">Totes</option>' + tipus.map((t) => `<option>${esc(t)}</option>`).join('');
+    $('lliures-tipus').value = tipus.includes(st.lliures.tipus) ? st.lliures.tipus : '';
+    st.lliures.tipus = $('lliures-tipus').value;
+    renderLists();
+    setStatus('ok', `live · DuckDB · ${st.version}`, `vista ${VERSION_VISTA[st.version]}`);
+    await loadView();
+  }
+
+  async function loadView() {
+    const req = ++st.req;
+    const params = { setmana: st.setmana };
+    let consulta = null;
+    if (st.mode === 'assignatura' && st.sel.assignatura) { consulta = 'assignatura'; Object.assign(params, { codi: st.sel.assignatura, grup: st.sel.grup }); }
+    if (st.mode === 'aula' && st.sel.aula) { consulta = 'aula'; params.aula = st.sel.aula; }
+    if (st.mode === 'docent' && st.sel.docent) { consulta = 'docent'; params.docent = st.sel.docent; }
+    if (st.mode === 'lliures') consulta = 'lliures';
+    if (!consulta || !st.setmana) { st.data = null; render(); return; }
+    try {
+      const data = await api(consulta, params);
+      if (req !== st.req) return;          // s'ha demanat una altra cosa mentrestant
+      st.data = data;
+    } catch (e) {
+      if (req !== st.req) return;
+      st.data = null;
+      render();
+      showEmpty(`Error a la consulta: ${e.message}`);
+      return;
+    }
+    render();
+  }
+
+  // ---------- graella ----------
+  function construirEstructura(cal) {
+    const grid = $('horari-dom');
     grid.innerHTML = '';
-
     const raco = document.createElement('div');
     raco.className = 'header-dia';
     raco.style.gridColumn = '1';
     grid.appendChild(raco);
 
-    DIES.forEach((dia, index) => {
-      const header = document.createElement('div');
-      header.className = 'header-dia';
-      header.style.gridColumn = index + 2;
-      header.textContent = dia;
-      grid.appendChild(header);
+    const cols = [];
+    DIES.forEach((dia, i) => {
+      const data = st.setmana ? addDays(st.setmana, i) : null;
+      const dies = (cal || []).filter((c) => c.data === data);
+      const h = document.createElement('div');
+      h.className = 'header-dia';
+      h.style.gridColumn = i + 2;
+      h.innerHTML = `${dia}<small>${data ? ddmm(data) : ''}</small>`
+        + dies.map((c) => `<small class="cal" title="${esc(c.motiu)}">${esc(c.tipus)}: ${esc(c.motiu)}</small>`).slice(0, 1).join('');
+      grid.appendChild(h);
+
+      const col = document.createElement('div');
+      col.className = 'day-col';
+      col.style.gridColumn = i + 2;
+      col.dataset.data = data || '';
+      grid.appendChild(col);
+      cols.push(col);
+
+      // festius i aturades sobre la columna
+      for (const c of dies) {
+        if (c.tipus === 'avaluacio') continue;
+        const ini = c.ini ?? START, fi = c.fi ?? END;
+        const o = document.createElement('div');
+        o.className = 'closed';
+        o.style.top = `${pct(ini)}%`;
+        o.style.height = `${pct(fi) - pct(ini)}%`;
+        o.textContent = `${c.tipus.replace('_', ' ')} · ${c.motiu}`;
+        col.appendChild(o);
+      }
     });
 
-    for (let i = 0; i < TOTAL_FRANGES; i++) {
-      const filaGrid = i + 2;
-
+    for (let i = 0; i < SLOTS; i++) {
       const label = document.createElement('div');
       label.className = 'hora-label';
-      label.style.gridRow = filaGrid;
-
-      if (i % 2 === 0) {
-        label.textContent = `${(HORA_INICI + (i / 2)).toString().padStart(2, '0')}:00`;
-      }
-
+      label.style.gridRow = i + 2;
+      if (i % 2 === 0) label.textContent = hhmm(START + i * SLOT);
       grid.appendChild(label);
+    }
+    return cols;
+  }
+  const pct = (min) => ((Math.min(Math.max(min, START), END) - START) / (END - START)) * 100;
 
-      for (let dia = 0; dia < 5; dia++) {
+  // Posa en carrils les sessions que es solapen el mateix dia
+  function lanes(sessions) {
+    const sorted = [...sessions].sort((a, b) => a.ini - b.ini || b.fi - a.fi);
+    const out = [];
+    let cluster = [], clusterEnd = -1;
+    const flush = () => {
+      const ends = [];
+      for (const s of cluster) {
+        let l = ends.findIndex((e) => e <= s.ini);
+        if (l < 0) { l = ends.length; ends.push(0); }
+        ends[l] = s.fi;
+        s._lane = l;
+      }
+      for (const s of cluster) { s._lanes = ends.length; out.push(s); }
+      cluster = [];
+    };
+    for (const s of sorted) {
+      if (cluster.length && s.ini >= clusterEnd) flush();
+      cluster.push(s);
+      clusterEnd = Math.max(clusterEnd, s.fi);
+    }
+    if (cluster.length) flush();
+    return out;
+  }
+
+  function capacitatAula(aula) { return st.opcions?.aules.find((a) => a.aula === aula)?.capacitat ?? null; }
+
+  function cardText(s) {
+    const grups = s.grups.join(', ');
+    const docents = s.docents.length ? s.docents.join(', ') : 'sense docent';
+    const aula = s.aula ? s.aula + (s.aules_extra.length ? ` + ${s.aules_extra.join(', ')}` : '') : 'sense aula';
+    if (st.mode === 'assignatura') return [`${s.tipus} · ${grups}`, docents, aula];
+    if (st.mode === 'aula') return [s.assignatura, `${s.tipus} · ${grups}`, `${docents} · ${s.alumnes} al.`];
+    return [s.assignatura, `${s.tipus} · ${grups}`, aula];
+  }
+
+  function render() {
+    const d = st.data;
+    $('d-tag').textContent = st.version;
+    removeEmpty();
+
+    if (st.mode === 'lliures') return renderLliures();
+
+    const cols = construirEstructura(d?.calendari);
+    renderLegend(true);
+    const sessions = d?.sessions || [];
+    const cap = st.mode === 'aula' ? (d?.aula?.capacitat ?? capacitatAula(st.sel.aula)) : null;
+
+    DIES.forEach((_, i) => {
+      const data = addDays(st.setmana || '2000-01-03', i);
+      for (const s of lanes(sessions.filter((x) => x.data === data))) {
+        const t = tipusInfo(s.tipus);
+        const [titol, info, peu] = cardText(s);
+        const card = document.createElement('div');
+        card.className = 'classe-card';
+        if (cap != null && s.alumnes > cap) card.classList.add('over');
+        if (st.card && st.card.id === s.id && st.card.data === s.data && st.card.ini === s.ini) card.classList.add('sel');
+        card.style.background = t.color;
+        card.style.borderColor = t.vora;
+        card.style.top = `calc(${pct(s.ini)}% + 1px)`;
+        card.style.height = `calc(${pct(s.fi) - pct(s.ini)}% - 2px)`;
+        card.style.left = `calc(${(s._lane / s._lanes) * 100}% + 2px)`;
+        card.style.width = `calc(${100 / s._lanes}% - 4px)`;
+        card.title = `${s.assignatura}\n${hhmm(s.ini)}-${hhmm(s.fi)} · ${s.tipus} · ${s.grups.join(', ')}\n${info}\n${peu}`;
+        card.innerHTML = `<div class="classe-titol">${esc(titol)}</div><div class="classe-info">${esc(info)}</div><div class="classe-info bottom">${esc(peu)}</div>`;
+        card.addEventListener('click', () => { st.card = s; render(); });
+        cols[i].appendChild(card);
+      }
+    });
+
+    // títol, comptadors i detall
+    const w = weeks().find((x) => x.dilluns === st.setmana);
+    const wtxt = w ? `${w.setmana} (${ddmm(w.dilluns)}–${ddmm(addDays(w.dilluns, 4))})` : '';
+    const nom = {
+      assignatura: () => { const a = st.opcions?.assignatures.find((x) => x.codi === st.sel.assignatura); return a ? `${a.assignatura} · ${a.codi}${st.sel.grup ? ` · ${st.sel.grup}` : ''}` : null; },
+      aula: () => st.sel.aula ? `${st.sel.aula}${cap != null ? ` · ${cap} places` : ''}` : null,
+      docent: () => st.sel.docent,
+    }[st.mode]();
+    const etiqueta = { assignatura: 'ASSIGNATURA', aula: 'AULA', docent: 'PROFESSOR' }[st.mode];
+    $('grid-title').textContent = `${etiqueta} · ${nom || '—'} · ${wtxt}`;
+    $('counts').textContent = nom ? `${sessions.length} sessions` : '';
+
+    if (!nom) showEmpty({ assignatura: 'Tria una assignatura a la llista.', aula: 'Tria una aula a la llista.', docent: 'Tria un docent a la llista.' }[st.mode]);
+    else if (d && !sessions.length) {
+      const it = st.mode === 'aula' ? null : LLISTES[st.mode].items().find((x) => LLISTES[st.mode].key(x) === st.sel[st.mode]);
+      const altres = it?.setmanes?.filter((x) => x !== st.setmana) || [];
+      showEmpty(`Cap sessió aquesta setmana${st.version !== 'BASE' ? ` a la versió ${st.version}` : ''}.`,
+        altres.length ? ['Anar a la setmana amb classes més propera', () => { jumpToWeekWith(altres); loadView(); }] : null);
+    }
+
+    renderDetail(nom, sessions);
+  }
+
+  function renderLliures() {
+    const d = st.data;
+    const cols = construirEstructura(d?.calendari);
+    renderLegend(false);
+    const w = weeks().find((x) => x.dilluns === st.setmana);
+    $('grid-title').textContent = `AULES LLIURES · ${w ? `${w.setmana} (${ddmm(w.dilluns)}–${ddmm(addDays(w.dilluns, 4))})` : ''}`;
+    if (!d) { $('counts').textContent = ''; renderDetail(null, []); return; }
+
+    const aules = d.aules.filter((a) => (a.capacitat ?? 0) >= st.lliures.cap && (!st.lliures.tipus || a.tipus === st.lliures.tipus));
+    const ocupades = new Map();
+    for (const o of d.ocupades) {
+      const k = `${o.aula}|${o.data}`;
+      if (!ocupades.has(k)) ocupades.set(k, []);
+      ocupades.get(k).push(o);
+    }
+    const lliuresA = (data, ini) => aules.filter((a) => !(ocupades.get(`${a.aula}|${data}`) || []).some((o) => o.ini < ini + SLOT && o.fi > ini));
+    $('counts').textContent = `${aules.length} aules al filtre`;
+    $('lliures-hint').textContent = `${aules.length} aules compleixen el filtre. Cada franja mostra quantes estan lliures; clica-la per veure quines.`;
+
+    DIES.forEach((_, i) => {
+      const data = addDays(st.setmana, i);
+      const tancat = d.calendari.some((c) => c.data === data && c.ini == null && c.tipus !== 'avaluacio');
+      if (tancat) return;
+      for (let s = 0; s < SLOTS; s++) {
+        const ini = START + s * SLOT;
+        const n = lliuresA(data, ini).length;
+        const frac = aules.length ? n / aules.length : 0;
         const cell = document.createElement('div');
-        cell.className = 'grid-cell';
-        cell.style.gridRow = filaGrid;
-        cell.style.gridColumn = dia + 2;
-        grid.appendChild(cell);
+        cell.className = `slot-cell${n === 0 ? ' none' : ''}`;
+        if (st.lliures.slot && st.lliures.slot.data === data && st.lliures.slot.ini === ini) cell.classList.add('sel');
+        cell.style.top = `calc(${pct(ini)}% + 1px)`;
+        cell.style.height = `calc(${100 / SLOTS}% - 2px)`;
+        cell.style.background = `rgba(52, 201, 124, ${(0.06 + 0.5 * frac).toFixed(3)})`;
+        cell.textContent = n;
+        cell.title = `${DIES[i]} ${ddmm(data)} ${hhmm(ini)}-${hhmm(ini + SLOT)}: ${n} de ${aules.length} aules lliures`;
+        cell.addEventListener('click', () => { st.lliures.slot = { data, ini }; renderLliures(); });
+        cols[i].appendChild(cell);
+      }
+    });
+
+    // aules lliures de la franja triada
+    const slot = st.lliures.slot;
+    const res = $('results-lliures');
+    if (!slot) {
+      res.innerHTML = '<li class="item-row more">Clica una franja de la graella</li>';
+    } else {
+      const lliures = lliuresA(slot.data, slot.ini).sort((a, b) => a.capacitat - b.capacitat || a.aula.localeCompare(b.aula));
+      res.innerHTML = lliures.map((a) => `<li class="item-row" data-aula="${esc(a.aula)}" title="Veure l'horari de l'aula">
+          <div><span class="pill ok">${esc(a.aula)}</span><br><span class="sub">${esc(a.tipus)}</span></div>
+          <span class="sub">${a.capacitat} pl.</span></li>`).join('') || '<li class="item-row more">Cap aula lliure</li>';
+    }
+    renderDetail(slot ? `${DIES[DIES.findIndex((_, i) => addDays(st.setmana, i) === slot.data)]} ${ddmm(slot.data)} · ${hhmm(slot.ini)}-${hhmm(slot.ini + SLOT)}` : null,
+      [], slot ? lliuresA(slot.data, slot.ini).length : null, aules.length);
+  }
+  $('results-lliures').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-aula]');
+    if (row) goTo('aula', row.dataset.aula);
+  });
+
+  function renderLegend(sessions) {
+    $('legend').innerHTML = sessions
+      ? Object.entries(TIPUS).map(([k, t]) => `<span><i style="background:${t.color};border-color:${t.vora}"></i>${k} · ${t.nom}</span>`).join('')
+        + (st.mode === 'aula' ? '<span><i style="border-color:var(--red)"></i>més alumnes que places</span>' : '')
+        + '<span><i style="background:repeating-linear-gradient(45deg, rgba(224,176,74,.4) 0 3px, transparent 3px 6px)"></i>festiu / aturada</span>'
+      : '<span><i style="background:rgba(52,201,124,.56)"></i>totes lliures</span><span><i style="background:rgba(52,201,124,.06)"></i>poques lliures</span>'
+        + '<span><i style="background:repeating-linear-gradient(45deg, rgba(224,176,74,.4) 0 3px, transparent 3px 6px)"></i>festiu / aturada</span>';
+  }
+
+  function showEmpty(text, action) {
+    removeEmpty();
+    const box = document.createElement('div');
+    box.className = 'empty-msg';
+    box.id = 'empty-msg';
+    box.textContent = text;
+    if (action) {
+      const b = document.createElement('button');
+      b.textContent = action[0];
+      b.addEventListener('click', action[1]);
+      box.appendChild(document.createElement('br'));
+      box.appendChild(b);
+    }
+    document.querySelector('main.schedule-container').appendChild(box);
+  }
+  function removeEmpty() { $('empty-msg')?.remove(); }
+
+  // ---------- detall ----------
+  function row(label, html) { return `<div class="d-row"><span>${esc(label)}</span><b>${html}</b></div>`; }
+  function links(mode, values) { return values.map((v) => `<span class="link" data-go="${mode}" data-val="${esc(v)}">${esc(v)}</span>`).join(', '); }
+
+  function renderDetail(nom, sessions, nLliures, nAules) {
+    const s = st.card;
+    let html = '';
+    if (s) {
+      const cap = s.aula ? capacitatAula(s.aula) : null;
+      $('d-title').textContent = 'SESSIÓ';
+      html += row('Assignatura', s.codis.map((c) => `<span class="link" data-go="assignatura" data-val="${esc(c)}">${esc(c)}</span>`).join(', ') + ` · ${esc(s.assignatura)}`);
+      html += row('Grups', esc(s.grups.join(', ')));
+      html += row('Tipus', esc(`${s.tipus} · ${tipusInfo(s.tipus).nom}`));
+      html += row('Quan', esc(`${DIES[DIES.findIndex((_, i) => addDays(st.setmana, i) === s.data)] || s.dia} ${ddmm(s.data)} · ${hhmm(s.ini)}-${hhmm(s.fi)}`));
+      html += row('Aula', s.aula ? links('aula', [s.aula, ...s.aules_extra]) : '<span style="color:var(--amber)">sense aula</span>');
+      html += row('Alumnes', esc(`${s.alumnes}${cap != null ? ` / ${cap} places` : ''}`) + (cap != null && s.alumnes > cap ? ' <span style="color:var(--red)">· massa alumnes</span>' : ''));
+      html += row('Docents', s.docents.length ? links('docent', s.docents) : '—');
+      html += row('Titulacions', esc(s.titulacions.join(', ') || '—'));
+    } else if (st.mode === 'lliures') {
+      $('d-title').textContent = 'AULES LLIURES';
+      html += row('Filtre', esc(`≥ ${st.lliures.cap} places · ${st.lliures.tipus || 'tots els tipus'}`));
+      html += row('Franja', esc(nom || 'cap (clica la graella)'));
+      if (nLliures != null) html += row('Lliures', esc(`${nLliures} de ${nAules}`));
+    } else {
+      $('d-title').textContent = 'DETALLS';
+      const hores = sessions.reduce((t, x) => t + (x.fi - x.ini), 0) / 60;
+      const sense = sessions.filter((x) => !x.aula).length;
+      html += row('Consulta', esc({ assignatura: 'Assignatura', aula: 'Aula', docent: 'Professor' }[st.mode]));
+      html += row('Element', esc(nom || '—'));
+      if (nom) {
+        html += row('Sessions', esc(`${sessions.length} · ${hores.toFixed(1)} h`));
+        if (st.mode !== 'aula') html += row('Sense aula', sense ? `<span style="color:var(--amber)">${sense}</span>` : '0');
+      }
+      html += '<div class="hint" style="margin-top:4px">Clica una sessió per veure-la en detall.</div>';
+    }
+    $('d-rows').innerHTML = html;
+  }
+  $('d-rows').addEventListener('click', (e) => {
+    const l = e.target.closest('[data-go]');
+    if (l) goTo(l.dataset.go, l.dataset.val);
+  });
+
+  // ---------- eines ----------
+  $('btn-reset').addEventListener('click', () => {
+    if (st.mode === 'lliures') st.lliures.slot = null;
+    else { st.sel[st.mode] = null; if (st.mode === 'assignatura') { st.sel.grup = ''; fillGrups(); } }
+    st.card = null;
+    renderList(st.mode === 'lliures' ? 'aula' : st.mode);
+    loadView();
+  });
+
+  $('btn-export').addEventListener('click', () => {
+    if (!st.data) return;
+    const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    let rows;
+    if (st.mode === 'lliures') {
+      const aules = st.data.aules.filter((a) => (a.capacitat ?? 0) >= st.lliures.cap && (!st.lliures.tipus || a.tipus === st.lliures.tipus));
+      rows = [['data', 'inici', 'fi', 'n_lliures', 'aules_lliures']];
+      for (let i = 0; i < 5; i++) {
+        const data = addDays(st.setmana, i);
+        for (let s = 0; s < SLOTS; s++) {
+          const ini = START + s * SLOT;
+          const ll = aules.filter((a) => !st.data.ocupades.some((o) => o.aula === a.aula && o.data === data && o.ini < ini + SLOT && o.fi > ini));
+          rows.push([data, hhmm(ini), hhmm(ini + SLOT), ll.length, ll.map((a) => a.aula).join(' ')]);
+        }
+      }
+    } else {
+      rows = [['data', 'dia', 'inici', 'fi', 'codis', 'assignatura', 'tipus', 'grups', 'docents', 'aula', 'aules_extra', 'alumnes']];
+      for (const s of st.data.sessions) {
+        rows.push([s.data, s.dia, hhmm(s.ini), hhmm(s.fi), s.codis.join(' '), s.assignatura, s.tipus, s.grups.join(' '), s.docents.join(' '), s.aula, s.aules_extra.join(' '), s.alumnes]);
       }
     }
+    const csv = '﻿' + rows.map((r) => r.map(q).join(',')).join('\n');
+    const nom = `graella_${st.mode}_${(st.sel[st.mode] || 'lliures').replace(/[^\w-]+/g, '-')}_${st.setmana}_${st.version}.csv`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = nom;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  // ---------- dades en directe: quan la BD canvia, el servidor avisa i es recarrega ----------
+  let dbVersion = null;
+  function connect() {
+    const es = new EventSource('/api/events');
+    es.addEventListener('status', (e) => {
+      const s = JSON.parse(e.data);
+      if (s.error) setStatus('warn', 'DuckDB · últimes dades bones', s.error);
+      if (dbVersion !== null && s.version !== dbVersion) loadOpcions();
+      dbVersion = s.version;
+    });
+    es.onerror = () => setStatus('bad', 'servidor no disponible · reintentant');
   }
 
-  function resetGraella() {
-    construirEstructura();
-  }
-
-  function afegirClasse(assignatura, infoExtra, aula, diaIndex, horaInici, duradaHores, color) {
-    const frangesOffset = (horaInici - HORA_INICI) * 2;
-    const filaInici = 2 + frangesOffset;
-    const frangesDurada = duradaHores * 2;
-
-    const card = document.createElement('div');
-    card.className = 'classe-card';
-    card.style.background = color;
-    card.style.gridColumn = diaIndex + 2;
-    card.style.gridRow = `${filaInici} / span ${frangesDurada}`;
-
-    card.innerHTML = `
-      <div class="classe-titol">${assignatura}</div>
-      <div class="classe-info">${infoExtra}</div>
-      <div class="classe-info" style="margin-top:auto;">🚪 ${aula}</div>
-    `;
-
-    document.getElementById('horari-dom').appendChild(card);
-  }
-
-  function actualitzarApiPreview(url) {
-    document.getElementById('api-payload').textContent = url;
-  }
-
-  // --- HANDLERS PER CONNECTAR AMB EL BACKEND JAVA ---
-
-  // 1. CARREGAR HORARI D'UNA ASSIGNATURA
-  function carregarHorariAssignatura() {
-    resetGraella();
-
-    const grup = document.getElementById('select-grup').value;
-
-    document.getElementById('grid-title').textContent = `VISTA: ASSIGNATURA · PROG1 (${grup})`;
-    document.getElementById('d-target').textContent = `PROG1 - ${grup}`;
-
-    actualitzarApiPreview(`GET /api/v1/assignatura?code=PROG1&grup=${grup}`);
-
-    afegirClasse('Programació 1', `Teoria · ${grup}`, 'Q2/1001', 0, 8.5, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', `Lab · ${grup}`, 'Q2/0001', 2, 11.0, 2, 'var(--color-lab)');
-  }
-
-  // 2. CARREGAR HORARI SETMANAL D'UNA AULA
-  function carregarHorariAula() {
-    resetGraella();
-
-    const aula = document.getElementById('select-aula').value;
-    const setmana = document.getElementById('aula-setmana').value;
-
-    document.getElementById('grid-title').textContent = `VISTA: AULA · ${aula} (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `${aula} (S${setmana})`;
-
-    actualitzarApiPreview(`GET /api/v1/aula?id=${encodeURIComponent(aula)}&week=${setmana}`);
-
-    afegirClasse('Física 1', 'Grup 10 · Prof. Gómez', aula, 0, 8.0, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', 'Grup 10 · Prof. Petit', aula, 1, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Bases de Dades', 'Grup 20 · Prof. Soler', aula, 3, 15.0, 2, 'var(--color-sem)');
-  }
-
-  // 3. CARREGAR HORARI D'UN PROFESSOR
-  function carregarHorariProfessor() {
-    resetGraella();
-
-    const setmana = document.getElementById('profe-setmana').value;
-
-    document.getElementById('grid-title').textContent = `VISTA: PROFESSOR · Dr. Jordi Petit (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `Dr. Jordi Petit (S${setmana})`;
-
-    actualitzarApiPreview(`GET /api/v1/professor?id=P01&week=${setmana}`);
-
-    afegirClasse('Programació 1', 'Teoria · Aula Q2/1001', 'Q2/1001', 0, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Estructura Dades', 'Lab · Aula Q2/0001', 'Q2/0001', 2, 12.0, 2, 'var(--color-lab)');
-  }
-
-  // 4. CERCAR AULES LLIURES
-  function cercarAulesLliures() {
-    const setmana = document.getElementById('lliures-setmana').value;
-    const dia = document.getElementById('lliures-dia').value;
-    const hora = document.getElementById('lliures-hora').value;
-    const cap = document.getElementById('lliures-cap').value;
-
-    actualitzarApiPreview(`GET /api/v1/aules/lliures?week=${setmana}&day=${dia}&time=${hora}&minCap=${cap}`);
-
-    document.getElementById('d-target').textContent = `Filtre Lliures (S${setmana}, Dia ${dia}, ${hora})`;
-
-    const res = document.getElementById('results-lliures');
-
-    res.innerHTML = `
-      <li class="item-row" onclick="destacarAula('Q2/1002')">
-        <span class="pill ok">Q2/1002</span>
-        <span class="sub">Cap: 60</span>
-      </li>
-      <li class="item-row" onclick="destacarAula('Q2/0001')">
-        <span class="pill ok">Q2/0001</span>
-        <span class="sub">Cap: 30</span>
-      </li>
-      <li class="item-row" onclick="destacarAula('Q2/2005')">
-        <span class="pill ok">Q2/2005</span>
-        <span class="sub">Cap: 120</span>
-      </li>
-    `;
-  }
-
-  function destacarAula(aulaId) {
-    document.getElementById('select-aula').value = aulaId;
-    document.querySelector('[data-mode="aula"]').click();
-    carregarHorariAula();
-  }
-
-  // INICIALITZACIÓ
-  construirEstructura();
-  carregarHorariAssignatura();
+  // ---------- inici ----------
+  markVersion();
+  construirEstructura([]);
+  loadOpcions();
+  connect();
 </script>
 
 </body>
 </html>
-

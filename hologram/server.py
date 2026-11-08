@@ -9,9 +9,10 @@ import queue
 import sys
 import threading
 import time
+from datetime import date
 
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, unquote
+from urllib.parse import parse_qs, urlparse, unquote
 
 import db
 
@@ -20,6 +21,8 @@ PROJECT_ROOT = os.path.dirname(ROOT)
 
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+from database import consultes  # noqa: E402  (after the sys.path line)
 
 DEFAULT_DB = os.path.join(ROOT, "..", "dades", "paquet.duckdb")
 WATCH_SECONDS = 2
@@ -56,8 +59,10 @@ state = {
     "dataset": None,
     "version": 0,
     "snapshot": False,
-    "error": None
+    "error": None,
+    "others": {}   # vista -> (version, dataset) for the views other than --vista, loaded on demand
 }
+load_lock = threading.Lock()   # one on-demand load at a time
 
 
 def status():
@@ -67,7 +72,8 @@ def status():
         "count": len(d["sessions"]) if d else 0,
         "snapshot": state["snapshot"],
         "error": state["error"],
-        "db": os.path.relpath(DB_PATH, PROJECT_ROOT)
+        "db": os.path.relpath(DB_PATH, PROJECT_ROOT),
+        "vista": args.vista
     }
 
 
@@ -139,6 +145,7 @@ def reload():
             error=None
         )
         state["version"] += 1
+        state["others"] = {}   # the database changed: the other views are read again when asked for
 
     s = status()
 
@@ -152,6 +159,28 @@ def reload():
     )
 
     emit("status", s)
+
+
+def dataset_for(vista):
+    """Sessions dataset of a view (sessions, sessions51..54).
+
+    --vista is the one loaded (and reloaded) by reload(); the others are read the first time
+    they are asked for and kept until the database changes.
+    """
+    if vista == args.vista:
+        return state["dataset"]
+    with load_lock:
+        with lock:
+            version = state["version"]
+            cached = state["others"].get(vista)
+        if cached and cached[0] == version:
+            return cached[1]
+        res = db.load(DB_PATH, ROOM_IDS, args.criteri_informe, vista)
+        with lock:
+            if state["version"] == version:   # not reloaded meanwhile
+                state["others"][vista] = (version, res["dataset"])
+        print(f"database: view {vista} loaded ({len(res['dataset']['sessions']) if res['dataset'] else 0} sessions)", flush=True)
+        return res["dataset"]
 
 
 def watch():
@@ -221,7 +250,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_json(self, obj, status_code=200):
-        body = json.dumps(obj).encode()
+        body = json.dumps(obj, default=str).encode()   # default=str: dates / times from the database
 
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
@@ -250,7 +279,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(state["layout"])
 
         if parts == ["api", "sessions"]:
-            return self.send_json(state["dataset"])
+            qs = parse_qs(urlparse(self.path).query)
+            vista = qs.get("vista", [args.vista])[0]
+            if vista not in db.VISTES:
+                return self.send_json({
+                    "ok": False,
+                    "errors": [f"unknown vista {vista!r}; options: {', '.join(db.VISTES)}"]
+                }, 400)
+            try:
+                return self.send_json(dataset_for(vista))
+            except Exception as e:   # view missing from the database, file locked...
+                return self.send_json({"ok": False, "errors": [str(e)]}, 503)
 
         if parts == ["api", "status"]:
             return self.send_json(status())
@@ -258,10 +297,55 @@ class Handler(SimpleHTTPRequestHandler):
         if parts == ["api", "events"]:
             return self.sse()
 
+        if parts[:2] == ["api", "graella"] and len(parts) == 3:
+            return self.graella(parts[2])
+
         self.send_json({
             "ok": False,
             "errors": ["not found"]
         }, 404)
+
+    # GET /api/graella/<consulta>: weekly timetables for graella.html (read-only queries in database/consultes.py)
+    #   opcions      ?vista=                          weeks, subjects, rooms and teachers of the view
+    #   assignatura  ?vista=&setmana=&codi=[&grup=]   a subject's sessions that week
+    #   aula         ?vista=&setmana=&aula=           sessions in a room that week
+    #   docent       ?vista=&setmana=&docent=         a teacher's sessions that week
+    #   lliures      ?vista=&setmana=                 catalogue rooms and their busy slots that week
+    # setmana = the Monday of the week, AAAA-MM-DD.
+    def graella(self, consulta):
+        qs = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()}
+        vista = qs.get("vista", args.vista)
+        if vista not in db.VISTES:
+            return self.send_json({"ok": False, "errors": [f"unknown vista {vista!r}; options: {', '.join(db.VISTES)}"]}, 400)
+
+        needs = {"opcions": [], "assignatura": ["setmana", "codi"], "aula": ["setmana", "aula"],
+                 "docent": ["setmana", "docent"], "lliures": ["setmana"]}
+        if consulta not in needs:
+            return self.send_json({"ok": False, "errors": [f"unknown query {consulta!r}; options: {', '.join(needs)}"]}, 404)
+        missing = [p for p in needs[consulta] if not qs.get(p)]
+        if missing:
+            return self.send_json({"ok": False, "errors": [f"missing parameter(s): {', '.join(missing)}"]}, 400)
+        if "setmana" in qs:
+            try:
+                date.fromisoformat(qs["setmana"])
+            except ValueError:
+                return self.send_json({"ok": False, "errors": ["setmana must be the Monday of the week, AAAA-MM-DD"]}, 400)
+
+        try:
+            with consultes.obrir_db(DB_PATH) as (con, _):
+                if consulta == "opcions":
+                    out = consultes.consultar_opcions_graella(vista, con=con)
+                elif consulta == "assignatura":
+                    out = consultes.consultar_horari_assignatura(qs["codi"], qs["setmana"], qs.get("grup"), vista, con=con)
+                elif consulta == "aula":
+                    out = consultes.consultar_horari_aula(qs["aula"], qs["setmana"], vista, con=con)
+                elif consulta == "docent":
+                    out = consultes.consultar_horari_docent(qs["docent"], qs["setmana"], vista, con=con)
+                else:
+                    out = consultes.consultar_ocupacio_aules(qs["setmana"], vista, con=con)
+        except Exception as e:   # view missing from the database, bad date, file locked...
+            return self.send_json({"ok": False, "errors": [str(e)]}, 503)
+        return self.send_json({"ok": True, "vista": vista, **out})
 
     # POST: chatbot Ornith
     def do_POST(self):
