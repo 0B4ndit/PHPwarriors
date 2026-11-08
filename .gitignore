@@ -74,3 +74,6 @@ docs/planols/
 
 # ornith: registre de canvis dels imprevistos (python -m ornith ... --desa)
 dades/registre_canvis.csv
+
+
+paquet/*
