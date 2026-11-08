@@ -238,6 +238,8 @@ class Facts:
             add(f'needsRoom({q(u)}).')
         for r in sorted({s.aula for s in sess if s.aula and not s.sense_espai}):
             add(f'originalRoom({q(u)}, {q(r)}).')
+        if any(s.aula for s in sess) and any(not s.aula and not s.sense_espai and s.tipus != 'PLAB' for s in sess):
+            add(f'roomlessSession({q(u)}).')            # some of its sessions have a room today and some none
         for d in sorted({d for s in sess for d in s.docents}):
             add(f'teacher({q(u)}, {q(d)}).')
         for t in sorted({(c, s.tipus, s.linia, s.num_grup) for s in sess for c in s.cohorts}):
@@ -285,9 +287,11 @@ def phase_a_blocks(args, base):
         time_fixed = fixed or nomes_aules
         # a block whose sessions do not all have the same day, hour (and, if fixed, room) today is split, so that
         # every fixed session keeps its own (the 1st semester has many; the 2nd none: there it is one unit)
+        # (and, for times that cannot move, by the kind of room it has today: R3-TIPUS goes by each session's own)
         parts = collections.defaultdict(list)
         for s in bl:
-            parts[(s.dia, s.ini, s.aula if fixed or s.tipus == 'PLAB' else '') if time_fixed else ()].append(s)
+            kind = base.aules[s.aula].tipus if s.aula in base.aules else s.aula[:2]
+            parts[(s.dia, s.ini, s.aula if fixed or s.tipus == 'PLAB' else kind) if time_fixed else ()].append(s)
         for k, part in enumerate(parts.values()):
             s0 = part[0]
             plab_room = s0.aula if s0.tipus == 'PLAB' and s0.aula else None       # R7: PLAB keeps its room

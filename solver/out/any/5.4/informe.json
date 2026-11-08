@@ -1,47 +1,35 @@
 {
   "veredicte": "NO VALIDA",
   "restriccions": {
-    "R1-FIXADA": {
-      "total": 22,
-      "compten": 22,
-      "declarades": 0,
-      "heretades": 0
-    },
     "R1-TORN": {
-      "total": 2698,
-      "compten": 60,
+      "total": 2679,
+      "compten": 0,
       "declarades": 459,
-      "heretades": 2179
+      "heretades": 2220
     },
     "R2-FINESTRA": {
-      "total": 37,
-      "compten": 26,
+      "total": 11,
+      "compten": 0,
       "declarades": 0,
       "heretades": 11
     },
     "R3-AFORAMENT": {
-      "total": 276,
-      "compten": 8,
+      "total": 268,
+      "compten": 0,
       "declarades": 0,
       "heretades": 268
     },
     "R3-TIPUS": {
-      "total": 44,
-      "compten": 44,
+      "total": 4,
+      "compten": 4,
       "declarades": 0,
       "heretades": 0
     },
     "R4-ALUMNAT": {
-      "total": 575,
+      "total": 599,
       "compten": 0,
       "declarades": 0,
-      "heretades": 575
-    },
-    "R4-AULA": {
-      "total": 5,
-      "compten": 5,
-      "declarades": 0,
-      "heretades": 0
+      "heretades": 599
     },
     "R4-DOCENT": {
       "total": 769,
@@ -54,25 +42,19 @@
       "compten": 0,
       "declarades": 0,
       "heretades": 356
-    },
-    "R7-PLAB": {
-      "total": 70,
-      "compten": 70,
-      "declarades": 0,
-      "heretades": 0
     }
   },
   "no_avaluables": {
     "ESPAI-DOBLE": 1169
   },
   "objectius": {
-    "hores_mortes_min": 180780,
-    "desplacaments_aula": 6062,
-    "desplacaments_edifici": 121,
-    "canvis_franja": 4166,
-    "canvis_aula": 1529,
-    "r6_aules_te_extra_per_grup": 183,
-    "r6_canvis_te_paul_fora_passadis": 1790,
+    "hores_mortes_min": 179010,
+    "desplacaments_aula": 6197,
+    "desplacaments_edifici": 111,
+    "canvis_franja": 4211,
+    "canvis_aula": 1663,
+    "r6_aules_te_extra_per_grup": 199,
+    "r6_canvis_te_paul_fora_passadis": 2016,
     "sessions_avaluades": 17504,
     "canvis_franja_vs_referencia": 0,
     "canvis_aula_vs_referencia": 0
@@ -84,8 +66,8 @@
     "escenari": "paquet/escenaris/grau-nou-40",
     "nomes_aules": false,
     "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
-    "proposta_sha256": "2df1912ea97d4cd3e4c24e19bf09568388c8c88757dbc14cb7ca9827c888be9e",
-    "referencia_sha256": "cef6235126159efbe56fb502abbd85ee4dd9e17c811e6b25e077261e1fbda47a",
+    "proposta_sha256": "9596216d863e4e2c6ec5d5d662548e363ea3858cec04519ad407a0b335b77230",
+    "referencia_sha256": "bb252277f95a19323015774ba1f70694a107cf7d60dbdb96de94d6e009d7aacd",
     "relaxacions_sha256": "5cf7d2a43519b1d8e57efc9583b09938975f236e44d30cd01951dec4b389ec26"
   }
 }
