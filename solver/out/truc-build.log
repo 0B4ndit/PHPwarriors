@@ -1,0 +1,196 @@
+mkdir -p out/truc/5.1 && cp out/5.1/proposta.csv out/5.1/proposta-sat.csv out/truc/5.1/
+cd .. && PYTHONUTF8=1 python3 -m horaris check solver/out/truc/5.1/proposta.csv --semestre 2 --nomes-aules --json solver/out/truc/5.1/informe.json \
+    --violacions solver/out/truc/5.1/violacions.csv > /dev/null
+python3 truc.py --font out/5.2 --dir out/truc/5.2
+out/truc/5.2/proposta-sat.csv: 458 rooms removed
+out/truc/5.2/proposta.csv: 458 rooms removed
+out/truc/5.2/relaxacions.csv: R1-TORN of 458 sessions -> R5-SENSE-AULA
+out/truc/5.2/pesos.txt: starts from pesos-5.2.txt
+python3 millora.py --pregunta 5.2 --dir out/truc/5.2 --temps 180 --fils 8 --des-de millor
+  458 sessions declared R5-SENSE-AULA: they keep no room
+weighted: 0.52*hores_mortes_min + 1*canvis_franja + 0.169*desplacaments_aula + 0.27*desplacaments_edifici + 0.776*r6_aules_te_extra_per_grup + 0.536*r6_canvis_te_paul_fora_passadis + 0.489*canvis_aula   (from pesos.txt)
+  candidate start proposta.csv: hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5331]
+  starting from proposta.csv
+5.2: 803 units (468 may move, 536 may change room)
+  start  hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5331]
+  greedy day/hour pass 1:    0 moves -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5331]  (9 s)
+  greedy rooms    pass 1:    0 moves -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5331]  (16 s)
+  LAHC: 8 workers x 180 s ...
+    seed 7: 190000 moves tried, 14912 accepted -> hores_mortes_min=49950  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5328]
+    seed 1: 192000 moves tried, 13888 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 2: 190400 moves tried, 13738 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 3: 191600 moves tried, 14089 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 4: 193600 moves tried, 14063 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 5: 190200 moves tried, 13846 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 6: 190800 moves tried, 13965 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+    seed 8: 191600 moves tried, 14310 accepted -> hores_mortes_min=50010  canvis_franja=2056  desplacaments_aula=1200  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5330]
+  polish day/hour pass 1:    0 moves -> hores_mortes_min=49950  canvis_franja=2056  desplacaments_aula=1202  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5328]  (205 s)
+  polish rooms    pass 1:    8 moves -> hores_mortes_min=49950  canvis_franja=2056  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5324]  (211 s)
+  polish rooms    pass 2:    0 moves -> hores_mortes_min=49950  canvis_franja=2056  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5324]  (217 s)
+  end    hores_mortes_min=49950  canvis_franja=2056  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=9  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  [score 1.5324]
+improved proposal -> out/truc/5.2/proposta.csv (the SAT one stays in proposta-sat.csv)
+make truc-derivades
+make[1]: Entering directory '/mnt/c/Users/Usuario/Desktop/PHPwarriors/solver'
+cd .. && PYTHONUTF8=1 python3 -m horaris check solver/out/truc/5.2/proposta.csv --semestre 2 --relaxacions solver/out/truc/5.2/relaxacions.csv \
+    --json solver/out/truc/5.2/informe.json --violacions solver/out/truc/5.2/violacions.csv > /dev/null
+rm -f out/truc/5.3/dadesA.pl out/truc/5.4/dadesA.pl
+make out/truc/5.3/informe.json out/truc/5.4/informe.json
+make[2]: Entering directory '/mnt/c/Users/Usuario/Desktop/PHPwarriors/solver'
+python3 exporta.py fase-a --pregunta 5.3 --pas 15 --allibera minim --dir out/truc/5.3 --sense-aula --referencia out/truc/5.2/proposta.csv
+5.3: 7416 units, 47 free (allibera=minim), the rest frozen at 5.2
+sh resol.sh out/truc/5.3/dadesA.pl out/truc/5.3/solucioA.csv /tmp/horaris-sat/truc5.3 || { \
+  python3 exporta.py fase-a --pregunta 5.3 --pas 15 --allibera setmana --dir out/truc/5.3 --sense-aula --referencia out/truc/5.2/proposta.csv && sh resol.sh out/truc/5.3/dadesA.pl out/truc/5.3/solucioA.csv /tmp/horaris-sat/truc5.3; } || { \
+  python3 exporta.py fase-a --pregunta 5.3 --pas 15 --allibera setmana --recupera 1 --dir out/truc/5.3 --sense-aula --referencia out/truc/5.2/proposta.csv && sh resol.sh out/truc/5.3/dadesA.pl out/truc/5.3/solucioA.csv /tmp/horaris-sat/truc5.3; }
+>> out/truc/5.3/dadesA.pl: at most 'min' changes of day/hour
+Pairs that may meet: 2,969 (room-sharing 2,751, teacher/students/lab 471)
+Hard bound: 1 units may change day/hour (1 must, + 0)
+Generated 101,170 variables and 151,480 clauses in 1.8 s
+Running kissat -q --phase=false ...
+kissat finished in 0.1 s (exit code 20)
+UNSAT: no timetable satisfies all the rules with this model
+>> out/truc/5.3/dadesA.pl: at most 'min+1' changes of day/hour
+Pairs that may meet: 2,969 (room-sharing 2,751, teacher/students/lab 471)
+Hard bound: 2 units may change day/hour (1 must, + 1)
+Generated 101,203 variables and 151,545 clauses in 1.7 s
+Running kissat -q --phase=false ...
+kissat finished in 0.1 s (exit code 10)
+Solution written to out/truc/5.3/solucioA.csv
+
+SAT. Movable units: 35; changed day/hour: 2; changed room: 47; rooms given to 4 units that had none
+python3 exporta.py proposta --pregunta 5.3 --dir out/truc/5.3 --sense-aula --referencia out/truc/5.2/proposta.csv
+7739 sessions -> out/truc/5.3/proposta.csv  (recovered: {'S11527': '2027-03-09'})
+relaxations -> out/truc/5.3/relaxacions.csv: R1-FIXADA 8, R7-PLAB 2, R5-SENSE-AULA 458
+cd .. && PYTHONUTF8=1 python3 -m horaris check solver/out/truc/5.3/proposta.csv --semestre 2 --escenari paquet/escenaris/contingencies --referencia solver/out/truc/5.2/proposta.csv \
+    --relaxacions solver/out/truc/5.3/relaxacions.csv --json solver/out/truc/5.3/informe.json --violacions solver/out/truc/5.3/violacions.csv
+Semestre 2: 0 files de l'altre semestre ignorades
+Escenari: contingencies
+Veredicte: VALIDA AMB RELAXACIONS DECLARADES (469 incompliments declarats com a relaxació)
+Sessions a la base: 7739 · a la proposta: 7739
+
+Restriccions dures          compten  declarades  heretades
+  [OK ] R0-FORMAT             0           0          0  Proposta mal formada (sessió desconeguda o repetida, dia o hora il·legibles)
+  [OK ] R0-HORARI             0           0          0  Mode només aules: s'ha canviat el dia o l'hora d'una sessió
+  [REL] R1-FIXADA             0           8          0  Sessió de GEI o GEET+GEST de 1r o 2n moguda (no es toca)
+  [REL] R1-TORN               0           1       1238  1r i 2n al matí; 3r, 4t, 5è, dobles i màsters a la tarda
+  [OK ] R2-FINESTRA           0           0          0  Fora de les finestres 8.30-14.30 i 14.30-21.00 (o creuant-les)
+  [OK ] R2-CALENDARI          0           0          0  Sessió moguda a un festiu, dia no lectiu o aturada del calendari (o a un dia sense classes)
+  [OK ] R3-AULA               0           0          0  Aula que no és a l'aulari (ni és la de partida, o és una J, que es porta a l'aulari)
+  [OK ] R3-AFORAMENT          0           0         57  Més alumnes que la capacitat de l'aula
+  [OK ] R3-TIPUS              0           0          0  Espai d'un tipus diferent del que demana la sessió
+  [OK ] R3-TANCADA            0           0          0  Aula tancada per l'escenari (contingència) en aquella data i hora
+  [OK ] R4-AULA               0           0          0  Dues activitats a la mateixa aula alhora
+  [OK ] R4-DOCENT             0           0        441  Un mateix docent en dues activitats alhora
+  [OK ] R4-ALUMNAT            0           0        189  Un mateix grup d'alumnes en dues activitats alhora
+  [OK ] R4-PLAB               0           0        143  TE o PAUL alhora que un PLAB de la mateixa assignatura
+  [OK ] R4-COMPARTIDA         0           0          0  Una sessió compartida entre titulacions separada
+  [OK ] R5-FALTA              0           0          0  Sessió de la base que no surt a la proposta
+  [REL] R5-SENSE-AULA         0         458          0  Sessió (no PLAB) sense aula assignada
+  [OK ] R5-RECUPERACIO        0           0          0  Sessió cancel·lada per l'escenari sense recuperar dins el termini
+  [REL] R7-PLAB               0           2          0  Laboratori PLAB mogut del seu horari o aula fixats
+  [OK ] R8-RESERVA            0           0          0  Menys de dues aules ordinàries lliures en una franja
+  (heretades = no imputables a la proposta: només hi intervenen sessions fixades sense moure, o
+   solapaments de docent/alumnat que ja hi eren a l'horari de partida; es llisten però no compten)
+
+No avaluades (dades de partida incompletes, o regla no aplicable en aquest mode): ESPAI-DOBLE: 415 sessions
+
+Objectius (restricció 9, com més baix millor)
+  hores_mortes_min         50190
+  desplacaments_aula       1229
+  desplacaments_edifici    0
+  canvis_franja            2058
+  canvis_aula              193
+  r6_aules_te_extra_per_grup 15
+  r6_canvis_te_paul_fora_passadis 203
+  sessions_avaluades       7739
+  canvis_franja_vs_referencia 2
+  canvis_aula_vs_referencia 47
+python3 exporta.py fase-a --pregunta 5.4 --pas 15 --allibera minim --dir out/truc/5.4 --sense-aula --referencia out/truc/5.2/proposta.csv
+5.4: 7434 units, 18 free (allibera=minim), the rest frozen at 5.2
+sh resol.sh out/truc/5.4/dadesA.pl out/truc/5.4/solucioA.csv /tmp/horaris-sat/truc5.4 || { \
+  python3 exporta.py fase-a --pregunta 5.4 --pas 15 --allibera temps --dir out/truc/5.4 --sense-aula --referencia out/truc/5.2/proposta.csv && sh resol.sh out/truc/5.4/dadesA.pl out/truc/5.4/solucioA.csv /tmp/horaris-sat/truc5.4; }
+>> out/truc/5.4/dadesA.pl: at most 'min' changes of day/hour
+Pairs that may meet: 5,873 (room-sharing 5,873, teacher/students/lab 0)
+Hard bound: 0 units may change day/hour (0 must, + 0)
+Generated 100,821 variables and 165,479 clauses in 1.9 s
+Running kissat -q --phase=false ...
+kissat finished in 0.1 s (exit code 10)
+Solution written to out/truc/5.4/solucioA.csv
+
+SAT. Movable units: 18; changed day/hour: 0; changed room: 0; rooms given to 18 units that had none
+python3 exporta.py proposta --pregunta 5.4 --dir out/truc/5.4 --sense-aula --referencia out/truc/5.2/proposta.csv
+7974 sessions -> out/truc/5.4/proposta.csv
+relaxations -> out/truc/5.4/relaxacions.csv: R5-SENSE-AULA 458
+cp out/truc/5.4/proposta.csv out/truc/5.4/proposta-sat.csv && python3 millora.py --pregunta 5.4 --dir out/truc/5.4 --temps 180 --fils 8 --des-de millor
+  458 sessions declared R5-SENSE-AULA: they keep no room
+priority: hores_mortes_min > canvis_franja > desplacaments_aula > desplacaments_edifici > r6_aules_te_extra_per_grup > r6_canvis_te_paul_fora_passadis > canvis_aula
+  candidate start proposta.csv: hores_mortes_min=53310  canvis_franja=2056  desplacaments_aula=1279  desplacaments_edifici=0  r6_aules_te_extra_per_grup=11  r6_canvis_te_paul_fora_passadis=235  canvis_aula=151
+  starting from proposta-sat.csv
+5.4: 819 units (18 may move, 18 may change room)
+  start  hores_mortes_min=53310  canvis_franja=2056  desplacaments_aula=1279  desplacaments_edifici=0  r6_aules_te_extra_per_grup=11  r6_canvis_te_paul_fora_passadis=235  canvis_aula=151
+  greedy day/hour pass 1:    3 moves -> hores_mortes_min=50850  canvis_franja=2083  desplacaments_aula=1278  desplacaments_edifici=0  r6_aules_te_extra_per_grup=11  r6_canvis_te_paul_fora_passadis=222  canvis_aula=151  (2 s)
+  greedy day/hour pass 2:    0 moves -> hores_mortes_min=50850  canvis_franja=2083  desplacaments_aula=1278  desplacaments_edifici=0  r6_aules_te_extra_per_grup=11  r6_canvis_te_paul_fora_passadis=222  canvis_aula=151  (2 s)
+  greedy rooms    pass 1:    4 moves -> hores_mortes_min=50850  canvis_franja=2083  desplacaments_aula=1250  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  (3 s)
+  greedy rooms    pass 2:    0 moves -> hores_mortes_min=50850  canvis_franja=2083  desplacaments_aula=1250  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  (3 s)
+  LAHC: 8 workers x 180 s ...
+    seed 1: 207200 moves tried, 42636 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 2: 207000 moves tried, 41327 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 3: 207800 moves tried, 43814 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 4: 208800 moves tried, 44416 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 5: 208200 moves tried, 43733 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 6: 208000 moves tried, 39901 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 7: 206200 moves tried, 44466 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+    seed 8: 205200 moves tried, 43367 accepted -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+  polish day/hour pass 1:    0 moves -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  (185 s)
+  polish rooms    pass 1:    0 moves -> hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151  (185 s)
+  end    hores_mortes_min=50850  canvis_franja=2070  desplacaments_aula=1194  desplacaments_edifici=0  r6_aules_te_extra_per_grup=10  r6_canvis_te_paul_fora_passadis=192  canvis_aula=151
+improved proposal -> out/truc/5.4/proposta.csv (the SAT one stays in proposta-sat.csv)
+cd .. && PYTHONUTF8=1 python3 -m horaris check solver/out/truc/5.4/proposta.csv --semestre 2 --escenari paquet/escenaris/grau-nou-40 --referencia solver/out/truc/5.2/proposta.csv \
+    --relaxacions solver/out/truc/5.4/relaxacions.csv --json solver/out/truc/5.4/informe.json --violacions solver/out/truc/5.4/violacions.csv
+Semestre 2: 0 files de l'altre semestre ignorades
+Escenari: grau-nou-40
+Veredicte: VALIDA AMB RELAXACIONS DECLARADES (459 incompliments declarats com a relaxació)
+Sessions a la base: 7974 · a la proposta: 7974
+
+Restriccions dures          compten  declarades  heretades
+  [OK ] R0-FORMAT             0           0          0  Proposta mal formada (sessió desconeguda o repetida, dia o hora il·legibles)
+  [OK ] R0-HORARI             0           0          0  Mode només aules: s'ha canviat el dia o l'hora d'una sessió
+  [OK ] R1-FIXADA             0           0          0  Sessió de GEI o GEET+GEST de 1r o 2n moguda (no es toca)
+  [REL] R1-TORN               0           1       1238  1r i 2n al matí; 3r, 4t, 5è, dobles i màsters a la tarda
+  [OK ] R2-FINESTRA           0           0          0  Fora de les finestres 8.30-14.30 i 14.30-21.00 (o creuant-les)
+  [OK ] R2-CALENDARI          0           0          0  Sessió moguda a un festiu, dia no lectiu o aturada del calendari (o a un dia sense classes)
+  [OK ] R3-AULA               0           0          0  Aula que no és a l'aulari (ni és la de partida, o és una J, que es porta a l'aulari)
+  [OK ] R3-AFORAMENT          0           0         58  Més alumnes que la capacitat de l'aula
+  [OK ] R3-TIPUS              0           0          0  Espai d'un tipus diferent del que demana la sessió
+  [OK ] R3-TANCADA            0           0          0  Aula tancada per l'escenari (contingència) en aquella data i hora
+  [OK ] R4-AULA               0           0          0  Dues activitats a la mateixa aula alhora
+  [OK ] R4-DOCENT             0           0        441  Un mateix docent en dues activitats alhora
+  [OK ] R4-ALUMNAT            0           0        189  Un mateix grup d'alumnes en dues activitats alhora
+  [OK ] R4-PLAB               0           0        143  TE o PAUL alhora que un PLAB de la mateixa assignatura
+  [OK ] R4-COMPARTIDA         0           0          0  Una sessió compartida entre titulacions separada
+  [OK ] R5-FALTA              0           0          0  Sessió de la base que no surt a la proposta
+  [REL] R5-SENSE-AULA         0         458          0  Sessió (no PLAB) sense aula assignada
+  [OK ] R5-RECUPERACIO        0           0          0  Sessió cancel·lada per l'escenari sense recuperar dins el termini
+  [OK ] R7-PLAB               0           0          0  Laboratori PLAB mogut del seu horari o aula fixats
+  [OK ] R8-RESERVA            0           0          0  Menys de dues aules ordinàries lliures en una franja
+  (heretades = no imputables a la proposta: només hi intervenen sessions fixades sense moure, o
+   solapaments de docent/alumnat que ja hi eren a l'horari de partida; es llisten però no compten)
+
+No avaluades (dades de partida incompletes, o regla no aplicable en aquest mode): ESPAI-DOBLE: 415 sessions
+
+Objectius (restricció 9, com més baix millor)
+  hores_mortes_min         50850
+  desplacaments_aula       1194
+  desplacaments_edifici    0
+  canvis_franja            2070
+  canvis_aula              151
+  r6_aules_te_extra_per_grup 10
+  r6_canvis_te_paul_fora_passadis 192
+  sessions_avaluades       7974
+  canvis_franja_vs_referencia 0
+  canvis_aula_vs_referencia 0
+make[2]: Leaving directory '/mnt/c/Users/Usuario/Desktop/PHPwarriors/solver'
+make[1]: Leaving directory '/mnt/c/Users/Usuario/Desktop/PHPwarriors/solver'
+truc 5.1 VALIDA 0 declared {} · vs 5.2: slot - room -
+truc 5.2 VALIDA AMB RELAXACIONS DECLARADES 459 declared {'R1-TORN': {'total': 1239, 'compten': 0, 'declarades': 1, 'heretades': 1238}, 'R5-SENSE-AULA': {'total': 458, 'compten': 0, 'declarades': 458, 'heretades': 0}} · vs 5.2: slot - room -
+truc 5.3 VALIDA AMB RELAXACIONS DECLARADES 469 declared {'R1-FIXADA': {'total': 8, 'compten': 0, 'declarades': 8, 'heretades': 0}, 'R1-TORN': {'total': 1239, 'compten': 0, 'declarades': 1, 'heretades': 1238}, 'R5-SENSE-AULA': {'total': 458, 'compten': 0, 'declarades': 458, 'heretades': 0}, 'R7-PLAB': {'total': 2, 'compten': 0, 'declarades': 2, 'heretades': 0}} · vs 5.2: slot 2 room 47
+truc 5.4 VALIDA AMB RELAXACIONS DECLARADES 459 declared {'R1-TORN': {'total': 1239, 'compten': 0, 'declarades': 1, 'heretades': 1238}, 'R5-SENSE-AULA': {'total': 458, 'compten': 0, 'declarades': 458, 'heretades': 0}} · vs 5.2: slot 0 room 0

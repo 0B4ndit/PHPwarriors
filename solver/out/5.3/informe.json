@@ -20,16 +20,16 @@
       "heretades": 57
     },
     "R4-ALUMNAT": {
-      "total": 216,
+      "total": 204,
       "compten": 0,
       "declarades": 0,
-      "heretades": 216
+      "heretades": 204
     },
     "R4-DOCENT": {
-      "total": 438,
+      "total": 440,
       "compten": 0,
       "declarades": 0,
-      "heretades": 438
+      "heretades": 440
     },
     "R4-PLAB": {
       "total": 143,
@@ -48,16 +48,16 @@
     "ESPAI-DOBLE": 415
   },
   "objectius": {
-    "hores_mortes_min": 49095,
-    "desplacaments_aula": 1902,
+    "hores_mortes_min": 50010,
+    "desplacaments_aula": 1336,
     "desplacaments_edifici": 0,
-    "canvis_franja": 2165,
-    "canvis_aula": 547,
-    "r6_aules_te_extra_per_grup": 96,
-    "r6_canvis_te_paul_fora_passadis": 579,
+    "canvis_franja": 2057,
+    "canvis_aula": 193,
+    "r6_aules_te_extra_per_grup": 17,
+    "r6_canvis_te_paul_fora_passadis": 257,
     "sessions_avaluades": 7739,
-    "canvis_franja_vs_referencia": 3,
-    "canvis_aula_vs_referencia": 40
+    "canvis_franja_vs_referencia": 1,
+    "canvis_aula_vs_referencia": 50
   },
   "relaxacions_declarades": 4,
   "incompliments_declarats": 469,
@@ -66,8 +66,8 @@
     "escenari": "paquet/escenaris/contingencies",
     "nomes_aules": false,
     "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
-    "proposta_sha256": "08536e185645342246dfd3590d6d690364222b410d637d6f2359168a88253942",
-    "referencia_sha256": "29ad562da2d4de09319e637dbcc66e62f0685d93fb44cd02026c7843eb28c303",
+    "proposta_sha256": "753c749f16b8d1257ff61b962887e7d81df107533eb252938e356b721dcd92c1",
+    "referencia_sha256": "57b80008968443ead044ad427baba22e6977042b9b1a3bf858d759c8dc1058cc",
     "relaxacions_sha256": "f274a259a856395642c246c2aad6c8313b4b8f668d5e03802759ba0c13ebc304"
   }
 }

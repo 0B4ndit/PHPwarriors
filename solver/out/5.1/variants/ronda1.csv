@@ -1,0 +1,13 @@
+variant,pesos,veredicte,declarades,hores_mortes_min,canvis_franja,desplacaments_aula,desplacaments_edifici,r6_aules_te_extra_per_grup,r6_canvis_te_paul_fora_passadis,canvis_aula,puntuacio
+r1-v00,SAT (no millora),VALIDA,0,72930,0,3569,17,96,1627,97,76
+r1-v01,current proposta.csv,VALIDA,0,72930,0,2119,0,31,804,518,80
+r1-v02,"desplacaments_aula=1,desplacaments_edifici=0.02,r6_aules_te_extra_per_grup=0.02,r6_canvis_te_paul_fora_passadis=0.02,canvis_aula=0.02",VALIDA,0,72930,0,1600,6,64,650,318,78
+r1-v03,"desplacaments_aula=0.02,desplacaments_edifici=1,r6_aules_te_extra_per_grup=0.02,r6_canvis_te_paul_fora_passadis=0.02,canvis_aula=0.02",VALIDA,0,72930,0,2005,6,52,306,110,79
+r1-v04,"desplacaments_aula=0.02,desplacaments_edifici=0.02,r6_aules_te_extra_per_grup=1,r6_canvis_te_paul_fora_passadis=0.02,canvis_aula=0.02",VALIDA,0,72930,0,2246,0,38,606,266,80
+r1-v05,"desplacaments_aula=0.02,desplacaments_edifici=0.02,r6_aules_te_extra_per_grup=0.02,r6_canvis_te_paul_fora_passadis=1,canvis_aula=0.02",VALIDA,0,72930,0,2209,0,80,301,324,78
+r1-v06,"desplacaments_aula=0.02,desplacaments_edifici=0.02,r6_aules_te_extra_per_grup=0.02,r6_canvis_te_paul_fora_passadis=0.02,canvis_aula=1",VALIDA,0,72930,0,2046,17,55,387,97,78
+r1-v07,"desplacaments_aula=0.397,desplacaments_edifici=0.293,r6_aules_te_extra_per_grup=0.028,r6_canvis_te_paul_fora_passadis=0.115,canvis_aula=0.167",VALIDA,0,72930,0,1734,6,67,542,111,78
+r1-v08,"desplacaments_aula=0.121,desplacaments_edifici=0.608,r6_aules_te_extra_per_grup=0.022,r6_canvis_te_paul_fora_passadis=0.177,canvis_aula=0.072",VALIDA,0,72930,0,1983,6,70,284,110,78
+r1-v09,"desplacaments_aula=0.234,desplacaments_edifici=0.079,r6_aules_te_extra_per_grup=0.383,r6_canvis_te_paul_fora_passadis=0.09,canvis_aula=0.214",VALIDA,0,72930,0,1871,6,37,545,110,80
+r1-v10,"desplacaments_aula=0.007,desplacaments_edifici=0.586,r6_aules_te_extra_per_grup=0.107,r6_canvis_te_paul_fora_passadis=0.099,canvis_aula=0.201",VALIDA,0,72930,0,2060,6,45,471,110,79
+r1-v11,"desplacaments_aula=0.104,desplacaments_edifici=0.423,r6_aules_te_extra_per_grup=0.005,r6_canvis_te_paul_fora_passadis=0.346,canvis_aula=0.122",VALIDA,0,72930,0,1971,6,79,353,111,78

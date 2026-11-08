@@ -1,0 +1,59 @@
+{
+  "veredicte": "VALIDA AMB RELAXACIONS DECLARADES",
+  "restriccions": {
+    "R1-TORN": {
+      "total": 1239,
+      "compten": 0,
+      "declarades": 459,
+      "heretades": 780
+    },
+    "R3-AFORAMENT": {
+      "total": 58,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 58
+    },
+    "R4-ALUMNAT": {
+      "total": 204,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 204
+    },
+    "R4-DOCENT": {
+      "total": 423,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 423
+    },
+    "R4-PLAB": {
+      "total": 143,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 143
+    }
+  },
+  "no_avaluables": {
+    "ESPAI-DOBLE": 415
+  },
+  "objectius": {
+    "hores_mortes_min": 50190,
+    "desplacaments_aula": 1349,
+    "desplacaments_edifici": 0,
+    "canvis_franja": 2067,
+    "canvis_aula": 97,
+    "r6_aules_te_extra_per_grup": 26,
+    "r6_canvis_te_paul_fora_passadis": 243,
+    "sessions_avaluades": 7739
+  },
+  "relaxacions_declarades": 2,
+  "incompliments_declarats": 459,
+  "context": {
+    "semestre": 2,
+    "escenari": null,
+    "nomes_aules": false,
+    "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
+    "proposta_sha256": "5f89ce05fefb5b938eb230cb6789344e9fa8eb72c70559791f4c50a34bc0542d",
+    "referencia_sha256": null,
+    "relaxacions_sha256": "5cf7d2a43519b1d8e57efc9583b09938975f236e44d30cd01951dec4b389ec26"
+  }
+}
