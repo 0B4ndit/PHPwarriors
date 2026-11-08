@@ -30,7 +30,7 @@
 :- dynamic step/1, sig/2, unit/1, duration/2, shift/2, weekSig/2, days/2, original/3, sessionType/2,
            students/2, movable/1, fixedStart/2, fixedRoom/2, needsRoom/1, originalRoom/2, teacher/2,
            cohortGroup/5, subject/3, forbidden/4, inherited/2, room/3, integrated/1, outsideBuilding/1,
-           mustLeave/1, preferred/3, preferredRoom/2, closedRoom/5.
+           mustLeave/1, preferred/3, preferredRoom/2, closedRoom/5, roomlessSession/1.
 
 %% ------------------------------------------------------------------------------------------------------
 %% 0. Official constants
@@ -199,18 +199,23 @@ roomAllowed(U, R, Type, Cap) :-
     typeOK(U, R, Type).                                  % R3-TIPUS
 
 %% R3-TIPUS (enunciat §8.1): theory never in a lab; a PAUL may also use the integrated labs and the computer
-%% rooms; Q5/Q6 labs are only for PLAB; otherwise the same kind of space as today.
+%% rooms; Q5/Q6 labs are only for PLAB; otherwise the same kind of space as today. The verifier looks at every
+%% session on its own, so the type must suit ALL the rooms the unit's sessions have today (in the 1st semester one
+%% group may be in a classroom some weeks and in a computer room others), and the default for those with none.
 typeOK(U, R, Type) :- sessionType(U, 'PAUL'), ( integrated(R) ; Type == 'Aules informàtiques' ), !.
-typeOK(U, _, Type) :- allowedTypes(U, Ts), memberchk(Type, Ts), !.
-typeOK(U, R, Type) :- originalRoom(U, R), \+ ( Type == 'Laboratoris docents', \+ sessionType(U, 'PLAB') ).
+typeOK(U, _, Type) :- \+ ( typesFor(U, Ts), \+ memberchk(Type, Ts) ), !.
+typeOK(U, R, Type) :- originalRoom(U, R), \+ ( originalRoom(U, R2), R2 \== R ),
+                      \+ ( Type == 'Laboratoris docents', \+ sessionType(U, 'PLAB') ).
 
-allowedTypes(U, Ts) :-
-    originalRoom(U, R0), room(R0, T0, _), T0 \== outside, !,
+typesFor(U, Ts) :- originalRoom(U, R0), room(R0, T0, _), T0 \== outside, typesFromToday(U, T0, Ts).
+typesFor(U, Ts) :- ( roomlessSession(U) ; \+ ( originalRoom(U, R0), room(R0, T0, _), T0 \== outside ) ),
+                   allowedTypes(U, Ts).
+typesFromToday(U, T0, Ts) :-
     generalTypes(G),
     ( T0 == 'Laboratoris docents', \+ sessionType(U, 'PLAB') -> Ts = G
     ; memberchk(T0, G) -> Ts = G
     ; Ts = [T0] ).
-allowedTypes(U, Ts) :- sessionType(U, 'PLAB') -> practiceTypes(Ts) ; generalTypes(Ts).
+allowedTypes(U, Ts) :- sessionType(U, 'PLAB') -> practiceTypes(Ts) ; generalTypes(Ts).   % no room today
 
 quarterOf(T, Dur, Q) :- Last is T + Dur - 15, between(0, 100, K), Q is T + 15 * K, ( Q > Last -> !, fail ; true ).
 

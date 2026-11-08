@@ -1133,6 +1133,7 @@ students('b0049', 47).
 movable('b0049').
 needsRoom('b0049').
 originalRoom('b0049', 'Q4/1009').
+roomlessSession('b0049').
 teacher('b0049', 'D483').
 cohortGroup('b0049', 'GEQ:2n', 'PAUL', '21', '211').
 subject('b0049', '102442', 'PAUL').
@@ -1196,6 +1197,7 @@ students('b0053', 46).
 movable('b0053').
 needsRoom('b0053').
 originalRoom('b0053', 'Q4/1005').
+roomlessSession('b0053').
 teacher('b0053', 'D067').
 cohortGroup('b0053', 'GEQ:2n', 'PAUL', '21', '212').
 subject('b0053', '102442', 'PAUL').
@@ -1549,6 +1551,7 @@ students('b0075', 46).
 movable('b0075').
 needsRoom('b0075').
 originalRoom('b0075', 'Q3/0013').
+roomlessSession('b0075').
 teacher('b0075', 'D018').
 cohortGroup('b0075', 'GEQ:1r', 'PAUL', '2', '2').
 cohortGroup('b0075', 'GEQ:2n', 'PAUL', '2', '2').
@@ -1664,6 +1667,7 @@ students('b0082', 93).
 movable('b0082').
 needsRoom('b0082').
 originalRoom('b0082', 'Q3/1011').
+roomlessSession('b0082').
 teacher('b0082', 'D202').
 cohortGroup('b0082', 'GEQ:1r', 'TE', '1', '1').
 cohortGroup('b0082', 'GEQ:2n', 'TE', '1', '1').
@@ -2130,6 +2134,7 @@ students('b0111', 45).
 movable('b0111').
 needsRoom('b0111').
 originalRoom('b0111', 'Q3/0013').
+roomlessSession('b0111').
 teacher('b0111', 'D146').
 cohortGroup('b0111', 'GEQ:1r', 'PAUL', '21', '212').
 subject('b0111', '102447', 'PAUL').
@@ -5156,6 +5161,7 @@ students('b0282', 48).
 movable('b0282').
 needsRoom('b0282').
 originalRoom('b0282', 'Q2/1003').
+roomlessSession('b0282').
 teacher('b0282', 'D062').
 cohortGroup('b0282', 'GEET:4t', 'PAUL', '32', '321').
 subject('b0282', '102727', 'PAUL').
@@ -5188,6 +5194,7 @@ students('b0284', 48).
 movable('b0284').
 needsRoom('b0284').
 originalRoom('b0284', 'Q2/1003').
+roomlessSession('b0284').
 teacher('b0284', 'D478').
 cohortGroup('b0284', 'GEET:4t', 'TE', '32', '320').
 subject('b0284', '102727', 'TE').
@@ -5255,6 +5262,7 @@ students('b0288', 44).
 movable('b0288').
 needsRoom('b0288').
 originalRoom('b0288', 'Q4/0007').
+roomlessSession('b0288').
 teacher('b0288', 'D470').
 cohortGroup('b0288', 'GEET:3r', 'PAUL', '32', '321').
 cohortGroup('b0288', 'GEST:3r', 'PAUL', '32', '321').
@@ -5400,6 +5408,7 @@ students('b0296', 86).
 movable('b0296').
 needsRoom('b0296').
 originalRoom('b0296', 'Q4/0007').
+roomlessSession('b0296').
 teacher('b0296', 'D263').
 teacher('b0296', 'D470').
 cohortGroup('b0296', 'GEET:3r', 'TE', '32', '320').
@@ -11358,6 +11367,7 @@ movable('b0638').
 needsRoom('b0638').
 originalRoom('b0638', 'Q2/1005').
 originalRoom('b0638', 'Q3/0009').
+roomlessSession('b0638').
 teacher('b0638', 'D472').
 teacher('b0638', 'D490').
 cohortGroup('b0638', 'GED:2n', 'PAUL', '81', '81').
@@ -11392,6 +11402,7 @@ students('b0640', 33).
 movable('b0640').
 needsRoom('b0640').
 originalRoom('b0640', 'Q4/1003').
+roomlessSession('b0640').
 teacher('b0640', 'D472').
 teacher('b0640', 'D490').
 cohortGroup('b0640', 'GED:2n', 'PAUL', '82', '82').
@@ -12396,6 +12407,7 @@ students('b0700', 99).
 movable('b0700').
 needsRoom('b0700').
 originalRoom('b0700', 'Q1/1011').
+roomlessSession('b0700').
 teacher('b0700', 'D362').
 cohortGroup('b0700', 'GEQ:2n', 'TE', '21', '21').
 subject('b0700', '106041', 'TE').
@@ -12655,6 +12667,7 @@ students('b0716', 52).
 movable('b0716').
 needsRoom('b0716').
 originalRoom('b0716', 'Q4/0011').
+roomlessSession('b0716').
 teacher('b0716', 'D003').
 cohortGroup('b0716', 'GEQ:2n', 'PAUL', '21', '211').
 subject('b0716', '106044', 'PAUL').
@@ -12750,6 +12763,7 @@ movable('b0722').
 needsRoom('b0722').
 originalRoom('b0722', 'Q4/1005').
 originalRoom('b0722', 'Q4/1009').
+roomlessSession('b0722').
 teacher('b0722', 'D102').
 cohortGroup('b0722', 'GEQ:2n', 'PAUL', '21', '212').
 subject('b0722', '106044', 'PAUL').
@@ -13088,6 +13102,7 @@ movable('b0743').
 needsRoom('b0743').
 originalRoom('b0743', 'Q4/1005').
 originalRoom('b0743', 'Q4/1009').
+roomlessSession('b0743').
 teacher('b0743', 'D469').
 cohortGroup('b0743', 'GEQ:2n', 'PAUL', '21', '212').
 subject('b0743', '106048', 'PAUL').
@@ -13136,6 +13151,7 @@ students('b0746', 51).
 movable('b0746').
 needsRoom('b0746').
 originalRoom('b0746', 'Q4/1009').
+roomlessSession('b0746').
 teacher('b0746', 'D445').
 teacher('b0746', 'D469').
 cohortGroup('b0746', 'GEQ:2n', 'SEM', '21', '211').
@@ -13186,6 +13202,7 @@ students('b0749', 51).
 movable('b0749').
 needsRoom('b0749').
 originalRoom('b0749', 'Q4/1005').
+roomlessSession('b0749').
 teacher('b0749', 'D469').
 cohortGroup('b0749', 'GEQ:2n', 'SEM', '21', '212').
 subject('b0749', '106048', 'SEM').
@@ -17133,6 +17150,7 @@ students('b0991', 11).
 movable('b0991').
 needsRoom('b0991').
 originalRoom('b0991', 'Q3/0011').
+roomlessSession('b0991').
 teacher('b0991', 'D255').
 teacher('b0991', 'D374').
 cohortGroup('b0991', 'GIA:3r', 'TE', '71', '71').
@@ -18356,6 +18374,7 @@ students('b1068', 26).
 movable('b1068').
 needsRoom('b1068').
 originalRoom('b1068', 'Q3/0013').
+roomlessSession('b1068').
 teacher('b1068', 'D075').
 cohortGroup('b1068', 'MRICSE:M', 'TE', '1', '1').
 subject('b1068', '44730', 'TE').
@@ -18451,6 +18470,7 @@ students('b1074', 22).
 movable('b1074').
 needsRoom('b1074').
 originalRoom('b1074', 'Q3/0013').
+roomlessSession('b1074').
 teacher('b1074', 'D211').
 teacher('b1074', 'D272').
 cohortGroup('b1074', 'MRICSE:M', 'TE', '1', '1').

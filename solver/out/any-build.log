@@ -1,186 +1,179 @@
 SEMESTRE=1 python3 exporta.py fase-a --pregunta 5.1 --pas 15 --dir out/any/s1/5.1
-5.1 phase A: 1149 units, 272 week signatures
+5.1 phase A: 1182 units, 284 week signatures
 sh resol.sh out/any/s1/5.1/dadesA.pl out/any/s1/5.1/solucioA.csv /tmp/horaris-sat/any5.1 minrooms
 >> out/any/s1/5.1/dadesA.pl: at most 'min' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 0 units may change day/hour (0 must, + 0)
-Generated 80,089 variables and 273,615 clauses in 2.8 s
+Generated 84,659 variables and 295,412 clauses in 2.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+1' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 1 units may change day/hour (0 must, + 1)
-Generated 80,698 variables and 274,830 clauses in 2.5 s
+Generated 85,301 variables and 296,693 clauses in 2.7 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+2' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 2 units may change day/hour (0 must, + 2)
-Generated 81,305 variables and 276,043 clauses in 2.6 s
+Generated 85,941 variables and 297,972 clauses in 2.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+3' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 3 units may change day/hour (0 must, + 3)
-Generated 81,913 variables and 277,257 clauses in 2.8 s
+Generated 86,582 variables and 299,252 clauses in 2.7 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+5' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 5 units may change day/hour (0 must, + 5)
-Generated 83,129 variables and 279,685 clauses in 2.7 s
+Generated 87,864 variables and 301,812 clauses in 2.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+10' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 10 units may change day/hour (0 must, + 10)
-Generated 86,169 variables and 285,755 clauses in 2.8 s
+Generated 91,069 variables and 308,212 clauses in 2.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+20' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 20 units may change day/hour (0 must, + 20)
-Generated 92,249 variables and 297,895 clauses in 2.7 s
+Generated 97,479 variables and 321,012 clauses in 2.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: at most 'min+60' changes of day/hour
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
 Hard bound: 60 units may change day/hour (0 must, + 60)
-Generated 116,569 variables and 346,455 clauses in 3.0 s
+Generated 123,119 variables and 372,212 clauses in 3.4 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: no bound on changes
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
-Generated 80,089 variables and 273,006 clauses in 2.5 s
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
+Generated 84,659 variables and 294,770 clauses in 2.7 s
 Running kissat -q --phase=false ...
 kissat finished in 0.1 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.1/dadesA.pl: no bound and without 'minrooms'
-Pairs that may meet: 9,400 (room-sharing 9,400, teacher/students/lab 0)
-Generated 80,089 variables and 272,504 clauses in 2.5 s
+Pairs that may meet: 10,036 (room-sharing 10,036, teacher/students/lab 0)
+Generated 84,659 variables and 294,256 clauses in 2.7 s
 Running kissat -q --phase=false ...
-kissat finished in 0.1 s (exit code 10)
+kissat finished in 0.4 s (exit code 10)
 Solution written to out/any/s1/5.1/solucioA.csv
 
-SAT. Movable units: 609; changed day/hour: 0; changed room: 482; rooms given to 38 units that had none
+SAT. Movable units: 642; changed day/hour: 0; changed room: 105; rooms given to 58 units that had none
 SEMESTRE=1 python3 exporta.py proposta --pregunta 5.1 --dir out/any/s1/5.1
 9287 sessions -> out/any/s1/5.1/proposta.csv
 SEMESTRE=1 python3 exporta.py fase-a --pregunta 5.2 --pas 15 --dir out/any/s1/5.2
 5.2 phase A: 1149 units, 272 week signatures
 sh resol.sh out/any/s1/5.2/dadesA.pl out/any/s1/5.2/solucioA.csv /tmp/horaris-sat/any5.2A
 >> out/any/s1/5.2/dadesA.pl: at most 'min' changes of day/hour
-Pairs that may meet: 122,250 (room-sharing 121,431, teacher/students/lab 6,132)
+Pairs that may meet: 122,180 (room-sharing 121,355, teacher/students/lab 6,132)
 Hard bound: 183 units may change day/hour (183 must, + 0)
-Generated 530,924 variables and 4,749,662 clauses in 41.2 s
+Generated 530,780 variables and 4,747,708 clauses in 41.5 s
 Running kissat -q --phase=false ...
-kissat finished in 10.8 s (exit code 10)
+kissat finished in 7.0 s (exit code 10)
 Solution written to out/any/s1/5.2/solucioA.csv
 
-SAT. Movable units: 609; changed day/hour: 183; changed room: 190; rooms given to 38 units that had none
+SAT. Movable units: 609; changed day/hour: 183; changed room: 213; rooms given to 38 units that had none
 SEMESTRE=1 python3 exporta.py fase-b --pregunta 5.2 --pas 15 --allibera peces --dir out/any/s1/5.2
-5.2 phase B: 197 pieces land on a holiday/stoppage -> re-placed inside their week (weeks 37, 39, 40, 42, 44, 45, 50, 52); allibera=peces
+5.2 phase B: 191 pieces land on a holiday/stoppage -> re-placed inside their week (weeks 37, 39, 40, 42, 44, 45, 50, 52); allibera=peces
 sh resol.sh out/any/s1/5.2/dadesB.pl out/any/s1/5.2/solucioB.csv /tmp/horaris-sat/any5.2B || { \
   echo ">> freeing every movable piece of the calendar-hit weeks"; \
   SEMESTRE=1 python3 exporta.py fase-b --pregunta 5.2 --pas 15 --allibera setmana --dir out/any/s1/5.2 && sh resol.sh out/any/s1/5.2/dadesB.pl out/any/s1/5.2/solucioB.csv /tmp/horaris-sat/any5.2B; }
 >> out/any/s1/5.2/dadesB.pl: at most 'min' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 182 units may change day/hour (182 must, + 0)
-Generated 143,344 variables and 574,883 clauses in 5.2 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 180 units may change day/hour (180 must, + 0)
+Generated 138,982 variables and 536,913 clauses in 4.9 s
 Running kissat -q --phase=false ...
 kissat finished in 0.2 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+1' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 183 units may change day/hour (182 must, + 1)
-Generated 143,540 variables and 575,273 clauses in 5.2 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 181 units may change day/hour (180 must, + 1)
+Generated 139,172 variables and 537,291 clauses in 4.8 s
 Running kissat -q --phase=false ...
 kissat finished in 0.2 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+2' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 184 units may change day/hour (182 must, + 2)
-Generated 143,736 variables and 575,663 clauses in 5.0 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 182 units may change day/hour (180 must, + 2)
+Generated 139,362 variables and 537,669 clauses in 4.8 s
 Running kissat -q --phase=false ...
-kissat finished in 0.8 s (exit code 20)
+kissat finished in 0.7 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+3' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 185 units may change day/hour (182 must, + 3)
-Generated 143,932 variables and 576,053 clauses in 5.6 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 183 units may change day/hour (180 must, + 3)
+Generated 139,552 variables and 538,047 clauses in 4.7 s
 Running kissat -q --phase=false ...
-kissat finished in 0.8 s (exit code 20)
+kissat finished in 0.7 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+5' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 187 units may change day/hour (182 must, + 5)
-Generated 144,324 variables and 576,833 clauses in 5.1 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 185 units may change day/hour (180 must, + 5)
+Generated 139,932 variables and 538,803 clauses in 4.7 s
 Running kissat -q --phase=false ...
-kissat finished in 0.9 s (exit code 20)
+kissat finished in 0.7 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+10' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 192 units may change day/hour (182 must, + 10)
-Generated 145,304 variables and 578,783 clauses in 5.3 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 190 units may change day/hour (180 must, + 10)
+Generated 104,782 variables and 468,683 clauses in 4.1 s
 Running kissat -q --phase=false ...
-kissat finished in 0.8 s (exit code 20)
+kissat finished in 0.7 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+20' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 202 units may change day/hour (182 must, + 20)
-Generated 107,672 variables and 503,706 clauses in 4.5 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 200 units may change day/hour (180 must, + 20)
+Generated 104,782 variables and 468,682 clauses in 4.2 s
 Running kissat -q --phase=false ...
 kissat finished in 0.8 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+60' changes of day/hour
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Hard bound: 242 units may change day/hour (182 must, + 60)
-Generated 107,672 variables and 503,706 clauses in 4.5 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Hard bound: 240 units may change day/hour (180 must, + 60)
+Generated 104,782 variables and 468,682 clauses in 4.2 s
 Running kissat -q --phase=false ...
 kissat finished in 0.8 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: no bound on changes
-Pairs that may meet: 29,996 (room-sharing 29,693, teacher/students/lab 1,554)
-Generated 107,672 variables and 503,706 clauses in 4.4 s
+Pairs that may meet: 27,973 (room-sharing 27,653, teacher/students/lab 1,440)
+Generated 104,782 variables and 468,682 clauses in 4.1 s
 Running kissat -q --phase=false ...
-kissat finished in 0.9 s (exit code 20)
+kissat finished in 0.8 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> freeing every movable piece of the calendar-hit weeks
-5.2 phase B: 197 pieces land on a holiday/stoppage -> re-placed inside their week (weeks 37, 39, 40, 42, 44, 45, 50, 52); allibera=setmana
+5.2 phase B: 191 pieces land on a holiday/stoppage -> re-placed inside their week (weeks 37, 39, 40, 42, 44, 45, 50, 52); allibera=setmana
 >> out/any/s1/5.2/dadesB.pl: at most 'min' changes of day/hour
 Pairs that may meet: 185,195 (room-sharing 184,007, teacher/students/lab 7,197)
-Hard bound: 182 units may change day/hour (182 must, + 0)
-Generated 805,563 variables and 6,524,254 clauses in 55.1 s
+Hard bound: 180 units may change day/hour (180 must, + 0)
+Generated 802,482 variables and 6,518,095 clauses in 55.3 s
 Running kissat -q --phase=false ...
-kissat finished in 2.1 s (exit code 20)
+kissat finished in 2.3 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+1' changes of day/hour
 Pairs that may meet: 185,195 (room-sharing 184,007, teacher/students/lab 7,197)
-Hard bound: 183 units may change day/hour (182 must, + 1)
-Generated 807,105 variables and 6,527,336 clauses in 56.0 s
+Hard bound: 181 units may change day/hour (180 must, + 1)
+Generated 804,024 variables and 6,521,177 clauses in 65.9 s
 Running kissat -q --phase=false ...
-kissat finished in 2.4 s (exit code 20)
+kissat finished in 3.9 s (exit code 20)
 UNSAT: no timetable satisfies all the rules with this model
 >> out/any/s1/5.2/dadesB.pl: at most 'min+2' changes of day/hour
 Pairs that may meet: 185,195 (room-sharing 184,007, teacher/students/lab 7,197)
-Hard bound: 184 units may change day/hour (182 must, + 2)
-Generated 808,647 variables and 6,530,418 clauses in 56.4 s
+Hard bound: 182 units may change day/hour (180 must, + 2)
+Generated 805,566 variables and 6,524,259 clauses in 68.7 s
 Running kissat -q --phase=false ...
-kissat finished in 6.6 s (exit code 20)
-UNSAT: no timetable satisfies all the rules with this model
->> out/any/s1/5.2/dadesB.pl: at most 'min+3' changes of day/hour
-Pairs that may meet: 185,195 (room-sharing 184,007, teacher/students/lab 7,197)
-Hard bound: 185 units may change day/hour (182 must, + 3)
-Generated 810,189 variables and 6,533,500 clauses in 55.9 s
-Running kissat -q --phase=false ...
-kissat finished in 5.7 s (exit code 20)
-UNSAT: no timetable satisfies all the rules with this model
->> out/any/s1/5.2/dadesB.pl: at most 'min+5' changes of day/hour
-Pairs that may meet: 185,195 (room-sharing 184,007, teacher/students/lab 7,197)
+kissat: error: infile.cnf:1: parse error: expected white space after literal
+kissat finished in 0.7 s (exit code 1)
+kissat gave no answer (time out or error)
+make: *** [Makefile:197: out/any/s1/5.2/solucioB.csv] Error 1
