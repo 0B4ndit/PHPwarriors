@@ -1,35 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ca">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Campus 3D & Horaris</title>
-  <link rel="stylesheet" href="home.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus 3D & Horaris</title>
+<style>
+  :root {
+    --accent: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.4);
+    --bg-glass: rgba(15, 23, 42, 0.6);
+    --text-muted: #94a3b8;
+  }
+
+  * { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; }
+  
+  body {
+    background-color: #05080f; 
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .hero-background {
+    position: fixed; 
+    top: 0; left: 0; width: 100%; height: 100vh;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 50%, #1e293b 0%, #05080f 70%);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .bg-image {
+    position: absolute;
+    width: 60vh; height: 60vh; 
+    border-radius: 50%; 
+    background-image: url('ImatgeFondo.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.25; 
+    mix-blend-mode: screen; 
+    pointer-events: none;
+    z-index: 1;
+    animation: pulseImage 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulseImage {
+    0% { transform: scale(0.98); opacity: 0.2; }
+    100% { transform: scale(1.02); opacity: 0.35; }
+  }
+
+  .placeholder-3d {
+    position: absolute;
+    width: 60vh; height: 60vh;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent, var(--accent), transparent);
+    animation: spin 10s linear infinite;
+    opacity: 0.35;
+    filter: blur(40px);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  .click-indicator {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: pulse 2s infinite;
+    z-index: 3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.9; }
+  }
+
+  .scroll-wrapper {
+    position: relative;
+    z-index: 10;
+    pointer-events: none; 
+  }
+
+  .hero-section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .hero-header {
+    text-align: center;
+    pointer-events: auto;
+    margin-top: 6vh;
+    padding: 0 20px;
+  }
+
+  .title {
+    font-size: 4rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .bottom-panel {
+    background: rgba(7, 12, 20, 0.85); 
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px); 
+    padding: 30px 20px;
+    display: flex;
+    justify-content: center;
+    pointer-events: auto; 
+  }
+
+  .bottom-nav {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap; 
+  }
+
+  .nav-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px 32px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+    width: 280px;
+  }
+
+  .nav-card:hover {
+    transform: translateY(-5px);
+    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px var(--accent-glow);
+  }
+
+  .nav-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+  .nav-card p { font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+
+  .doc-section {
+    padding: 80px 20px;
+    display: flex;
+    justify-content: center;
+    pointer-events: auto; 
+  }
+
+  .doc-container {
+    background: rgba(15, 23, 42, 0.7); 
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 50px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .doc-container h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+
+  .doc-container h3 {
+    font-size: 1.5rem;
+    margin-top: 40px;
+    margin-bottom: 15px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+  }
+
+  .doc-container p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .error-list {
+    list-style: none;
+    margin-top: 20px;
+  }
+
+  .error-list li {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 4px solid var(--accent);
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .error-list li strong {
+    color: #fff;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+  }
+
+</style>
 </head>
 <body>
 
-  <!-- Fons: clicar-lo obre el visor 3D. Aquí hi pot anar un model 3D o un vídeo. -->
-  <a class="hero-background" href="/" aria-label="Entra al visor 3D">
+  <div class="hero-background" onclick="window.location.href='/'">
+    <div class="bg-image"></div>
     <div class="placeholder-3d"></div>
-    <span class="click-indicator">Clica per entrar al 3D</span>
-  </a>
+    <div class="click-indicator">Clica per entrar al 3D</div>
+  </div>
 
-  <div class="content-layer">
-    <header class="hero-header">
-      <h1 class="title">Campus Explorer</h1>
-      <p class="subtitle">Explora els edificis en 3D i planifica els teus horaris al mil·límetre sense col·lisions.</p>
-    </header>
+  <div class="scroll-wrapper">
+    
+    <section class="hero-section">
+      <header class="hero-header">
+        <h1 class="title">Campus Maker</h1>
+        <p class="subtitle">Gestió d'espais en 3D i planificació d'horaris basat en les dades de l'Escola d'Enginyeria.</p>
+      </header>
 
-    <nav class="bottom-nav">
-      <a href="/" class="nav-card">
-        <h2>🧊 Visor 3D</h2>
-        <p>Navega pels edificis, aules i laboratoris en temps real.</p>
-      </a>
-      <a href="/graella/graella.html" class="nav-card">
-        <h2>📅 Planificador</h2>
-        <p>Configura i revisa els teus horaris i detecta col·lisions.</p>
-      </a>
-    </nav>
+      <div class="bottom-panel">
+        <nav class="bottom-nav">
+          <a href="/" class="nav-card">
+            <h3>🧊 Visor 3D</h3>
+            <p>Navega pels edificis, aules i laboratoris en temps real.</p>
+          </a>
+          <a href="/graella/graella.html" class="nav-card">
+            <h3>📅 Planificador</h3>
+            <p>Configura i revisa els horaris i detecta col·lisions.</p>
+          </a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="doc-container">
+        
+        <h2>El Repte</h2>
+        <p>El repte és interpretar, gestionar i crear horaris i gestió d'espais a temps real, d'acord amb el document repte-escola-enunciat.pdf. La nostra proposta abasta des de l'anàlisi de dades fins a la creació d'un visualitzador 3D i un gestor d'horaris amb graella per a facilitar la gestió de la UAB.</p>
+        
+        <h3>Dades Originals i nivell 1</h3>
+        <p>La primera part del repte és l'anàlisi de les dades per entendre com s'usen avui els espais de l'Escola per a mes tard construir el nou model a sobte. El curs 2026-27 compta amb més de 17K de sessions, la tasca de filtrar les dades va ser utilitzant un <b>DuckDB</b>.</p>
+        <p>Un cop tenim un model de dades basat en una DB relacional, vam poder fer scripts per a navegar per les dades donades per a detecatr errors i incongreencies per a millorar el horari en el nostre model</p>
+        <h3>Les 5 troballes</h3>
+        <p>En analitzar el punt de partida, ens hem trobat amb el que hem anomanat les 5 grans Troballes, que son les </p>
+        <p>Per als calculs (si no se indica el contrari) s'ha fet servir scripts que navegen per les dades i consultes manualment a la DB per extreure conclusions</p>
+        <ul class="error-list">
+          <li>
+            <strong>1. Problemes amb 1r i 2n</strong>
+            Hi ha 3.246 sessions fora de torn, però 1.238 són fixades (GEI i GEET+GEST de 1r i 2n, i PLAB) i no es poden moure... De les 2.008 mobles, <b>1.774 (88 %) són de matí i haurien d'anar a la tarda</b> i només <b>234 són de tarda i haurien d'anar al matí</b>. 
+          </li>
+          <li>
+            <strong>2. Les aules no son un bottle Kneck!</strong>
+            La setmana més carregada, les classes de matí demanen 397 h-aula de les 570 disponibles, és a dir el 69,6 % (mediana 67,2 %). El pic és de <b>15 classes</b> alhora sobre <b>19 aules</b> (+2 resenrva).
+          </li>
+          <li>
+            <strong>3. Excés d'Aforament</strong>
+            Actualment, 101 sessions tenen més alumnes assignats que places físiques disponibles a l'aula on s'imparteixen.
+          </li>
+          <li>
+            <strong>4. El 74 % de les sessions no tenen aula, però només 4.541 són un problema real</strong>
+            5.722 de les 7.739 sessions (73,9 %) no tenen aula a les dades. D'aquestes, 919 són PLAB i 262 són dobles titulacions (no necessiten espai propi). Les <b>4.541</b> restants són les que cal assignar, i coincideixen amb el R5-SENSE-AULA del verificador. <b>Pels càlcul</b> son les sessions del 2n semestre amb `aula_partida` buida, separades per tipus == PLAB i sense_espai == 1.
+          </li>
+          <li>
+            <strong>5. Només veiem el 26% de l'ocupació real</strong>
+            En projectar l'horari actual en un mapa de calor setmanal, hi ha aules (com la Q1/1011 o Q4/0007) que consten sense cap sessió assignada. Això no vol dir que sobrin aules, sinó que l'elevat nombre de sessions "sense aula" emmascara l'ocupació real de l'Escola.
+          </li>
+        </ul>
+        <p>En aquest periode, tambe vam començar a treballar en el visualitzador 3D per a poder tenir les dades mes visuals, pero finalment va escalat fins a convertirse en una part central de la implementacio (del seguent punt)</p>
+      </div>
+    </section>
+    <section class="doc-section" style="padding-top: 20px;">
+      <div class="doc-container">
+        <h2>La Nostra Implementació (Nivells 2 i 3)</h2>
+        
+        <p>Un cop diagnosticat l'estat actual, vam passar a l'acció. Cal esmentar que, en un inici, com s'ha comentat, el <b>visualitzador 3D</b> era només una eina interna per poder entendre l'espai i navegar per la base de dades en temps real (al no ser estudiants de la UAB). No obstant això, el concepte va escalar ràpidament fins a convertir-se en un <b>entorn digital interactiu</b> de l'Escola d'Enginyeria a partir dels plànols oficials.</p>
+        <hr>
+        <h3>🧊 Visor 3D: L'Escola en Temps Real</h3>
+        <p>Hem construït un entorn tridimensional web on els gestors poden gestionar els espais de la facultat a vista d'agila. entrar a les aules i consultar l'ocupació o l'aforament amb un sol clic.</p>
+        
+        <h3>📅 Planificador Graella: Resolució de Col·lisions</h3>
+        <p>Per resoldre les sessions òrfenes i els problemes d'aforament, hem desenvolupat una graella interactiva. El planificador permet arrossegar i moures entre sessions, detectant a l'instant.</p>
+        
+        <hr>
+        <p>Evidenrment, ambdues implementacions son eines funamentals per a la gestio dels horaris de la universitari. </p >
+      </div>
+    </section>
   </div>
 
 </body>
