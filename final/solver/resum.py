@@ -266,7 +266,7 @@ nou, <b>{ref_ours}</b>. Hi cap, però just.</p>
 <p class="note">{falta} {e(marge)}</p>
 <h2>3. Sessions mogudes (dia o hora) per titulació i curs</h2>
 <p class="note" style="margin:0 0 1mm"><b>{moved}</b> sessions mogudes de {n_ses} ({100 * moved / n_ses:.0f} %);
-{o["canvis_aula"]} canvien d’aula; {o["hores_mortes_min"] // 60} h d’hores mortes al semestre.</p>
+{o["canvis_aula"]} canvien d’aula; {o["hores_mortes_min"] // 60} hores mortes al semestre.</p>
 <div class="cols">
 <table><tr><th>Titulació i curs</th><th>Sessions</th><th>Mogudes</th><th>%</th></tr>{coh(cohorts[:half])}</table>
 <table><tr><th>Titulació i curs</th><th>Sessions</th><th>Mogudes</th><th>%</th></tr>{coh(cohorts[half:])}</table>

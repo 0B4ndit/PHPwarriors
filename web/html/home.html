@@ -28,7 +28,7 @@
     <section class="hero-section">
       <header class="hero-header">
         <h1 class="title">Campus Maker</h1>
-        <p class="subtitle">Gestió d'espais en 3D i planificació d'horaris basat en les dades de l'Escola d'Enginyeria.</p>
+        <p class="subtitle">Gestió d'espais en 3D i planificació d'horaris basada en les dades de l'Escola d'Enginyeria.</p>
       </header>
 
       <div class="bottom-panel">
@@ -48,73 +48,73 @@
     <section class="doc-section">
       <div class="doc-container">
         
-        <h2>El Repte</h2>
-        <p>El repte és interpretar, gestionar i crear horaris mentres es te en compte la gestió d'espais a temps real. La nostra proposta abarca des de l'anàlisi de dades fins a la creació d'un visualitzador 3D, un gestor d'horaris amb graella i un chat bot per a facilitar la gestió a la UAB.</p>
+        <h2>El repte</h2>
+        <p>El repte és interpretar, gestionar i crear horaris mentre es té en compte la gestió d'espais en temps real. La nostra proposta abasta des de l'anàlisi de dades fins a la creació d'un visualitzador 3D, un gestor d'horaris amb graella i un xatbot per facilitar la gestió a la UAB.</p>
         
-        <h3>Dades Originals i nivell 1</h3>
-        <p>La primera part del repte és l'anàlisi de les dades per entendre com s'usen avui els espais de l'Escola per a mes tard construir el nou model a sobte. El curs 2026-27 compta amb més de 17K de sessions, la tasca de filtrar les dades era titanica, pero vam migrar els csv originals a la nostre <b>DuckDB</b>, que ens facilita i agilitza el acces a les dades per a extreure deduccions conclents a partir de les dades donades.</p>
-        <p>Un cop tenim un model de dades basat en una DB relacional, sens va facilitar l'us d'scripts per a navegar per les dades donades i aixi poder detecatr errors i incongreencies per a millorar el horari en el nostre model</p>
+        <h3>Dades originals i nivell 1</h3>
+        <p>La primera part del repte és l'anàlisi de les dades per entendre com s'usen avui els espais de l'Escola i, més tard, construir-hi a sobre el nou model. El curs 2026-27 compta amb més de 17.000 sessions i la tasca de filtrar les dades era titànica, però vam migrar els CSV originals a la nostra <b>DuckDB</b>, que ens facilita i agilitza l'accés a les dades per extreure'n deduccions concloents.</p>
+        <p>Un cop vam tenir un model de dades basat en una BD relacional, se'ns va facilitar l'ús d'scripts per navegar per les dades i, així, poder detectar errors i incongruències per millorar l'horari en el nostre model.</p>
         <h3>Les 5 troballes</h3>
-        <p>En analitzar del punt de partida, ens hem trobat amb el que hem anomanat les 5 grans Troballes.</p>
-        <p>Per als calculs (si no se indica el contrari) s'ha fet servir scripts que navegen per les dades i consultes manualment a la DB per extreure conclusions</p>
+        <p>En analitzar el punt de partida, ens hem trobat amb el que hem anomenat les 5 grans troballes.</p>
+        <p>Per als càlculs (si no s'indica el contrari) s'han fet servir scripts que naveguen per les dades i consultes manuals a la BD per extreure conclusions.</p>
         <ul class="error-list">
           <li>
             <strong>1. Problemes amb 1r i 2n</strong>
-            Hi ha 3.246 sessions fora de torn, però 1.238 són fixades (GEI i GEET+GEST de 1r i 2n, i PLAB) i no es poden moure... De les 2.008 mobles, <b>1.774 (88 %) són de matí i haurien d'anar a la tarda</b> i només <b>234 són de tarda i haurien d'anar al matí</b>. 
+            Hi ha 3.246 sessions fora de torn, però 1.238 són fixades (GEI i GEET+GEST de 1r i 2n, i PLAB) i no es poden moure. De les 2.008 que sí que es poden moure, <b>1.774 (88 %) són de matí i haurien d'anar a la tarda</b> i només <b>234 són de tarda i haurien d'anar al matí</b>. 
           </li>
           <li>
-            <strong>2. Les aules no son un bottle Kneck!</strong>
-            La setmana més carregada, les classes de matí demanen 397 h-aula de les 570 disponibles, és a dir el 69,6 % (mediana 67,2 %). El pic és de <b>15 classes</b> alhora sobre <b>19 aules</b> (+2 resenrva).
+            <strong>2. Les aules no són un coll d'ampolla!</strong>
+            La setmana més carregada, les classes de matí demanen 397 h-aula de les 570 disponibles, és a dir, el 69,6 % (mediana 67,2 %). El pic és de <b>15 classes</b> alhora sobre <b>19 aules</b> (+2 de reserva).
           </li>
           <li>
-            <strong>3. Excés d'Aforament</strong>
-            Actualment, 101 sessions tenen més alumnes assignats que places físiques disponibles a l'aula on s'imparteixen. Aquesta troballa per a la nostre posterior implementacio; Cal saber com gestionar aquests grups que tenen masses matriculats (no podem dividir un professor en 2 classes)
+            <strong>3. Excés d'aforament</strong>
+            Actualment, 101 sessions tenen més alumnes assignats que places físiques disponibles a l'aula on s'imparteixen. Aquesta troballa és clau per a la nostra implementació posterior: cal saber com gestionar els grups que tenen massa matriculats (no podem dividir un professor en dues classes).
           </li>
           <li>
             <strong>4. El 74 % de les sessions no tenen aula, però només 4.541 són un problema real</strong>
-            5.722 de les 7.739 sessions (73,9 %) no tenen aula a les dades. D'aquestes, 919 són PLAB i 262 són dobles titulacions (no necessiten espai propi). Les <b>4.541</b> restants són les que cal assignar, i coincideixen amb el R5-SENSE-AULA del verificador. <b>Pels càlcul</b> son les sessions del 2n semestre amb `aula_partida` buida, separades per tipus == PLAB i sense_espai == 1.
+            5.722 de les 7.739 sessions (73,9 %) no tenen aula a les dades. D'aquestes, 919 són PLAB i 262 són dobles titulacions (no necessiten espai propi). Les <b>4.541</b> restants són les que cal assignar, i coincideixen amb el R5-SENSE-AULA del verificador. <b>Per al càlcul</b>: són les sessions del 2n semestre amb <code>aula_partida</code> buida, separades per <code>tipus == PLAB</code> i <code>sense_espai == 1</code>.
           </li>
           <li>
-            <strong>5. Només veiem el 26% de l'ocupació real</strong>
+            <strong>5. Només veiem el 26 % de l'ocupació real</strong>
             En projectar l'horari actual en un mapa de calor setmanal, hi ha aules (com la Q1/1011 o Q4/0007) que consten sense cap sessió assignada. Això no vol dir que sobrin aules, sinó que l'elevat nombre de sessions "sense aula" emmascara l'ocupació real de l'Escola.
           </li>
         </ul>
-        <p>En aquest periode, tambe vam començar a treballar en el visualitzador 3D per a poder tenir les dades mes visuals. Amb aquest entorn 3D tenim l'objectiu de tenir el nostre Heat map interactiu, pero finalment va escalat fins a convertirse en un eix central del projecte (parlarem d'ell en el seguent punt)</p>
+        <p>En aquest període també vam començar a treballar en el visualitzador 3D per poder veure les dades d'una manera més visual. Amb aquest entorn 3D teníem l'objectiu de tenir el nostre mapa de calor interactiu, però finalment va créixer fins a convertir-se en un eix central del projecte (en parlarem en el punt següent).</p>
       </div>
     </section>
     <section class="doc-section" style="padding-top: 20px;">
       <div class="doc-container">
-        <h2>La Nostra Implementació (Nivells 2 i 3)</h2>
+        <h2>La nostra implementació (nivells 2 i 3)</h2>
         
         <p>Un cop diagnosticat l'estat actual, vam passar a l'acció.</p>
         <hr>
-        <h3>🧊 Visor 3D: L'Escola en Temps Real</h3>
-        <p><b>Eix de la gestio del espai.</b> Hem construït un entorn tridimensional web on els administradors poden gestionar els espais de la facultat a vista d'agila! Entrar a les aules i consultar l'ocupació o l'aforament amb un sol clic. Implementa funcionalitats de filtratge per hora, dia, setmana i semestra per a veure un Heat map. Tambe permet aplicar filtres per plantes i en fer clic a una aula, tenir mes dades de la classe seleccionada</p>
-        <p>Cal esmentar que, en un inici, com s'ha comentat, el <b>visualitzador 3D</b> era només una eina interna per poder entendre l'espai i navegar per la base de dades en temps real (al no ser estudiants de la UAB). No obstant això, el concepte va escalar ràpidament fins a convertir-se en un <b>entorn digital interactiu</b> de l'Escola d'Enginyeria a partir dels plànols oficials.</p>
+        <h3>Visor 3D: l'Escola en temps real</h3>
+        <p><b>Eix de la gestió de l'espai.</b> Hem construït un entorn web tridimensional on els administradors poden gestionar els espais de la facultat a vista d'ocell: entrar a les aules i consultar-ne l'ocupació o l'aforament amb un sol clic. Permet filtrar per hora, dia, setmana i semestre per veure un mapa de calor. També permet aplicar filtres per plantes i, en fer clic a una aula, veure més dades de la classe seleccionada.</p>
+        <p>Cal esmentar que, en un inici, com s'ha comentat, el <b>visualitzador 3D</b> era només una eina interna per poder entendre l'espai i navegar per la base de dades en temps real (ja que no som estudiants de la UAB). No obstant això, el concepte va créixer ràpidament fins a convertir-se en un <b>entorn digital interactiu</b> de l'Escola d'Enginyeria a partir dels plànols oficials.</p>
         
-        <h3>📅 Planificador Graella: Resolució de Col·lisions</h3>
-        <p><b>Eix de la gestio temporal.</b> Per resoldre les sessions òrfenes i els problemes de colisions temporals, hem desenvolupat una graella interactiva. El planificador permet navegar i moures entre sessions, detectant a l'instant colisions. Consta de 4 filtres:</p>
+        <h3>Planificador (graella): resolució de col·lisions</h3>
+        <p><b>Eix de la gestió temporal.</b> Per resoldre les sessions òrfenes i els problemes de col·lisions temporals, hem desenvolupat una graella interactiva. El planificador permet navegar i moure's entre sessions i detecta les col·lisions a l'instant. Consta de 4 filtres:</p>
         <ul style="list-style: none; margin: 15px 0 25px 0; padding: 0;">
           <li style="margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent);">
-            <strong>Assignatures:</strong> Permet cercar i aïllar sessions específiques d'una matèries per tenir constancia de l'horari de les seves classes per grups i tipus de sessio
+            <strong>Assignatures:</strong> Permet cercar i aïllar sessions específiques d'una matèria per tenir constància de l'horari de les seves classes per grup i tipus de sessió.
           </li>
           <li style="margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent);">
             <strong>Aules:</strong> Mostra l'ocupació d'un espai concret al llarg de la setmana per evitar solapaments físics.
           </li>
           <li style="margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent);">
-            <strong>Professors:</strong> Filtrar el profesorat per a detectar encavalcaments o dobles assignacions.
+            <strong>Professors:</strong> Filtra el professorat per detectar encavalcaments o dobles assignacions.
           </li>
           <li style="margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent);">
-            <strong>Aules lliures:</strong> Identifica ràpidament quins espais estan buits en una franja horària concreta, clau per reassignar les sessions òrfenes o incidencies.
+            <strong>Aules lliures:</strong> Identifica ràpidament quins espais estan buits en una franja horària concreta, clau per reassignar les sessions òrfenes o afectades per incidències.
           </li>
         </ul>
         
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
         
         <hr>
-        <p>Ambdues aplicacions son eines funamentals per a la gestio dels horaris de la universitari (en termes de gestio d'aules i temps). Treballen amb la DuckDB a partir dels csv originals i utilitzant "windows" per a poder visualitzar els canvis en el horari i gestio d'espais en funcio del nivell 2 del repte.</p >
-        <p>La part principal de la Implementació va consistir en la identificacio de les restriccions i regles logiques extres (que no formen part de les formulades en el pdf), per a la seva posterior adicico en els algorismes del projecte.</p>
-        <p>El nostre algorisme utilitza OR-Tools CP-SAT i consisteix en un conjunt de normes logiques per a obtenir els resultats buscats.</p>
+        <p>Ambdues aplicacions són eines fonamentals per a la gestió dels horaris de la universitat (en termes de gestió d'aules i de temps). Treballen amb la DuckDB a partir dels CSV originals i fan servir «windows» per poder visualitzar els canvis en l'horari i en la gestió d'espais en funció del nivell 2 del repte.</p>
+        <p>La part principal de la implementació va consistir en la identificació de les restriccions i regles lògiques addicionals (que no formen part de les formulades a l'enunciat) per afegir-les després als algorismes del projecte.</p>
+        <p>El nostre algorisme està escrit en <b>Prolog</b>: tradueix les dades i les regles a clàusules lògiques (un problema SAT) que resol el solver <b>kissat</b>, i després el verificador oficial comprova el resultat.</p>
       </div>
     </section>
   </div>
