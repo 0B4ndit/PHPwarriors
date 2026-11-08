@@ -119,25 +119,27 @@ function disposeGroup(g) {
 
 // ---------- colour ramp ----------
 // One colour of the palette (#palette in the HTML, remembered per browser; the first one, UAB green, by default).
-// It sets the hue of the rooms and the accent colour of the text (--cyan, --on).
+// It sets the hue of the rooms and the accent colour (--cyan), which js/accent.js applies on every page.
 // A room's value 0-100 drives the hue: 0 % = dim grey (still visible on the dark background),
 // 100 % = the hue at full saturation and brightness.
 const V0 = 0.32;
 const COLOR_KEY = 'hologram.color';
+const ACCENT_KEY = 'hologram.accent'; // read by js/accent.js on every page
 const swatches = () => [...document.querySelectorAll('#palette [data-color]')];
 let hue = 114, colorId = 'uab';
 function applyColor(b) {
   colorId = b.dataset.color;
   hue = Number(b.dataset.hue);
-  const root = document.documentElement.style;
-  root.setProperty('--cyan', b.dataset.accent);
-  root.setProperty('--on', `color-mix(in srgb, ${b.dataset.accent} 30%, var(--panel))`);
+  document.documentElement.style.setProperty('--cyan', b.dataset.accent); // --on follows it (css/comu.css)
 }
 {
   let saved = null;
   try { saved = localStorage.getItem(COLOR_KEY); } catch { /* storage unavailable */ }
   const b = swatches().find((s) => s.dataset.color === saved) || swatches()[0];
-  if (b) applyColor(b);
+  if (b) {
+    applyColor(b);
+    try { localStorage.setItem(ACCENT_KEY, b.dataset.accent); } catch { /* storage unavailable */ } // keep the other pages in sync
+  }
 }
 
 function rampColor(v) {
@@ -447,7 +449,7 @@ function makeBubble(lines) {
   const c = document.createElement('canvas');
   c.width = Math.ceil(w + pad * 2); c.height = lines.length * lh + pad;
   const g = c.getContext('2d');
-  g.fillStyle = 'rgba(6,24,34,0.94)'; g.strokeStyle = '#3a8fb0'; g.lineWidth = 3;
+  g.fillStyle = 'rgba(6,24,34,0.94)'; g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--cyan').trim() || '#40AE33'; g.lineWidth = 3;
   g.beginPath(); g.roundRect(2, 2, c.width - 4, c.height - 4, 14); g.fill(); g.stroke();
   g.textAlign = 'center'; g.textBaseline = 'middle';
   lines.forEach((l, i) => { g.font = f(l); g.fillStyle = l.color || '#cfeef5'; g.fillText(l.t, c.width / 2, pad / 2 + lh * (i + 0.5)); });
@@ -614,7 +616,10 @@ function buildPanel() {
     b.style.background = b.dataset.accent;
     b.addEventListener('click', () => {
       applyColor(b);
-      try { localStorage.setItem(COLOR_KEY, colorId); } catch { /* storage unavailable */ }
+      try {
+        localStorage.setItem(COLOR_KEY, colorId);
+        localStorage.setItem(ACCENT_KEY, b.dataset.accent);
+      } catch { /* storage unavailable */ }
       refreshLegend();
       recolorAll(true);
     });

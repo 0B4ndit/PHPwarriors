@@ -118,19 +118,9 @@ details.espina.off { opacity: .45; }
 #scene { flex: 1; min-width: 0; position: relative; }
 #scene canvas { display: block; width: 100%; height: 100%; }
 
-#topbar {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  max-width: calc(100% - 180px);   /* no trepitja el selector de plantes */
-}
-#topbar .toolbar { backdrop-filter: blur(4px); }
+/* el notch (css/notch.css) és al centre de la finestra; en amplades on tocaria la barra lateral (280px),
+   la capçalera de la barra baixa una mica perquè no quedi tapada */
+@media (min-width: 701px) and (max-width: 880px) { aside { padding-top: 70px; } }
 
 #floors {
   position: absolute;
@@ -149,10 +139,6 @@ details.espina.off { opacity: .45; }
 #floors span { margin-bottom: 2px; color: var(--dim); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; text-align: center; }
 #floors button { min-width: 56px; padding: 5px 8px; }
 #floors button:last-child { margin-top: 4px; }
-
-@media (max-width: 900px) {
-  #topbar { left: 12px; transform: none; justify-content: flex-start; max-width: calc(100% - 110px); }
-}
 
 @media (max-width: 700px) {
   #app { flex-direction: column; }

@@ -6,6 +6,14 @@
 <title>Campus 3D & Horaris</title>
 <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
 <link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="/css/notch.css">
+<script src="/js/accent.js"></script>
+<script type="module">
+  // notch flotant (pàgines + versió de les dades), el mateix a totes les pàgines
+  import { initViews, initVersions } from '/js/nav.js';
+  initViews('home');
+  initVersions(() => {});
+</script>
 </head>
 <body>
 

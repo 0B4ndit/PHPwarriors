@@ -5,7 +5,10 @@ import { VERSION_VISTA, initVersions, initViews } from '/js/nav.js';
 // ---------- constants ----------
 const API = '/api/graella';
 const DIES = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
-const START = 8 * 60, END = 21 * 60, SLOT = 30, SLOTS = (END - START) / SLOT;   // 08:00-21:00, 26 franges (com graella.css)
+const SLOT = 30;   // franges de 30 min
+// Franja horària visible: la mateixa finestra oberta que el mapa 3D per a la versió triada
+// (`finestra` de /api/graella/opcions = `window` de /api/sessions). Si no n'hi ha, 08:00-21:00.
+let START = 8 * 60, END = 21 * 60, SLOTS = (END - START) / SLOT;
 const TIPUS = { TE: 'Teoria', PLAB: 'Pràctiques de lab', PAUL: "Pràctiques d'aula", SEM: 'Seminari' };   // colors: .t-<tipus> a graella.css
 const LIMIT_LLISTA = 150;
 const ETIQUETA = { assignatura: 'ASSIGNATURA', aula: 'AULA', docent: 'PROFESSOR' };
@@ -23,6 +26,13 @@ const tipusNom = (t) => TIPUS[tipusBase(t)] || t;
 const tipusClass = (t) => (TIPUS[tipusBase(t)] ? `t-${tipusBase(t)}` : 't-other');
 const pct = (min) => ((Math.min(Math.max(min, START), END) - START) / (END - START)) * 100;
 const div = (cls, text) => { const d = document.createElement('div'); d.className = cls; if (text != null) d.textContent = text; return d; };
+function setFinestra(f) {
+  const ok = f && Number.isFinite(f.start) && Number.isFinite(f.end) && f.end > f.start;
+  START = ok ? f.start : 8 * 60;
+  END = ok ? f.end : 21 * 60;
+  SLOTS = Math.round((END - START) / SLOT);
+  $('horari').style.setProperty('--slots', SLOTS);   // files de la graella (graella.css)
+}
 function mondayOf(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
@@ -175,6 +185,7 @@ async function loadOpcions() {
   setStatus('warn', 'carregant…');
   try {
     st.opcions = await api('opcions');
+    setFinestra(st.opcions.finestra);
   } catch (e) {
     st.opcions = null;
     setStatus('bad', 'error', e.message);
@@ -253,7 +264,8 @@ function buildGrid(cal) {
   });
 
   for (let i = 0; i < SLOTS; i++) {
-    const label = div('hora-label', i % 2 === 0 ? hhmm(START + i * SLOT) : null);
+    const min = START + i * SLOT;
+    const label = div('hora-label', i === 0 || min % 60 === 0 ? hhmm(min) : null);   // la primera franja i les hores en punt
     label.style.gridRow = i + 2;
     grid.append(label);
   }

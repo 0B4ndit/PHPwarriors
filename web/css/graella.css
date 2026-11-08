@@ -112,8 +112,6 @@ main {
   border-bottom: 1px solid var(--line);
 }
 .grid-tools .tools { display: flex; gap: 6px; margin-left: auto; }
-.toolbar { padding: 3px; }
-.toolbar button, .toolbar a { padding: 3px 7px; }
 
 #grid-title {
   padding: 6px 12px;
@@ -154,7 +152,7 @@ main {
   flex: 1;
   display: grid;
   grid-template-columns: 55px repeat(5, minmax(0, 1fr));
-  grid-template-rows: 38px repeat(26, minmax(26px, 1fr));   /* capçalera + 26 franges de 30 min (08:00-21:00) */
+  grid-template-rows: 38px repeat(var(--slots, 26), minmax(26px, 1fr));   /* capçalera + franges de 30 min; --slots el posa graella.js (la finestra del mapa 3D) */
   overflow-y: auto;
 }
 
@@ -200,10 +198,10 @@ main {
 
 .day-col {
   position: relative;
-  grid-row: 2 / span 26;
+  grid-row: 2 / span var(--slots, 26);
   border-right: 1px solid var(--line);
   background-image: repeating-linear-gradient(to bottom,
-    transparent 0, transparent calc(100% / 26 - 1px), var(--rule) calc(100% / 26 - 1px), var(--rule) calc(100% / 26));
+    transparent 0, transparent calc(100% / var(--slots, 26) - 1px), var(--rule) calc(100% / var(--slots, 26) - 1px), var(--rule) calc(100% / var(--slots, 26)));
 }
 
 /* sessió (top / height / left / width els posa graella.js) */
@@ -224,7 +222,7 @@ main {
   cursor: pointer;
   transition: box-shadow .1s;
 }
-.classe-card:hover { z-index: 20; box-shadow: 0 0 10px rgba(58, 143, 176, .6); }
+.classe-card:hover { z-index: 20; box-shadow: 0 0 10px color-mix(in srgb, var(--cyan) 60%, transparent); }
 .classe-card.sel { z-index: 21; outline: 2px solid var(--hi); }
 .classe-card.over { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
 .classe-titol, .classe-info { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -256,7 +254,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100% / 26 - 2px);
+  height: calc(100% / var(--slots, 26) - 2px);
   border-radius: 2px;
   background: rgba(52, 201, 124, calc(.06 + .5 * var(--f, 0)));
   color: var(--hi);
@@ -289,3 +287,8 @@ main {
   aside { width: 100%; }
   main { height: 80vh; }
 }
+
+/* notch (css/notch.css): a dalt, al centre de la finestra, amb una franja lliure perquè no tapi res;
+   en mòbil va a baix i deixa espai al final de la pàgina */
+@media (min-width: 701px) { #app { padding-top: 76px; } }
+@media (max-width: 700px) { #app { padding-bottom: 96px; } }

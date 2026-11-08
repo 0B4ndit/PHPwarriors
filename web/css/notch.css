@@ -1,0 +1,179 @@
+/* Notch flotant de totes les pàgines (el crea js/nav.js): pestanyes de pàgina + versió de les dades.
+   Escriptori: càpsula fixa a dalt al centre exacte de la finestra, la mateixa posició a totes les pàgines.
+   Escriptori estret (701-1260px): només icones, perquè no tapi les barres laterals.
+   Mòbil (≤700px): barra fixa a baix, deixant lloc al botó del xat.
+   Els colors surten de comu.css (accent: --cyan); la portada no el carrega, per això cada var té el seu valor per defecte. */
+
+#notch {
+  --nt-panel: var(--panel, #07121a);
+  --nt-line: var(--line, #123846);
+  --nt-fg: var(--fg, #bfe3ec);
+  --nt-hi: var(--hi, #e6f7fb);
+  --nt-dim: var(--dim, #6a98a8);
+  --nt-accent: var(--cyan, #40AE33);
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;   /* per sota del botó del xat (1001) */
+  color: var(--nt-fg);
+  font: 12px/1.4 ui-monospace, 'SF Mono', Consolas, monospace;
+}
+#notch * { box-sizing: border-box; margin: 0; font-family: inherit; }
+#notch [hidden] { display: none !important; }
+#notch svg { flex: none; }
+
+/* ---------- barra ---------- */
+#notch .nt-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--nt-panel) 88%, transparent);
+  border: 1px solid var(--nt-line);
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+#notch .nt-tabs { display: contents; }
+#notch .nt-brand { display: flex; align-items: center; gap: 8px; padding: 0 10px 0 12px; color: var(--nt-hi); font-weight: 700; letter-spacing: .12em; white-space: nowrap; }
+#notch .nt-brand i { width: 8px; height: 8px; border-radius: 50%; background: var(--nt-accent); }
+#notch .nt-sep { width: 1px; height: 28px; margin: 0 6px; background: var(--nt-line); }
+#notch .nt-s { display: none; }
+
+/* pestanyes de pàgina */
+#notch .nt-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: #8fb3c0;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .15s, background-color .15s;
+}
+#notch .nt-tab:hover { color: var(--nt-hi); background: rgba(143, 195, 211, .08); }
+#notch .nt-tab[aria-current="page"] {
+  color: var(--nt-hi);
+  background: color-mix(in srgb, var(--nt-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nt-accent) 60%, transparent);
+}
+
+/* botó de la versió de les dades */
+#notch .nt-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px 0 14px;
+  background: transparent;
+  border: 1px solid var(--nt-line);
+  border-radius: 999px;
+  color: var(--nt-fg);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+#notch .nt-chip:hover, #notch .nt-chip[aria-expanded="true"] { border-color: color-mix(in srgb, var(--nt-accent) 70%, transparent); color: var(--nt-hi); }
+#notch .nt-chip-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+#notch .nt-chip-text small { font-size: 9px; letter-spacing: .14em; color: var(--nt-dim); }
+#notch .nt-chip-text b { font-size: 13px; font-weight: normal; color: var(--nt-hi); white-space: nowrap; }
+#notch .nt-chev { transition: transform .15s; }
+#notch .nt-chip[aria-expanded="true"] .nt-chev { transform: rotate(180deg); }
+
+/* insígnia amb el codi de la versió (BASE, 5.1...) */
+#notch .nt-code {
+  flex: none;
+  min-width: 40px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--nt-line);
+  border-radius: 6px;
+  color: var(--nt-fg);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+#notch .nt-chip .nt-code, #notch .nt-item[aria-checked="true"] .nt-code { background: var(--nt-accent); border-color: var(--nt-accent); color: #03070c; }
+
+#notch .nt-tab:focus-visible, #notch .nt-chip:focus-visible, #notch .nt-item:focus-visible { outline: 2px solid var(--nt-accent); outline-offset: 2px; }
+
+/* ---------- menú de versions ---------- */
+#notch .nt-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: color-mix(in srgb, var(--nt-panel) 97%, transparent);
+  border: 1px solid var(--nt-line);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+}
+#notch .nt-group { padding: 8px 10px 4px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--nt-dim); }
+#notch .nt-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+#notch .nt-item:hover { background: rgba(143, 195, 211, .08); }
+#notch .nt-item[aria-checked="true"] { background: color-mix(in srgb, var(--nt-accent) 14%, transparent); }
+#notch .nt-item-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+#notch .nt-item-text b { font-size: 13px; font-weight: normal; color: var(--nt-hi); }
+#notch .nt-item-text span { font-size: 11px; color: var(--nt-dim); }
+#notch .nt-check { display: flex; visibility: hidden; color: var(--nt-accent); }
+#notch .nt-item[aria-checked="true"] .nt-check { visibility: visible; }
+#notch .nt-foot { margin-top: 6px; padding: 10px 10px 4px; border-top: 1px solid var(--rule, #0c2230); font-size: 11px; color: var(--nt-dim); }
+
+/* ---------- escriptori estret: només icones ---------- */
+@media (max-width: 1260px) and (min-width: 701px) {
+  #notch .nt-brand, #notch .nt-l, #notch .nt-chip-text { display: none; }
+  #notch .nt-tab { padding: 0 13px; }
+}
+
+/* ---------- mòbil: barra a baix ---------- */
+@media (max-width: 700px) {
+  #notch { top: auto; bottom: 16px; left: 12px; right: 88px; transform: none; }   /* a la dreta, el botó del xat */
+  #notch .nt-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 64px; border-radius: 20px; }
+  #notch .nt-brand, #notch .nt-sep, #notch .nt-l, #notch .nt-chip-text, #notch .nt-chev, #notch .nt-chip > svg:first-child { display: none; }
+  #notch .nt-s { display: block; }
+  #notch .nt-tab, #notch .nt-chip {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: auto;
+    min-height: 50px;
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    font-size: 10px;
+    letter-spacing: .04em;
+  }
+  #notch .nt-tab svg { width: 20px; height: 20px; }
+  #notch .nt-chip[aria-expanded="true"] {
+    background: color-mix(in srgb, var(--nt-accent) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nt-accent) 60%, transparent);
+  }
+  #notch .nt-menu { top: auto; bottom: calc(100% + 10px); left: 0; right: -76px; width: auto; max-width: none; }
+}

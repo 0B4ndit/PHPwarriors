@@ -8,12 +8,12 @@
   --line: #123846;
   --rule: #0c2230;                 /* separadors de files */
   --field: #0a2230;                /* fons de botons i camps */
-  --on: #0f3a4e;                   /* botó actiu */
+  --on: color-mix(in srgb, var(--cyan) 30%, var(--panel));   /* botó actiu: l'accent enfosquit */
   --fg: #bfe3ec;
   --hi: #e6f7fb;                   /* text destacat */
   --dim: #6a98a8;
   --code: #8fc3d3;
-  --cyan: #3a8fb0;
+  --cyan: #40AE33;                 /* color d'accent: verd UAB (Pantone 361 C). js/accent.js hi posa el triat al mapa 3D */
   --green: #34c97c;
   --red: #d8364f;
   --amber: #e0b04a;

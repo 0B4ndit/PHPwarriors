@@ -1,8 +1,8 @@
 /* Portada (html/home.html). */
 
 :root {
-  --accent: #38bdf8;
-  --accent-glow: rgba(56, 189, 248, 0.4);
+  --accent: var(--cyan, #40AE33);  /* el mateix accent que les altres pàgines (js/accent.js); per defecte, verd UAB */
+  --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
   --bg-glass: rgba(15, 23, 42, 0.6);
   --text-muted: #94a3b8;
 }
@@ -96,7 +96,12 @@ body {
   text-align: center;
   pointer-events: auto;
   margin-top: 6vh;
-  padding: 0 20px;
+  padding: 72px 20px 0;   /* lloc per al notch flotant de dalt (css/notch.css) */
+}
+/* en mòbil el notch va a baix: no cal el marge de dalt, però sí lloc al final de la pàgina */
+@media (max-width: 700px) {
+  .hero-header { padding-top: 0; }
+  .scroll-wrapper { padding-bottom: 96px; }
 }
 
 .title {

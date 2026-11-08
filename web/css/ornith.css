@@ -20,7 +20,7 @@ border: 1px solid var(--cyan);
 background: #071b27;
 font-size: 25px;
 
-box-shadow: 0 0 18px rgba(58, 143, 176, .25);
+box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 25%, transparent);
 
 transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
 }
@@ -29,7 +29,7 @@ transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
 transform: scale(1.1);
 background: #103447;
 border-color: var(--hi);
-box-shadow: 0 0 18px rgba(58, 143, 176, .7);
+box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 70%, transparent);
 }
 
 /* Finestra del xat */

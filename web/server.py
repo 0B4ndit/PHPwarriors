@@ -288,6 +288,9 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             with consultes.obrir_db(DB_PATH) as (con, _):
                 out = run(qs, vista, con)
+            if consulta == "opcions":
+                # la franja horària de la graella és la mateixa finestra oberta que fa servir el mapa 3D
+                out = {**out, "finestra": (dataset_for(vista) or {}).get("window")}
         except Exception as e:   # vista que no és a la BD, fitxer bloquejat...
             return self.fail(str(e), 503)
         return self.send_json({"ok": True, "vista": vista, **out})
