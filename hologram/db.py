@@ -12,7 +12,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))   # per trobar database/
 from database.consultes import (obrir_db, consultar_totes_les_aules, consultar_sessions_holograma,  # noqa: E402
-                                consultar_semestres, consultar_calendari, VISTES, VISTA_PER_DEFECTE)
+                                consultar_semestres, consultar_calendari,
+                                VISTES, VISTA_PER_DEFECTE)  # noqa: F401  (VISTES: server.py la llegeix d'aquí)
 
 # aules.tipus -> the short name shown on the room labels
 SHORT_TIPUS = {"Aules docents": "Aula docent", "Aules informàtiques": "Informàtica",

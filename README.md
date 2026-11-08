@@ -83,7 +83,17 @@ Derived columns, following the challenge rules (statement, section 8.3), on `ses
 - `sem`: 1 or 2 by date (1st semester = September to January). Use it instead of `semestre`, which is wrong for 54 sessions.
 - `torn_actual`: `mati` if the session starts before 14:30, otherwise `tarda`. Compare it with `torn_requerit` for R1.
 
-Views `sessions51` to `sessions54` (planned, not created yet) have the same columns as `sessions`; the functions in `database/consultes.py` pick one with their `vista` parameter.
+Views `sessions51` to `sessions54`: the sessions as the solver's proposal for questions 5.1-5.4 leaves them
+(`solver/out/<q>/proposta.csv`, columns `id_sessio,dia,h_ini,aula`). Same columns as `sessions`, with `dia`, `h_ini`,
+`aula_partida` from the proposal and `data`, `h_fi`, `sem`, `torn_actual` recomputed; 5.3 and 5.4 also apply their
+scenario (new student counts, the new degree's sessions). Refresh them after every solver run:
+
+```bash
+python crea_vistes.py            # all questions with a proposal; or e.g. python crea_vistes.py 5.2
+```
+
+`migra_duckdb.py` calls it too, so rebuilding the database keeps them. The functions in `database/consultes.py` pick a
+view with their `vista` parameter.
 
 Querying from Python:
 
@@ -99,3 +109,13 @@ con.execute("""
 ```
 
 Note: DuckDB 2.0 removed `fetchone()` / `fetchall()` on `con.sql(...)` relations. Use `con.execute(...).fetchone()` or `.df()` instead.
+
+## Level 3 (AI): Ornith
+
+The assistant for Gestió Acadèmica lives in `ornith/` and is documented in [NIVELL3.md](NIVELL3.md): tools, the
+post-check that rejects answers citing rooms or sessions no tool returned, contingencies with notices, and tests.
+
+```bash
+python -m ornith "On té classe el grup 81 dimarts?"   # needs UTH_KEY in .env (see .env.example)
+python -m ornith.proves                              # tests against pandas on the CSVs (--llm: also asks the LLM)
+```

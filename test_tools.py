@@ -2,9 +2,15 @@ import os
 import json
 import urllib.request
 
+from pathlib import Path
+from dotenv import load_dotenv
+
 from agent_tools import consultar_sessio, buscar_aules
 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
+TIMEOUT = 90       # segons d'espera per resposta del model
+MAX_PASSOS = 8     # rondes d'eines com a màxim per pregunta
 
 
 # ============================================================
@@ -71,6 +77,17 @@ def executar_eina(nom, arguments):
 # CRIDA A ORNITH
 # ============================================================
 
+def clau_api():
+    """La clau UTH_KEY, de l'entorn o del .env de l'arrel (es torna a llegir a cada crida: no cal reiniciar)."""
+    load_dotenv(ENV_PATH)
+    clau = os.environ.get("UTH_KEY", "").strip()
+    if not clau:
+        raise RuntimeError(
+            f"Falta la clau UTH_KEY. Crea {ENV_PATH} (copia .env.example) amb la línia UTH_KEY=la_teva_clau."
+        )
+    return clau
+
+
 def cridar_ornith(messages):
 
     payload = {
@@ -90,18 +107,18 @@ def cridar_ornith(messages):
         URL,
         data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": f"Bearer {os.environ['UTH_KEY']}",
+            "Authorization": f"Bearer {clau_api()}",
             "Content-Type": "application/json"
         },
         method="POST"
     )
 
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
 # ============================================================
-# BUCLE DE L'EAGENT
+# BUCLE DE L'AGENT
 # ============================================================
 
 def parlar(pregunta):
@@ -124,7 +141,7 @@ def parlar(pregunta):
         }
     ]
 
-    while True:
+    for _ in range(MAX_PASSOS):
 
         resultat = cridar_ornith(messages)
         message = resultat["choices"][0]["message"]
@@ -159,9 +176,12 @@ def parlar(pregunta):
                 "tool_call_id": call["id"],
                 "content": json.dumps(
                     resposta_eina,
-                    ensure_ascii=False
+                    ensure_ascii=False,
+                    default=str
                 )
             })
+
+    return "No he pogut acabar la consulta: massa passos amb les eines."
 
 
 # ============================================================
