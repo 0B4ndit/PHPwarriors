@@ -108,6 +108,8 @@
 .ornith-segell { display: inline-block; margin-bottom: 4px; padding: 1px 7px; border-radius: 10px; font-size: 10px; }
 .ornith-segell.ok { color: var(--green); border: 1px solid rgba(52, 201, 124, .5); }
 .ornith-segell.ko { color: #ff9aa8; border: 1px solid var(--red); }
+.ornith-segell.buit { color: var(--dim); border: 1px dashed var(--dim); }
+.ornith-avis.xifres { border-color: var(--amber); color: var(--amber); background: rgba(224, 176, 74, .1); }
 .ornith-peu details { margin-top: 3px; }
 .ornith-peu summary { cursor: pointer; }
 .ornith-peu summary:hover { color: var(--fg); }
