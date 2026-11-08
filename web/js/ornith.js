@@ -11,7 +11,7 @@ const send = $('ornith-send');
 const messages = $('ornith-messages');
 
 const MAX_FONTS = 60;
-const AVATAR_ORNITH = '/chiikawa.png';
+const AVATAR_ORNITH = '/img/chiikawa.png';
 
 // ----------------------------------------------------------------
 // Markdown -> HTML segur

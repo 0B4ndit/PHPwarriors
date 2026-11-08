@@ -1,16 +1,18 @@
-# UAB hologram
+# web/ · Holograma 3D, Home i Graella
 
-3D visualizer of every room of the Escola d'Enginyeria (Edifici Q) inventory (56 rooms: aules docents, aules d'informàtica, laboratoris and seminaris), traced from plans 2600002-2600005 (planta baixa to tercera). It shows the rooms over time (semester / week / day / hour). All the data comes from the project's DuckDB database, `dades/paquet.duckdb` (built by `migra_duckdb.py`): rooms from `aules`, classes from `sessions`, holidays and stoppages from `calendari`.
+3D visualizer of every room of the Escola d'Enginyeria (Edifici Q) inventory (56 rooms: aules docents, aules d'informàtica, laboratoris and seminaris), traced from plans 2600002-2600005 (planta baixa to tercera). It shows the rooms over time (semester / week / day / hour). All the data comes from the project's DuckDB database, `dades/paquet.duckdb` (built by `database/migra_duckdb.py`): rooms from `aules`, classes from `sessions`, holidays and stoppages from `calendari`.
 
 ## Run
 
+From the project root, with the venv active and `dades/paquet.duckdb` built (`python database/migra_duckdb.py`):
+
 ```
-cd hologram
-../.venv/bin/python server.py 8000          # needs duckdb (requirements.txt)
-#   --db PATH            another DuckDB file (default ../dades/paquet.duckdb)
+python web/server.py 8000            # needs duckdb (requirements.txt)
+#   --db PATH            another DuckDB file (default dades/paquet.duckdb)
 #   --criteri-informe    drop PLAB and double-degree sessions, as the report does
+#   --vista sessions52   default sessions view of the API (sessions, sessions51..sessions54)
 ```
-Open http://localhost:8000. Three.js loads from a CDN.
+Open http://localhost:8000 (3D), http://localhost:8000/home.html (home) or http://localhost:8000/graella.html (timetable grid). Three.js loads from a CDN.
 
 The server opens the database read-only for a moment on every load, and watches the file (and its `.wal`): when it changes the data is reloaded and open pages refresh by themselves (the whole page when a room's capacity or type changed). If another process holds the file (e.g. the `duckdb` CLI), DuckDB refuses even a read-only open: the server then reads a temporary copy, and the status pill says *snapshot, file locked*. If the database cannot be read at all, the page keeps the last good data and shows the error.
 
@@ -29,18 +31,32 @@ Weekends, holidays, non-teaching days and the assessment weeks are excluded from
 
 Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The floating **Planta** buttons over the scene (P3-P0 / Totes) keep one floor bright and fade the rooms, labels and corridors of the others (the room list fades them too). Selecting a room focuses its floor; while a floor is focused, a click in 3D prefers its rooms over faded ones in front.
 
-Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters come from `sessions.sem` (computed by `migra_duckdb.py`: September-January = 1). `db.py` builds the dataset from the queries in `database/consultes.py`; `schedule.js` holds the time logic and has no browser dependencies.
+Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters come from `sessions.sem` (computed by `database/migra_duckdb.py`: September-January = 1). `db.py` builds the dataset from the queries in `database/consultes.py`; `schedule.js` holds the time logic and has no browser dependencies.
 
 ## Files
 
-The server also serves the other pages of the project, all with the same API:
+Every page, stylesheet and script of the web lives here, grouped by kind. All pages use the same API.
 
-| Path | Folder | Files |
-|---|---|---|
-| `/` | `hologram/` | `index.html` (markup only), `hologram.css`, `app.js` (scene + panel), `schedule.js`, `hologram-material.js`, `ornith.css` / `ornith.js` (chatbot) |
-| `/home/home.html` | `home/` | `home.html`, `home.css` |
-| `/graella/graella.html` | `graella/` | `graella.html` (markup only), `graella.css`, `graella.js` |
-| `/comu/` | `comu/` | `comu.css` (colours, buttons, pills, toolbars shared by the hologram and the graella), `nav.js` (database-version and page bars; the version picked is shared by every page) |
+```
+web/
+├── server.py, db.py      HTTP server + API (reads dades/paquet.duckdb through database/consultes.py)
+├── layout.json           room geometry of the 3D scene
+├── html/                 hologram.html (/ and /hologram.html) · home.html (/home.html) · graella.html (/graella.html)
+├── css/                  comu.css (shared colours, buttons, pills, toolbars) · hologram.css · graella.css · home.css · ornith.css (chat)
+├── js/                   hologram.js (3D scene + panel) · schedule.js (time logic) · hologram-material.js
+│                         graella.js · ornith.js (chat, on hologram and graella) · nav.js (version and page bars)
+└── img/                  favicon.svg (tab icon of every page, also served as /favicon.ico)
+                          chiikawa.png (chat avatar) · ImatgeFondo.jpg (home background)
+```
+
+| URL | Page | CSS | JS |
+|---|---|---|---|
+| `/` = `/hologram.html` | `html/hologram.html` (markup only) | `comu.css`, `hologram.css`, `ornith.css` | `hologram.js` → `schedule.js`, `hologram-material.js`, `nav.js`; `ornith.js` |
+| `/home.html` | `html/home.html` | `home.css` | — |
+| `/graella.html` | `html/graella.html` (markup only) | `comu.css`, `graella.css`, `ornith.css` | `graella.js` → `nav.js`; `ornith.js` |
+
+Only `html/`, `css/`, `js/` and `img/` are served (`server.py` itself is not). The old addresses `/home/home.html` and
+`/graella/graella.html` still work. `nav.js` keeps the database version picked in the browser, shared by every page.
 
 ## API
 
@@ -55,7 +71,7 @@ Read-only; everything comes from the database.
 | `/api/status` | `{version, count, snapshot, error, db}` |
 | `/api/events` | Server-Sent Events: `status` on connect and on every reload |
 | `/api/graella/<consulta>` | weekly timetables for the graella: `opcions`, `assignatura?setmana=&codi=[&grup=]`, `aula?setmana=&aula=`, `docent?setmana=&docent=`, `lliures?setmana=` (`setmana` = Monday, `AAAA-MM-DD`; all take `vista=`) |
-| `POST /api/ornith` | `{"question": "..."}` → `{"ok": true, "answer": "..."}`: the Ornith chatbot (`test_tools.py`, needs `UTH_KEY` in `.env`) |
+| `POST /api/ornith` | `{"question": "..."}` → `{"ok": true, "answer": "..."}`: the Ornith chatbot (`ornith.agent`, needs `UTH_KEY` in `.env`) |
 
 Errors are `{"ok": false, "errors": ["..."]}` with a 4xx / 5xx status.
 

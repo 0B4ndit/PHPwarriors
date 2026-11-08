@@ -8,8 +8,8 @@ const VERSION_KEY = 'hologram.version';
 
 const PAGES = {
   hologram: ['3D', '/'],
-  home: ['Home', '/home/home.html'],
-  graella: ['Graella', '/graella/graella.html'],
+  home: ['Home', '/home.html'],
+  graella: ['Graella', '/graella.html'],
 };
 
 function savedVersion() {

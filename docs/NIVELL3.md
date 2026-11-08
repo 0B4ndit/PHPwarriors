@@ -17,7 +17,7 @@ python -m ornith imprevist-cancellacio S11527 2027-03-19 --motiu "Sessió cancel
 python -m ornith.proves                                      # proves (afegeix --llm per preguntar al LLM)
 ```
 
-També funciona des del xat del holograma (`hologram/server.py`, botó 💬). El servidor crida `ornith.agent` per `POST /api/ornith`.
+També funciona des del xat del holograma (`web/server.py`, botó 💬). El servidor crida `ornith.agent` per `POST /api/ornith`.
 
 ## Arquitectura
 

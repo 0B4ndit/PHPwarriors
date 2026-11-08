@@ -1,9 +1,9 @@
 """Crea (o actualitza) les vistes sessions51..sessions54 a partir de les propostes del solver.
 
-    python crea_vistes.py                       # totes les preguntes que tinguin proposta
-    python crea_vistes.py 5.2 5.4               # només aquestes
-    python crea_vistes.py --proposta 5.2=altra/proposta.csv   # una proposta d'un altre lloc
-    python crea_vistes.py [--dir solver/out] [--db dades/paquet.duckdb]
+    python database/crea_vistes.py              # totes les preguntes que tinguin proposta
+    python database/crea_vistes.py 5.2 5.4      # només aquestes
+    python database/crea_vistes.py --proposta 5.2=altra/proposta.csv   # una proposta d'un altre lloc
+    python database/crea_vistes.py [--dir solver/out] [--db dades/paquet.duckdb]
 
 Cada proposta és un CSV `id_sessio,dia,h_ini,aula` (+ `data` a la 5.3, la data de la sessió recuperada), el que
 escriu el solver a solver/out/<pregunta>/proposta.csv. Per a cada pregunta:
@@ -28,11 +28,14 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import sys
 from pathlib import Path
 
 import duckdb
 
-ARREL = Path(__file__).resolve().parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # crea_vistes <-> migra_duckdb
+
+ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte (aquest fitxer és a database/)
 
 # pregunta -> (vista, escenari que s'hi aplica)
 PREGUNTES = {
@@ -135,7 +138,7 @@ def main() -> None:
     preguntes = a.preguntes or (list(propostes) if propostes else None)
 
     if not a.db.exists():
-        raise SystemExit(f"no es troba {a.db}: executeu abans python migra_duckdb.py")
+        raise SystemExit(f"no es troba {a.db}: executeu abans python database/migra_duckdb.py")
     tmp = a.db.with_name(a.db.name + ".tmp")
     shutil.copy2(a.db, tmp)
     if a.db.with_name(a.db.name + ".wal").exists():

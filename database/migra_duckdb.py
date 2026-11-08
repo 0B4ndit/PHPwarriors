@@ -1,6 +1,6 @@
 """Bolca el paquet de dades (paquet/) a una base de dades DuckDB.
 
-    python migra_duckdb.py [--paquet paquet] [--db dades/paquet.duckdb]
+    python database/migra_duckdb.py [--paquet paquet] [--db dades/paquet.duckdb]   (des de l'arrel del projecte)
 
 La base es reconstrueix de zero cada vegada a partir dels CSV i JSON del paquet, que continuen sent la
 font original (el verificador `python -m horaris` els llegeix directament).
@@ -21,11 +21,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 import duckdb
 
-ARREL = Path(__file__).resolve().parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # crea_vistes <-> migra_duckdb
+
+ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte (aquest fitxer és a database/)
 
 # Columnes de cada taula i com es converteixen del text del CSV.
 # str: text tal qual | int | bool: 0/1 | date: AAAA-MM-DD | date_dmy: DD/MM/AAAA | time: HH:MM | list: a|b|c
@@ -161,7 +164,7 @@ def migra(paquet: Path, db: Path) -> None:
         carrega_escenaris(con, paquet / "escenaris")
         afegeix_derivades(con)
 
-        from crea_vistes import crea_vistes   # vistes sessions51..54 de les propostes del solver, si n'hi ha
+        from crea_vistes import crea_vistes   # (és a la mateixa carpeta, database/) vistes sessions51..54 de les propostes del solver, si n'hi ha
         vistes = crea_vistes(con, ARREL / "solver" / "out")
 
         for taula, clau in CLAUS.items():

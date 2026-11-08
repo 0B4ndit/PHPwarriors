@@ -6,7 +6,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent / ".env")   # UTH_KEY
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")   # UTH_KEY
 
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
 
@@ -41,7 +41,7 @@ def ask_ornith(messages):
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
-        print("Uso: python test_ornith.py 'Tu pregunta aquí'")
+        print("Uso: python prototips/test_ornith.py 'Tu pregunta aquí'")
         sys.exit(1)
 
     st = sys.argv[1]

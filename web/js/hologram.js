@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { NEUTRAL, createHologramMaterial } from './hologram-material.js';
 import { Schedule, step, semOf, addWeekdays, isWeekend, hhmm, toMin, isoWeek } from './schedule.js';
-import { VERSION_VISTA, initVersions, initViews } from '/comu/nav.js';
+import { VERSION_VISTA, initVersions, initViews } from '/js/nav.js';
 
 const COLOR_LERP_SECONDS = 0.35;
 const GHOST_LINE = 0x2c6478;
@@ -118,11 +118,27 @@ function disposeGroup(g) {
 }
 
 // ---------- colour ramp ----------
-// One hue (picked in the UI, remembered per browser); a room's value 0-100 drives it:
-// 0 % = dim grey (still visible on the dark background), 100 % = the hue at full saturation and brightness.
+// One colour of the palette (#palette in the HTML, remembered per browser; the first one, UAB green, by default).
+// It sets the hue of the rooms and the accent colour of the text (--cyan, --on).
+// A room's value 0-100 drives the hue: 0 % = dim grey (still visible on the dark background),
+// 100 % = the hue at full saturation and brightness.
 const V0 = 0.32;
-let hue = 200;
-try { hue = Number(localStorage.getItem('hologram.hue')) || 200; } catch { /* storage unavailable */ }
+const COLOR_KEY = 'hologram.color';
+const swatches = () => [...document.querySelectorAll('#palette [data-color]')];
+let hue = 114, colorId = 'uab';
+function applyColor(b) {
+  colorId = b.dataset.color;
+  hue = Number(b.dataset.hue);
+  const root = document.documentElement.style;
+  root.setProperty('--cyan', b.dataset.accent);
+  root.setProperty('--on', `color-mix(in srgb, ${b.dataset.accent} 30%, var(--panel))`);
+}
+{
+  let saved = null;
+  try { saved = localStorage.getItem(COLOR_KEY); } catch { /* storage unavailable */ }
+  const b = swatches().find((s) => s.dataset.color === saved) || swatches()[0];
+  if (b) applyColor(b);
+}
 
 function rampColor(v) {
   const t = Math.min(1, Math.max(0, v / 100));
@@ -139,7 +155,7 @@ scene.add(world);
 const labelGroup = new THREE.Group();
 world.add(labelGroup);
 const ESPINA_ORDER = ['Q4', 'Q3', 'Q2', 'Q1']; // north -> south, as in the plans
-const PANEL_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'QC']; // room list groups
+const PANEL_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'QC']; // order of the espina dropdowns of the room list
 const PLANTES = ['baixa', 'primera', 'segona', 'tercera'];
 
 // ---------- floor filter: the selected planta stays bright, the others fade ----------
@@ -152,8 +168,13 @@ function setFloor(f) {
   floorSel = f;
   floorDim.forEach((d, i) => { d.target = f === null || f === i ? 1 : DIM_OTHER_FLOORS; });
   document.querySelectorAll('[data-floor]').forEach((b) => b.classList.toggle('on', b.dataset.floor === (f === null ? '' : String(f))));
-  for (const r of rooms.values()) document.querySelector(`[data-row="${r.id}"]`)?.classList.toggle('off', f !== null && r.floor !== f);
-  document.querySelectorAll('#room-list h3').forEach((h) => h.classList.toggle('off', f !== null && Number(h.dataset.floor) !== f));
+  // room list: rows and floor headings of the other plantes fade, and so do the espines with no room on it
+  const off = (floor) => f !== null && floor !== f;
+  for (const r of rooms.values()) document.querySelector(`[data-row="${r.id}"]`)?.classList.toggle('off', off(r.floor));
+  document.querySelectorAll('#room-list h3[data-planta]').forEach((h) => h.classList.toggle('off', off(Number(h.dataset.planta))));
+  document.querySelectorAll('#room-list details.espina').forEach((d) => {
+    d.classList.toggle('off', f !== null && !d.querySelector(`h3[data-planta="${f}"]`));
+  });
 }
 
 function build(layout) {
@@ -344,7 +365,7 @@ function syncTimeControls() {
     hour: '← → ±30 min · ↑ ↓ ±1 day', day: '← → ±1 day · ↑ ↓ ±1 week',
     week: '← → ±1 week', semester: '← → switch semester',
   }[view.scope];
-  $('legend-hi').textContent = view.scope === 'hour' ? '100% = at capacity' : '100%';
+  $('legend-bar').title = view.scope === 'hour' ? '0% → 100% = at capacity' : '0% → 100% of the open time with a class';
 }
 
 function applyView() {
@@ -550,36 +571,53 @@ function updateRow(room) {
 function refreshLegend() {
   const stops = [0, 25, 50, 75, 100].map((p) => `#${rampColor(p).getHexString(THREE.SRGBColorSpace)} ${p}%`).join(', ');
   $('legend-bar').style.background = `linear-gradient(90deg, ${stops})`;
-  $('hue').value = hue;
-  $('hue-n').textContent = `${Math.round(hue)}°`;
+  swatches().forEach((b) => {
+    const on = b.dataset.color === colorId;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
 }
 
 function buildPanel() {
+  // one dropdown per espina (Q1, Q2...), closed by default; inside, the rooms grouped by planta
   const list = $('room-list');
-  for (const e of PANEL_ORDER) {
-    for (const p of PLANTES) {
-      const group = [...rooms.values()].filter((r) => r.data.espina === e && r.data.planta === p);
-      if (!group.length) continue;
-      const h = el('h3', null, `${e} · planta ${p}`);
-      h.dataset.floor = String(PLANTES.indexOf(p));
-      list.append(h);
-      for (const r of group) {
+  const espines = [...new Set([...rooms.values()].map((r) => r.data.espina))]
+    .sort((a, b) => (PANEL_ORDER.indexOf(a) + 1 || 99) - (PANEL_ORDER.indexOf(b) + 1 || 99) || a.localeCompare(b));
+  for (const e of espines) {
+    const group = [...rooms.values()].filter((r) => r.data.espina === e);
+    const d = el('details', 'espina');
+    d.dataset.espina = e;
+    const sum = el('summary');
+    const name = el('span', 'p-name', 'Espina ');
+    name.append(el('span', 'p-code', e));
+    sum.append(name, el('span', 'p-count', `${group.length} aules`));
+    d.append(sum);
+    PLANTES.forEach((p, f) => {
+      const onFloor = group.filter((r) => r.floor === f).sort((a, b) => a.id.localeCompare(b.id));
+      if (!onFloor.length) return;
+      const h = el('h3', null, `P${f} · planta ${p}`);
+      h.dataset.planta = String(f);
+      d.append(h);
+      for (const r of onFloor) {
         const row = el('div', 'row');
         row.dataset.row = r.id;
         row.append(el('span', 'dot'), el('span', 'code', r.id), el('span', 'tag', r.data.tipus), el('span', 'val'), el('span', 'cap', String(r.data.capacity)));
         row.addEventListener('click', () => focusRoom(r.id));
-        list.append(row);
+        d.append(row);
       }
-    }
+    });
+    list.append(d);
   }
 
-  const rainbow = Array.from({ length: 13 }, (_, i) => `hsl(${i * 30} 100% 50%)`).join(', ');
-  $('hue').style.background = `linear-gradient(90deg, ${rainbow})`;
-  $('hue').addEventListener('input', (ev) => {
-    hue = Number(ev.target.value);
-    try { localStorage.setItem('hologram.hue', String(hue)); } catch { /* storage unavailable */ }
-    refreshLegend();
-    recolorAll(true);
+  // colour palette: each swatch shows its accent colour; picking one recolours the rooms and the text accents
+  swatches().forEach((b) => {
+    b.style.background = b.dataset.accent;
+    b.addEventListener('click', () => {
+      applyColor(b);
+      try { localStorage.setItem(COLOR_KEY, colorId); } catch { /* storage unavailable */ }
+      refreshLegend();
+      recolorAll(true);
+    });
   });
   $('btn-labels').addEventListener('click', () => { labelGroup.visible = !labelGroup.visible; });
   document.querySelectorAll('[data-floor]').forEach((b) => b.addEventListener('click', () => {
@@ -612,7 +650,12 @@ function focusRoom(id) {
   setFloor(room.floor); // focus the room's planta (the others fade)
   focusTarget = room.mesh.position.clone();
   const row = document.querySelector(`[data-row="${id}"]`);
-  if (row) { row.classList.add('sel'); row.scrollIntoView({ block: 'nearest' }); }
+  if (row) {
+    const d = row.closest('details');
+    if (d) d.open = true; // open the room's espina dropdown so the row can be seen
+    row.classList.add('sel');
+    row.scrollIntoView({ block: 'nearest' });
+  }
   updateBubble();
   refreshDetail();
 }

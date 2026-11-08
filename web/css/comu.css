@@ -49,12 +49,15 @@ button.on, .toolbar a.on { background: var(--on); border-color: var(--cyan); col
 
 /* grup de botons enganxats (Semester | Week | Day | Hour...) */
 .seg { display: flex; margin-top: 10px; }
-.seg button { flex: 1; border-radius: 0; }
+.seg button { flex: 1; border-radius: 0; position: relative; }
 .seg button:first-child { border-radius: 4px 0 0 4px; }
 .seg button:last-child { border-radius: 0 4px 4px 0; }
-.seg button + button { border-left: 0; }
+/* les vores es solapen 1px (en comptes de treure'n l'esquerra) perquè el botó actiu o en hover mostri la vora sencera */
+.seg button + button { margin-left: -1px; }
+.seg button:hover { z-index: 1; }
+.seg button.on { z-index: 2; }
 
-/* barres de versió de la BD i de pàgina (les omple comu/nav.js) */
+/* barres de versió de la BD i de pàgina (les omple js/nav.js) */
 .toolbar {
   display: flex;
   gap: 3px;

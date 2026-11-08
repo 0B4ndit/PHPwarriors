@@ -1,4 +1,4 @@
-/* Holograma 3D (index.html). Colors i botons: /comu/comu.css. */
+/* Holograma 3D (html/hologram.html). Colors i botons: comu.css. */
 
 #app { display: flex; height: 100%; position: relative; }
 
@@ -14,9 +14,33 @@ aside {
 }
 
 header { padding: 12px; border-bottom: 1px solid var(--line); }
-header h1 { margin: 0 0 8px; font-size: 13px; letter-spacing: .12em; color: var(--cyan); }
-#counts { display: block; margin: 4px 0 8px; font-size: 11px; font-weight: normal; letter-spacing: 0; color: var(--dim); }
+.h-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--cyan); }
+.h-top .pill { font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#counts { display: block; margin: 4px 0 0; font-size: 11px; color: var(--dim); }
+#counts:empty { display: none; }
 .btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+/* seccions plegables de la capçalera (controls secundaris) */
+details.sec { margin-top: 10px; padding: 0; border: 1px solid var(--line); border-radius: 4px; }
+details.sec > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  user-select: none;
+}
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::before { content: '▸'; transition: transform .15s; }
+details.sec[open] > summary::before { transform: rotate(90deg); }
+details.sec > summary:hover { color: var(--hi); }
+details.sec[open] > summary { border-bottom: 1px solid var(--line); }
+details.sec > :not(summary) { margin-left: 8px; margin-right: 8px; }
+details.sec > :last-child { margin-bottom: 8px; }
 
 /* controls de temps */
 .trow { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
@@ -33,47 +57,45 @@ header h1 { margin: 0 0 8px; font-size: 13px; letter-spacing: .12em; color: var(
   color-scheme: dark;
 }
 #t-info { margin-top: 8px; font-size: 11px; }
-#t-hint { margin-top: 4px; font-size: 10px; color: var(--dim); }
+#t-hint { margin-top: 8px; font-size: 10px; color: var(--dim); }
+#t-hint:not(:empty)::before { content: 'keys · '; }
 
-/* llegenda i selector de to */
+/* llegenda i paleta de color */
 #legend { margin-top: 10px; }
 #legend-bar { height: 10px; border-radius: 3px; }
-.legend-ends { display: flex; justify-content: space-between; color: var(--dim); font-size: 10px; margin: 2px 0 8px; }
-#legend label { display: block; color: var(--dim); margin-bottom: 6px; }
-#legend label b { float: right; color: var(--fg); font-weight: normal; }
-input[type=range].hue {
-  display: block;
-  width: 100%;
-  height: 8px;
-  margin: 6px 0 0;
-  border-radius: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  outline: none;
-}
-input[type=range].hue::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px; height: 16px;
-  border-radius: 3px;
-  background: var(--hi);
-  border: 1px solid var(--bg);
-  cursor: pointer;
-}
-input[type=range].hue::-moz-range-thumb {
-  width: 12px; height: 16px;
-  border-radius: 3px;
-  background: var(--hi);
-  border: 1px solid var(--bg);
-  cursor: pointer;
-}
+.palette { display: flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--dim); }
+.palette span { margin-right: auto; }
+.palette button { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid var(--panel); outline: 1px solid var(--line); }
+.palette button:hover { outline-color: var(--hi); }
+.palette button.on { outline: 2px solid var(--hi); }
 
 /* llista d'aules */
 #room-list { flex: 1; overflow-y: auto; padding: 0 12px 8px; }
-h3 { margin: 12px 0 3px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+/* un desplegable per espina, Q1, Q2... (els omple buildPanel a js/hologram.js); a dins, les aules per planta */
+details.espina { margin-top: 8px; padding: 0; border: 1px solid var(--line); border-radius: 4px; }
+details.espina > summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  list-style: none;
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim);
+}
+details.espina > summary::-webkit-details-marker { display: none; }
+details.espina > summary::before { content: '▸'; transition: transform .15s; }
+details.espina[open] > summary::before { transform: rotate(90deg); }
+details.espina > summary:hover, details.espina[open] > summary { color: var(--hi); }
+details.espina[open] > summary { border-bottom: 1px solid var(--line); background: var(--field); }
+details.espina .p-code { color: var(--cyan); }
+details.espina .p-name { flex: 1; }
+details.espina .p-count { text-transform: none; letter-spacing: 0; }
+details.espina[open] { padding-bottom: 4px; }
+details.espina > .row { margin: 0 4px; }
+details.espina > h3 { margin: 8px 8px 2px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
 .row { display: flex; align-items: center; gap: 8px; padding: 2px 4px; border-radius: 4px; cursor: pointer; }
 .row:hover { background: var(--field); }
-.row.sel { background: #0d3345; outline: 1px solid var(--cyan); }
-.row.off, h3.off { opacity: .35; }   /* aules d'altres plantes quan n'hi ha una d'enfocada */
+.row.sel { background: var(--on); outline: 1px solid var(--cyan); }
+/* amb una planta enfocada: s'apaguen les aules de les altres plantes i les espines que no hi tenen aules */
+.row.off, details.espina > h3.off { opacity: .35; }
+details.espina.off { opacity: .45; }
 .code { flex: 1; }
 .cap, .tag { color: var(--dim); }
 .tag { font-size: 10px; }
@@ -134,5 +156,9 @@ h3 { margin: 12px 0 3px; font-size: 10px; letter-spacing: .1em; text-transform: 
 
 @media (max-width: 700px) {
   #app { flex-direction: column; }
-  aside { width: 100%; height: 42%; border-right: 0; border-bottom: 1px solid var(--line); }
+  aside { width: 100%; height: 42%; border-right: 0; border-bottom: 1px solid var(--line); overflow-y: auto; }
+  /* en mòbil la barra fa scroll sencera: la capçalera (amb seccions obertes) no tapa la llista d'aules */
+  aside > * { flex-shrink: 0; }
+  #room-list { flex: none; overflow: visible; }
+  #detail { position: sticky; bottom: 0; z-index: 1; background: var(--panel); }
 }

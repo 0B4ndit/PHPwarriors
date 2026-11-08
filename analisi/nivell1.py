@@ -1,6 +1,12 @@
+"""Nivell 1: les 5 troballes sobre l'ús dels espais (docs/NIVELL1.md). python analisi/nivell1.py"""
+from pathlib import Path
+
 import pandas as pd
 
-s = pd.read_csv("paquet/sessions.csv", parse_dates=["data"])
+ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte: funciona des de qualsevol carpeta
+PAQUET = ARREL / "paquet"
+
+s = pd.read_csv(PAQUET / "sessions.csv", parse_dates=["data"])
 
 # Semestre segons la data: 1r = setembre a gener, 2n = la resta
 s["sem"] = s["data"].dt.month.isin([9, 10, 11, 12, 1]).map({True: 1, False: 2})
@@ -76,7 +82,7 @@ print(mobles[mobles["fora_torn"]]
       .groupby(["torn_real", "torn_requerit"]).size().to_string())
 
 # ---------- Troballa 4: grups que no hi caben ----------
-a = pd.read_csv("paquet/aules.csv")
+a = pd.read_csv(PAQUET / "aules.csv")
 cap = a.set_index("aula")["capacitat"]
 
 g = s2[s2["aula_partida"].notna() & (s2["sense_espai"] != 1)].copy()
@@ -132,7 +138,7 @@ ax.set_yticks(range(len(taula))); ax.set_yticklabels(taula.index, fontsize=6)
 fig.colorbar(im, label="hores de classe per setmana (mitjana)")
 ax.set_title("Ocupació per aula i dia, 2n semestre (aulari, sense PLAB)")
 plt.tight_layout()
-plt.savefig("ocupacio.png", dpi=130)
+plt.savefig(ARREL / "docs" / "ocupacio.png", dpi=130)
 
 tot = taula.sum(axis=1).drop("(sense aula)", errors="ignore")
 aul = tot[tot.index.isin(a[a["ordinaria"] == 1]["aula"])]

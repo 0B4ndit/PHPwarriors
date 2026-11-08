@@ -5,10 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>UAB Hologram</title>
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
 
-  <link rel="stylesheet" href="/comu/comu.css">
-  <link rel="stylesheet" href="hologram.css">
-  <link rel="stylesheet" href="ornith.css">
+  <link rel="stylesheet" href="/css/comu.css">
+  <link rel="stylesheet" href="/css/hologram.css">
+  <link rel="stylesheet" href="/css/ornith.css">
 
   <script type="importmap">
     {
@@ -19,8 +20,8 @@
     }
   </script>
 
-  <script type="module" src="app.js"></script>
-  <script type="module" src="ornith.js"></script>
+  <script type="module" src="/js/hologram.js"></script>
+  <script type="module" src="/js/ornith.js"></script>
 </head>
 
 <body>
@@ -29,9 +30,13 @@
   <!-- Barra lateral -->
   <aside>
     <header>
-      <h1>UAB · AULES EDIFICI Q <span id="counts"></span></h1>
-      <span id="status" class="pill warn">connecting…</span>
+      <div class="h-top">
+        <h1>UAB · AULES EDIFICI Q</h1>
+        <span id="status" class="pill warn">connecting…</span>
+      </div>
+      <span id="counts"></span>
 
+      <!-- Controls principals: sempre visibles -->
       <div id="time-controls">
         <div class="seg">
           <button data-scope="semester">Semester</button>
@@ -62,25 +67,29 @@
         </div>
 
         <div id="t-info"></div>
-        <div id="t-hint"></div>
       </div>
 
       <div id="legend">
         <div id="legend-bar"></div>
-        <div class="legend-ends">
-          <span>0%</span>
-          <span id="legend-hi">100%</span>
+      </div>
+
+      <!-- Controls secundaris: plegats per defecte -->
+      <details class="sec" id="sec-display">
+        <summary>Display</summary>
+        <div id="palette" class="palette" role="group" aria-label="Color de les aules">
+          <span>color</span>
+          <!-- data-hue: to de les aules · data-accent: color del text destacat. El primer és el de per defecte. -->
+          <button data-color="uab" data-hue="114" data-accent="#40AE33" title="verd UAB (Pantone 361 C)"></button>
+          <button data-color="cian" data-hue="200" data-accent="#3a8fb0" title="cian"></button>
+          <button data-color="blau" data-hue="225" data-accent="#5b7fe0" title="blau"></button>
+          <button data-color="ambre" data-hue="45" data-accent="#e0b04a" title="ambre"></button>
+          <button data-color="lila" data-hue="270" data-accent="#9b6fe0" title="lila"></button>
         </div>
-
-        <label>
-          hue <b id="hue-n"></b>
-          <input id="hue" class="hue" type="range" min="0" max="360">
-        </label>
-      </div>
-
-      <div class="btns">
-        <button id="btn-labels">Toggle labels</button>
-      </div>
+        <div class="btns">
+          <button id="btn-labels">Toggle labels</button>
+        </div>
+        <div id="t-hint"></div>
+      </details>
     </header>
 
     <div id="room-list"></div>
@@ -144,7 +153,7 @@
       <!-- Salutació inicial amb avatar -->
       <div class="ornith-fila-bot">
         <img
-          src="/chiikawa.png"
+          src="/img/chiikawa.png"
           alt="Chiikawa"
           class="ornith-avatar"
         >

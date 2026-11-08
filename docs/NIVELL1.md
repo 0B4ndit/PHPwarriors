@@ -1,6 +1,6 @@
 # Nivell 1 · Anàlisi de dades: com s'usen avui els espais i hi cap el model nou?
 
-Totes les xifres són del **2n semestre** del curs 2026-27 (7.739 sessions). El semestre es dedueix de la **data** (setembre-gener = 1r), no del camp T/V de Sigma, que no és fiable. El codi és a `nivell1.py` i es pot tornar a executar amb `python3 nivell1.py`.
+Totes les xifres són del **2n semestre** del curs 2026-27 (7.739 sessions). El semestre es dedueix de la **data** (setembre-gener = 1r), no del camp T/V de Sigma, que no és fiable. El codi és a `analisi/nivell1.py` i es pot tornar a executar amb `python analisi/nivell1.py`.
 
 **Criteris comuns.** Les PLAB i els grups de doble titulació (`sense_espai = 1`) no ocupen aulari i s'exclouen dels càlculs d'espai. Una classe compartida entre titulacions (`id_compartida`) compta una sola vegada. Les xifres s'han contrastat amb el verificador de l'organització.
 
@@ -39,7 +39,7 @@ Totes les xifres són del **2n semestre** del curs 2026-27 (7.739 sessions). El 
 
 - **Conclusió.** De les aules docents, la més plena és Q3/0013 (13,8 h de classe per setmana), seguida de Q4/0011 (10,4), Q4/1003 i Q1/1003 (9,6) i Q1/1007 (8,8). Q1/1011, Q3/1011, Q4/0007, Q4/0003 i Q3/1007 no tenen cap sessió assignada. Hi ha 379,7 h setmanals de classe sense aula.
 - **Límit important.** Una aula pot funcionar unes 65 h a la setmana. Com que el 74 % de les sessions no té aula a les dades, les aules «buides» poden estar en ús avui sense que el pla ho reculli. Aquesta xifra descriu la qualitat de les dades, no que sobrin aules.
-- **Càlcul.** Hores de classe per aula i dia dividides per 17 setmanes (algunes són gairebé buides pels festius, així que les xifres són una mica baixes). El mapa de calor és a `ocupacio.png`.
+- **Càlcul.** Hores de classe per aula i dia dividides per 17 setmanes (algunes són gairebé buides pels festius, així que les xifres són una mica baixes). El mapa de calor és a [`ocupacio.png`](ocupacio.png).
 
 ## Pendent
 

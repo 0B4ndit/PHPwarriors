@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Servidor del holograma, la Home i la Graella. Totes les dades surten de la BD DuckDB (dades/paquet.duckdb).
 
-    ../.venv/bin/python server.py [PORT] [--db PATH] [--criteri-informe] [--vista sessions51]
+    python web/server.py [PORT] [--db PATH] [--criteri-informe] [--vista sessions51]   (des de l'arrel del projecte)
 
-Pàgines:   /                     holograma (hologram/)
-           /home/home.html       portada (home/)
-           /graella/graella.html graella d'horaris (graella/)
-           /comu/...             CSS i JS compartits (comu/)
-API:       vegeu README.md (GET /api/layout, sessions, status, events, graella/<consulta>; POST /api/ornith)
+Pàgines:   /  (= /hologram.html)  holograma 3D      web/html/hologram.html
+           /home.html             portada           web/html/home.html
+           /graella.html          graella d'horaris web/html/graella.html
+Estàtics:  /css/..., /js/..., /img/...              web/css, web/js, web/img
+API:       vegeu web/README.md (GET /api/layout, sessions, status, events, graella/<consulta>; POST /api/ornith)
 """
 
 import argparse
@@ -32,7 +32,13 @@ from database import consultes  # noqa: E402  (després de la línia de sys.path
 
 DEFAULT_DB = os.path.join(PROJECT_ROOT, "dades", "paquet.duckdb")
 WATCH_SECONDS = 2
-STATIC_DIRS = ("home", "graella", "comu")   # carpetes del projecte servides a /<carpeta>/
+STATIC_DIRS = ("css", "js", "img")          # carpetes de web/ servides tal qual a /<carpeta>/...
+PAGES = {                                   # adreça -> fitxer de web/html/
+    "": "hologram.html", "index.html": "hologram.html", "hologram.html": "hologram.html",
+    "home.html": "home.html", "graella.html": "graella.html",
+    "home/home.html": "home.html", "graella/graella.html": "graella.html",   # adreces antigues
+}
+ICONA = os.path.join(ROOT, "img", "favicon.svg")   # /favicon.ico, que els navegadors demanen sols
 MAX_BODY = 100_000                          # bytes d'una pregunta a Ornith
 
 ap = argparse.ArgumentParser(description="Hologram server (data from DuckDB).")
@@ -186,14 +192,19 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=ROOT, **kw)
 
     def translate_path(self, path):
-        # /home/..., /graella/... i /comu/... surten de les carpetes del projecte; la resta, de hologram/
-        first, _, rest = unquote(urlparse(path).path).lstrip("/").partition("/")
+        # les pàgines surten de web/html/, i /css, /js, /img de les seves carpetes; la resta (server.py...) no se serveix
+        rel = unquote(urlparse(path).path).lstrip("/")
+        if rel in PAGES:
+            return os.path.join(ROOT, "html", PAGES[rel])
+        if rel == "favicon.ico":
+            return ICONA
+        first = rel.partition("/")[0]
         if first in STATIC_DIRS:
-            base = os.path.join(PROJECT_ROOT, first)
-            target = os.path.realpath(os.path.join(base, rest))
+            base = os.path.join(ROOT, first)
+            target = os.path.realpath(os.path.join(ROOT, rel))
             if os.path.commonpath([base, target]) == base:   # no surt de la carpeta (../)
                 return target
-        return super().translate_path(path)
+        return os.path.join(ROOT, "html", "no-existeix")     # -> 404
 
     def log_message(self, fmt, *a):
         if "/api/events" not in str(a[0] if a else ""):

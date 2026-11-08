@@ -64,17 +64,13 @@ htmlcov/
 
 # --- macOS ---
 .DS_Store
-# hologram: generated state (written by server.py / nivell1.py)
-hologram/rooms.json
-hologram/colormap.json
-hologram/sessions-data.json
-hologram/*.tmp
 
 
 
 # solver (generated: facts, solutions, proposta, verifier report)
 
-planols/*
+# plànols oficials en PDF (només en local)
+docs/planols/
 
 # ornith: registre de canvis dels imprevistos (python -m ornith ... --desa)
 dades/registre_canvis.csv

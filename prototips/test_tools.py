@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from agent_tools import consultar_sessio, buscar_aules
 
-ENV_PATH = Path(__file__).resolve().parent / ".env"
+ENV_PATH = Path(__file__).resolve().parents[1] / ".env"   # .env de l'arrel
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
 TIMEOUT = 90       # segons d'espera per resposta del model
 MAX_PASSOS = 8     # rondes d'eines com a màxim per pregunta

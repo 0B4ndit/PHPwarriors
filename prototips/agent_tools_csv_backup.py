@@ -1,7 +1,11 @@
+import sys
 from pathlib import Path
+
+ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte (aquest fitxer és a prototips/)
+sys.path.insert(0, str(ARREL))               # per trobar database/ i horaris/
+
 from datetime import timedelta
 import json
-import sys
 
 from horaris.model import carrega_base, llegeix_proposta, DIES
 from horaris.check import _espai_ok
@@ -11,9 +15,9 @@ from horaris.check import _espai_ok
 # CONFIGURACIÓ I CÀRREGA DE DADES
 # ============================================================
 
-BASE = carrega_base(Path("paquet"))
+BASE = carrega_base(ARREL / "paquet")
 
-FITXER_PROPOSTA = Path("paquet/proposta_partida.csv")
+FITXER_PROPOSTA = ARREL / "paquet" / "proposta_partida.csv"
 
 FILES = llegeix_proposta(FITXER_PROPOSTA)
 
@@ -260,8 +264,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(
             "Ús:\n"
-            "  python agent_tools.py sessio ID_SESSIO\n"
-            "  python agent_tools.py aules ID_SESSIO"
+            "  python prototips/agent_tools_csv_backup.py sessio ID_SESSIO\n"
+            "  python prototips/agent_tools_csv_backup.py aules ID_SESSIO"
         )
         sys.exit(1)
 

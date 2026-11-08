@@ -1,6 +1,6 @@
 // Graella setmanal d'horaris: per assignatura, aula, docent, o aules lliures de cada franja.
-// Dades: GET /api/graella/<consulta> (hologram/server.py -> database/consultes.py).
-import { VERSION_VISTA, initVersions, initViews } from '/comu/nav.js';
+// Dades: GET /api/graella/<consulta> (web/server.py -> database/consultes.py).
+import { VERSION_VISTA, initVersions, initViews } from '/js/nav.js';
 
 // ---------- constants ----------
 const API = '/api/graella';

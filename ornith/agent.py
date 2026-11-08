@@ -309,5 +309,5 @@ def format_text(r: dict) -> str:
 
 
 def parlar(pregunta: str) -> str:
-    """Compatible amb POST /api/ornith de hologram/server.py (retorna text)."""
+    """Compatible amb POST /api/ornith de web/server.py (retorna text)."""
     return format_text(respon(pregunta))

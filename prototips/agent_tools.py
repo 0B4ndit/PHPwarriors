@@ -1,6 +1,11 @@
+import sys
+from pathlib import Path
+
+ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte (aquest fitxer és a prototips/)
+sys.path.insert(0, str(ARREL))               # per trobar database/ i horaris/
+
 from datetime import date, timedelta
 import json
-import sys
 
 from database.consultes import (obrir_db, consultar_totes_les_aules, consultar_sessions,
                                 consultar_calendari, consultar_proposta, VISTA_PER_DEFECTE)
@@ -312,8 +317,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(
             "Ús:\n"
-            "  python agent_tools.py sessio ID_SESSIO\n"
-            "  python agent_tools.py aules ID_SESSIO"
+            "  python prototips/agent_tools.py sessio ID_SESSIO\n"
+            "  python prototips/agent_tools.py aules ID_SESSIO"
         )
         sys.exit(1)
 

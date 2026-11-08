@@ -1,4 +1,4 @@
-"""Reads the hologram data from the project's DuckDB database (dades/paquet.duckdb, built by migra_duckdb.py).
+"""Reads the hologram data from the project's DuckDB database (dades/paquet.duckdb, built by database/migra_duckdb.py).
 
     load(db, room_ids) -> {"rooms":    {"Q3-1007": {"capacity": 130, "tipus": "Aula docent", "descripcio": ...}, ...},
                            "dataset":  session dataset of the time views (shape documented in schedule.js) or None,
