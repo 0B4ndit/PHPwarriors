@@ -2,6 +2,11 @@ import os
 import json
 import urllib.request
 import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / ".env")   # UTH_KEY
 
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
 

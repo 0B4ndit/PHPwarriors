@@ -1,173 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ca">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Campus 3D & Horaris</title>
-<style>
-  :root {
-    --accent: #38bdf8;
-    --accent-glow: rgba(56, 189, 248, 0.4);
-    --bg-glass: rgba(15, 23, 42, 0.6);
-  }
-
-  * { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; }
-  
-  body {
-    background-color: #05080f; /* Fons fosc per si el 3D triga a carregar */
-    color: white;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* --- FONS 3D / VÍDEO --- */
-  .hero-background {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 0;
-    /* Si opteu per vídeo, poseu-lo aquí dins. De moment, un gradient per simular ambient */
-    background: radial-gradient(circle at 50% 50%, #1e293b 0%, #05080f 70%);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-  }
-
-  /* Placeholder pel model (perquè vegis on va) */
-  .placeholder-3d {
-    width: 60vh; height: 60vh;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, transparent, var(--accent), transparent);
-    animation: spin 10s linear infinite;
-    opacity: 0.3;
-    filter: blur(40px);
-  }
-
-  @keyframes spin { 100% { transform: rotate(360deg); } }
-
-  /* --- CONTINGUT SUPERPOSAT --- */
-  .content-layer {
-    position: relative;
-    z-index: 10;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Títol a dalt, Graella a baix */
-    padding: 40px;
-    pointer-events: none; /* Deixa que el clic passi cap al fons 3D */
-  }
-
-  .hero-header {
-    text-align: center;
-    pointer-events: auto;
-    margin-top: 4vh;
-  }
-
-  .title {
-    font-size: 4rem;
-    font-weight: 800;
-    letter-spacing: -2px;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-    color: #94a3b8;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-
-  /* --- ZONA INFERIOR (ACCESSOS) --- */
-  .bottom-nav {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    pointer-events: auto; /* Tornem a activar els clics per als botons */
-    margin-bottom: 20px;
-  }
-
-  .nav-card {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 24px 32px;
-    border-radius: 16px;
-    text-decoration: none;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s ease;
-    width: 280px;
-  }
-
-  .nav-card:hover {
-    transform: translateY(-5px);
-    background: rgba(30, 41, 59, 0.8);
-    border-color: var(--accent);
-    box-shadow: 0 10px 30px var(--accent-glow);
-  }
-
-  .nav-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
-  .nav-card p { font-size: 0.85rem; color: #94a3b8; text-align: center; }
-
-  /* Indicador de "Clica al fons" */
-  .click-indicator {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.9rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
-  }
-
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus 3D & Horaris</title>
+  <link rel="stylesheet" href="home.css">
 </head>
 <body>
 
-  <!-- FONS: Aquí és on carregareu el model 3D o el vídeo.
-       El onClick simula l'entrada a la vista 3D completa -->
-  <div class="hero-background" onclick="window.location.href='mapa3d.html'">
+  <!-- Fons: clicar-lo obre el visor 3D. Aquí hi pot anar un model 3D o un vídeo. -->
+  <a class="hero-background" href="/" aria-label="Entra al visor 3D">
     <div class="placeholder-3d"></div>
-    <div class="click-indicator">Clica per entrar al 3D</div>
-  </div>
+    <span class="click-indicator">Clica per entrar al 3D</span>
+  </a>
 
-  <!-- CAPA DE CONTINGUT FRONT-END -->
   <div class="content-layer">
-    
     <header class="hero-header">
       <h1 class="title">Campus Explorer</h1>
       <p class="subtitle">Explora els edificis en 3D i planifica els teus horaris al mil·límetre sense col·lisions.</p>
     </header>
 
     <nav class="bottom-nav">
-      <!-- Targeta per anar al visor 3D (per si no volen clicar al fons) -->
-      <a href="mapa3d.html" class="nav-card">
-        <h3>🧊 Visor 3D</h3>
+      <a href="/" class="nav-card">
+        <h2>🧊 Visor 3D</h2>
         <p>Navega pels edificis, aules i laboratoris en temps real.</p>
       </a>
-
-      <!-- Targeta per anar a la teva graella -->
-      <a href="horaris.html" class="nav-card">
-        <h3>📅 Planificador</h3>
+      <a href="/graella/graella.html" class="nav-card">
+        <h2>📅 Planificador</h2>
         <p>Configura i revisa els teus horaris i detecta col·lisions.</p>
       </a>
     </nav>
-
   </div>
 
 </body>

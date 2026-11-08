@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
-"""Serves the hologram with its data read from the project's DuckDB database.
+"""Servidor del holograma, la Home i la Graella. Totes les dades surten de la BD DuckDB (dades/paquet.duckdb).
 
-    python server.py [port] [--db PATH] [--criteri-informe] [--vista sessions|sessions51..54]    (default 8000, ../dades/paquet.duckdb)
+    ../.venv/bin/python server.py [PORT] [--db PATH] [--criteri-informe] [--vista sessions51]
 
-  GET /api/layout     layout.json (geometry) with each room's capacity, tipus and descripcio from the 'aules' table
-  GET /api/sessions   dataset for the time views, built from the 'sessions' and 'calendari' tables (see schedule.js):
-                      {window, semesters, calendar, sessions:[[date,startMin,durMin,roomId,students,labelIdx]],
-                       labels:[[className,group,teachers]]}
-  GET /api/status     {version, count, snapshot, error, db}
-  GET /api/events     Server-Sent Events: "status" (as /api/status) on connect and whenever the data is reloaded
-
-The database file (and its .wal) is watched: when it changes the data is reloaded and pages refresh.
---criteri-informe drops PLAB and double-degree (sense_espai) sessions, as the report does.
-Needs the duckdb package (requirements.txt); run it with the project's virtualenv.
+Pàgines:   /                     holograma (hologram/)
+           /home/home.html       portada (home/)
+           /graella/graella.html graella d'horaris (graella/)
+           /comu/...             CSS i JS compartits (comu/)
+API:       vegeu README.md (GET /api/layout, sessions, status, events, graella/<consulta>; POST /api/ornith)
 """
+
 import argparse
 import json
 import os
@@ -21,37 +17,64 @@ import queue
 import sys
 import threading
 import time
+from datetime import date
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 import db
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_DB = os.path.join(ROOT, "..", "dades", "paquet.duckdb")
+ROOT = os.path.dirname(os.path.realpath(__file__))
+PROJECT_ROOT = os.path.dirname(ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from database import consultes  # noqa: E402  (després de la línia de sys.path)
+
+DEFAULT_DB = os.path.join(PROJECT_ROOT, "dades", "paquet.duckdb")
 WATCH_SECONDS = 2
+STATIC_DIRS = ("home", "graella", "comu")   # carpetes del projecte servides a /<carpeta>/
+MAX_BODY = 100_000                          # bytes d'una pregunta a Ornith
 
 ap = argparse.ArgumentParser(description="Hologram server (data from DuckDB).")
 ap.add_argument("port", nargs="?", type=int, default=8000)
-ap.add_argument("--db", default=DEFAULT_DB, help="DuckDB file (default: ../dades/paquet.duckdb)")
-ap.add_argument("--criteri-informe", action="store_true", help="drop PLAB and double-degree sessions, as the report does")
-ap.add_argument("--vista", default=db.VISTA_PER_DEFECTE, choices=db.VISTES,
-                help="sessions view to read (default: sessions, the whole table)")
+ap.add_argument("--db", default=DEFAULT_DB)
+ap.add_argument("--criteri-informe", action="store_true")
+ap.add_argument("--vista", default=db.VISTA_PER_DEFECTE, choices=db.VISTES, help="sessions view to read")
 args = ap.parse_args()
 DB_PATH = os.path.abspath(args.db)
 
 with open(os.path.join(ROOT, "layout.json"), encoding="utf-8") as f:
     GEOMETRY = json.load(f)
+
 ROOM_IDS = {f"{s['espina']}-{r['code']}" for s in GEOMETRY["slabs"] for r in s["rooms"] if not r.get("ghost")}
 
 lock = threading.RLock()
-clients = []  # one queue per SSE connection
-state = {"layout": None, "dataset": None, "version": 0, "snapshot": False, "error": None}
+load_lock = threading.Lock()   # una càrrega sota demanda alhora
+clients = []                   # cues dels clients SSE connectats
+state = {
+    "layout": None,
+    "dataset": None,
+    "version": 0,
+    "snapshot": False,
+    "error": None,
+    "others": {},   # vista -> (version, dataset) de les vistes que no són --vista, carregades sota demanda
+}
 
+
+# ============================================================
+# DADES
+# ============================================================
 
 def status():
     d = state["dataset"]
-    return {"version": state["version"], "count": len(d["sessions"]) if d else 0, "snapshot": state["snapshot"],
-            "error": state["error"], "db": os.path.relpath(DB_PATH, os.path.join(ROOT, ".."))}
+    return {
+        "version": state["version"],
+        "count": len(d["sessions"]) if d else 0,
+        "snapshot": state["snapshot"],
+        "error": state["error"],
+        "db": os.path.relpath(DB_PATH, PROJECT_ROOT),
+        "vista": args.vista,
+    }
 
 
 def emit(event, payload):
@@ -61,8 +84,8 @@ def emit(event, payload):
 
 
 def layout_with(rooms):
-    """layout.json plus capacity / tipus / descripcio of every room from the database."""
-    out = json.loads(json.dumps(GEOMETRY))
+    """layout.json amb capacity / tipus / descripcio de cada aula; retorna (layout, aules que falten a 'aules')."""
+    out = json.loads(json.dumps(GEOMETRY))   # còpia profunda
     missing = []
     for slab in out["slabs"]:
         for r in slab["rooms"]:
@@ -80,7 +103,7 @@ def layout_with(rooms):
 def reload():
     try:
         res = db.load(DB_PATH, ROOM_IDS, args.criteri_informe, args.vista)
-    except Exception as e:  # locked copy, missing file, schema change...: keep the last good data
+    except Exception as e:
         with lock:
             changed = state["error"] != str(e)
             state["error"] = str(e)
@@ -88,20 +111,49 @@ def reload():
             print(f"database: {e}", file=sys.stderr)
             emit("status", status())
         return
+
     layout, missing = layout_with(res["rooms"])
     if missing:
-        print(f"database: rooms of layout.json missing from 'aules': {', '.join(missing)}", file=sys.stderr)
+        print("database: rooms missing from 'aules': " + ", ".join(missing), file=sys.stderr)
+
     with lock:
         state.update(layout=layout, dataset=res["dataset"], snapshot=res["snapshot"], error=None)
         state["version"] += 1
+        state["others"] = {}   # la BD ha canviat: les altres vistes es tornen a llegir quan es demanin
+
     s = status()
-    print(f"database: {s['count']} sessions loaded from {s['db']}{' (snapshot: the file is locked by another process)' if s['snapshot'] else ''}", flush=True)
+    locked = " (snapshot: the file is locked by another process)" if s["snapshot"] else ""
+    print(f"database: {s['count']} sessions loaded from {s['db']}{locked}", flush=True)
     emit("status", s)
 
 
+def dataset_for(vista):
+    """Dataset de sessions d'una vista (sessions, sessions51..54).
+
+    --vista és la que carrega (i recarrega) reload(); les altres es llegeixen el primer cop que es demanen
+    i es guarden fins que la BD canvia.
+    """
+    if vista == args.vista:
+        return state["dataset"]
+    with load_lock:
+        with lock:
+            version = state["version"]
+            cached = state["others"].get(vista)
+        if cached and cached[0] == version:
+            return cached[1]
+        dataset = db.load(DB_PATH, ROOM_IDS, args.criteri_informe, vista)["dataset"]
+        with lock:
+            if state["version"] == version:   # no s'ha recarregat mentrestant
+                state["others"][vista] = (version, dataset)
+        print(f"database: view {vista} loaded ({len(dataset['sessions']) if dataset else 0} sessions)", flush=True)
+        return dataset
+
+
 def watch():
+    """Recarrega quan el fitxer de la BD (o el seu .wal) canvia, o mentre hi hagi un error."""
     def stamp():
         return tuple(os.path.getmtime(p) if os.path.exists(p) else None for p in (DB_PATH, DB_PATH + ".wal"))
+
     last = stamp()
     while True:
         time.sleep(WATCH_SECONDS)
@@ -111,14 +163,41 @@ def watch():
             reload()
 
 
-# ---------- HTTP ----------
+# ============================================================
+# HTTP
+# ============================================================
+
+# Paràmetres obligatoris de cada consulta de /api/graella/<consulta> (funcions de database/consultes.py).
+# setmana = el dilluns de la setmana, AAAA-MM-DD.
+GRAELLA = {
+    "opcions": ([], lambda q, v, c: consultes.consultar_opcions_graella(v, con=c)),
+    "assignatura": (["setmana", "codi"],
+                    lambda q, v, c: consultes.consultar_horari_assignatura(q["codi"], q["setmana"], q.get("grup"), v, con=c)),
+    "aula": (["setmana", "aula"], lambda q, v, c: consultes.consultar_horari_aula(q["aula"], q["setmana"], v, con=c)),
+    "docent": (["setmana", "docent"],
+               lambda q, v, c: consultes.consultar_horari_docent(q["docent"], q["setmana"], v, con=c)),
+    "lliures": (["setmana"], lambda q, v, c: consultes.consultar_ocupacio_aules(q["setmana"], v, con=c)),
+}
+
+
 class Handler(SimpleHTTPRequestHandler):
+
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=ROOT, **kw)
 
+    def translate_path(self, path):
+        # /home/..., /graella/... i /comu/... surten de les carpetes del projecte; la resta, de hologram/
+        first, _, rest = unquote(urlparse(path).path).lstrip("/").partition("/")
+        if first in STATIC_DIRS:
+            base = os.path.join(PROJECT_ROOT, first)
+            target = os.path.realpath(os.path.join(base, rest))
+            if os.path.commonpath([base, target]) == base:   # no surt de la carpeta (../)
+                return target
+        return super().translate_path(path)
+
     def log_message(self, fmt, *a):
-        if "/api/events" not in str(a[0] if a else ""):  # a[0] is the request line, or an HTTPStatus for errors
-            sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % a))
+        if "/api/events" not in str(a[0] if a else ""):
+            sys.stderr.write(f"{self.address_string()} - {fmt % a}\n")
 
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -126,34 +205,112 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_json(self, obj, status_code=200):
-        body = json.dumps(obj).encode()
+        body = json.dumps(obj, default=str).encode()   # default=str: dates / hores de la BD
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
+    def fail(self, message, status_code):
+        return self.send_json({"ok": False, "errors": [message]}, status_code)
+
+    def route(self):
+        url = urlparse(self.path)
+        return [p for p in url.path.split("/") if p], {k: v[0] for k, v in parse_qs(url.query).items()}
+
+    def vista(self, qs):
+        """La vista demanada (?vista=), o None si no existeix (i ja s'ha respost 400)."""
+        vista = qs.get("vista", args.vista)
+        if vista not in db.VISTES:
+            self.fail(f"unknown vista {vista!r}; options: {', '.join(db.VISTES)}", 400)
+            return None
+        return vista
+
+    # ---------- GET: pàgines i API ----------
     def do_GET(self):
-        parts = [p for p in urlparse(self.path).path.split("/") if p]
+        parts, qs = self.route()
         if parts[:1] != ["api"]:
             return super().do_GET()
+
         if parts == ["api", "layout"]:
             if state["layout"] is None:
-                return self.send_json({"ok": False, "errors": [state["error"] or "database not loaded yet"]}, 503)
+                return self.fail(state["error"] or "database not loaded yet", 503)
             return self.send_json(state["layout"])
+
         if parts == ["api", "sessions"]:
-            return self.send_json(state["dataset"])
+            vista = self.vista(qs)
+            if vista is None:
+                return None
+            try:
+                return self.send_json(dataset_for(vista))
+            except Exception as e:   # vista que no és a la BD, fitxer bloquejat...
+                return self.fail(str(e), 503)
+
         if parts == ["api", "status"]:
             return self.send_json(status())
+
         if parts == ["api", "events"]:
             return self.sse()
-        self.send_json({"ok": False, "errors": ["not found"]}, 404)
 
+        if parts[:2] == ["api", "graella"] and len(parts) == 3:
+            return self.graella(parts[2], qs)
+
+        return self.fail("not found", 404)
+
+    def graella(self, consulta, qs):
+        """GET /api/graella/<consulta>: horaris setmanals de graella.html (consultes de només lectura)."""
+        vista = self.vista(qs)
+        if vista is None:
+            return None
+        if consulta not in GRAELLA:
+            return self.fail(f"unknown query {consulta!r}; options: {', '.join(GRAELLA)}", 404)
+        needs, run = GRAELLA[consulta]
+        missing = [p for p in needs if not qs.get(p)]
+        if missing:
+            return self.fail(f"missing parameter(s): {', '.join(missing)}", 400)
+        if "setmana" in qs:
+            try:
+                date.fromisoformat(qs["setmana"])
+            except ValueError:
+                return self.fail("setmana must be the Monday of the week, AAAA-MM-DD", 400)
+        try:
+            with consultes.obrir_db(DB_PATH) as (con, _):
+                out = run(qs, vista, con)
+        except Exception as e:   # vista que no és a la BD, fitxer bloquejat...
+            return self.fail(str(e), 503)
+        return self.send_json({"ok": True, "vista": vista, **out})
+
+    # ---------- POST /api/ornith: el xatbot ----------
+    def do_POST(self):
+        parts, _ = self.route()
+        if parts != ["api", "ornith"]:
+            return self.fail("not found", 404)
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= MAX_BODY:
+                return self.fail("Petició buida o massa gran.", 400)
+            pregunta = str(json.loads(self.rfile.read(length)).get("question", "")).strip()
+            if not pregunta:
+                return self.fail("Escriu una pregunta.", 400)
+
+            from ornith.agent import format_text, respon   # aquí: carrega les dades i la clau només quan algú pregunta
+            r = respon(pregunta)
+            # text: la resposta (markdown) que ornith.js pinta amb les fonts a part; answer: tot en text pla
+            return self.send_json({"ok": True, "text": r["answer"], "answer": format_text(r), "estat": r["estat"],
+                                   "verificada": r["verificada"], "no_verificades": r["no_verificades"],
+                                   "xifres_sense_font": r["xifres_sense_font"], "fonts": r["fonts"], "eines": r["eines"]})
+        except Exception as e:
+            print(f"Ornith error: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            return self.fail(f"{type(e).__name__}: {e}", 500)
+
+    # ---------- Server-Sent Events ----------
     def sse(self):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Connection", "keep-alive")
         self.end_headers()
+
         q = queue.Queue()
         clients.append(q)
         try:
@@ -165,7 +322,7 @@ class Handler(SimpleHTTPRequestHandler):
                 except queue.Empty:
                     self.wfile.write(b": keepalive\n\n")
                 self.wfile.flush()
-        except (BrokenPipeError, ConnectionResetError, OSError):
+        except OSError:   # el client ha tancat (BrokenPipeError, ConnectionResetError...)
             pass
         finally:
             clients.remove(q)
@@ -176,7 +333,7 @@ if __name__ == "__main__":
     threading.Thread(target=watch, daemon=True).start()
     srv = ThreadingHTTPServer(("0.0.0.0", args.port), Handler)
     srv.daemon_threads = True
-    print(f"Hologram on http://localhost:{args.port}  (data: {DB_PATH})", flush=True)
+    print(f"Hologram on http://localhost:{args.port} (data: {DB_PATH})", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

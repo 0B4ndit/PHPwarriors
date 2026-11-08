@@ -1,0 +1,77 @@
+/* Estils compartits pel holograma (/) i la graella (/graella/): colors, base, botons, pastilles i barres.
+   Cada pàgina hi afegeix el seu full (hologram.css, graella.css). */
+
+:root {
+  --bg: #03070c;
+  --panel: #07121a;
+  --glass: rgba(7, 18, 26, .85);   /* panells flotants sobre l'escena o la graella */
+  --line: #123846;
+  --rule: #0c2230;                 /* separadors de files */
+  --field: #0a2230;                /* fons de botons i camps */
+  --on: #0f3a4e;                   /* botó actiu */
+  --fg: #bfe3ec;
+  --hi: #e6f7fb;                   /* text destacat */
+  --dim: #6a98a8;
+  --code: #8fc3d3;
+  --cyan: #3a8fb0;
+  --green: #34c97c;
+  --red: #d8364f;
+  --amber: #e0b04a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font: 12px/1.4 ui-monospace, Consolas, monospace;
+}
+
+[hidden] { display: none !important; }
+
+/* ---------- botons ---------- */
+button, .toolbar a {
+  background: var(--field);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+button:hover, .toolbar a:hover { border-color: var(--cyan); color: var(--hi); }
+button:disabled { opacity: .4; cursor: default; }
+button.on, .toolbar a.on { background: var(--on); border-color: var(--cyan); color: var(--hi); }
+
+/* grup de botons enganxats (Semester | Week | Day | Hour...) */
+.seg { display: flex; margin-top: 10px; }
+.seg button { flex: 1; border-radius: 0; }
+.seg button:first-child { border-radius: 4px 0 0 4px; }
+.seg button:last-child { border-radius: 0 4px 4px 0; }
+.seg button + button { border-left: 0; }
+
+/* barres de versió de la BD i de pàgina (les omple comu/nav.js) */
+.toolbar {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.toolbar button, .toolbar a { min-width: 38px; padding: 4px 7px; font-size: 11px; text-align: center; }
+
+/* ---------- pastilles d'estat ---------- */
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); white-space: nowrap; }
+.pill.ok { color: var(--green); border-color: var(--green); }
+.pill.warn { color: var(--amber); border-color: var(--amber); }
+.pill.bad { color: var(--red); border-color: var(--red); }
+
+/* ---------- inspector de l'API (<details> al peu de la barra lateral) ---------- */
+details { border-top: 1px solid var(--line); padding: 8px 12px; }
+summary { cursor: pointer; color: var(--dim); }
+pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; color: var(--code); font-size: 10.5px; }

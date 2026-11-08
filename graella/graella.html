@@ -1,574 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ca">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UAB · Sistema de Gestió d'Horaris i Aules</title>
-<style>
-  :root {
-    --bg: #03070c;
-    --panel: #07121a;
-    --line: #123846;
-    --fg: #bfe3ec;
-    --dim: #6a98a8;
-    --cyan: #3a8fb0;
-    --green: #34c97c;
-    --red: #d8364f;
-    
-    --color-teoria: rgba(58, 143, 176, 0.35);
-    --color-lab: rgba(52, 201, 124, 0.35);
-    --color-sem: rgba(167, 139, 250, 0.35);
-    --color-warning: rgba(216, 54, 79, 0.45);
-  }
-
-  * { box-sizing: border-box; }
-  
-  html, body { 
-    margin: 0; 
-    height: 100%; 
-    background: var(--bg); 
-    color: var(--fg); 
-    font: 12px/1.4 ui-monospace, Consolas, monospace; 
-    overflow: hidden;
-  }
-
-  #app { display: flex; height: 100%; padding: 10px; gap: 10px; }
-
-  /* --- BARRA LATERAL HOLOGRAMA --- */
-  aside { 
-    width: 310px; 
-    background: var(--panel); 
-    border: 1px solid var(--line); 
-    border-radius: 4px;
-    display: flex; 
-    flex-direction: column; 
-    flex-shrink: 0;
-  }
-
-  header { padding: 12px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0 0 6px; font-size: 12px; letter-spacing: .12em; color: var(--cyan); text-transform: uppercase; }
-  
-  #counts { font-size: 10px; font-weight: normal; color: var(--dim); }
-  
-  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); font-size: 10px; }
-  .pill.ok { color: var(--green); border-color: var(--green); }
-  .pill.warn { color: #e0b04a; border-color: #e0b04a; }
-  .pill.bad { color: var(--red); border-color: var(--red); }
-
-  /* Segmented buttons */
-  .seg { display: flex; margin-top: 10px; }
-  .seg button { flex: 1; border-radius: 0; padding: 5px 2px; font-size: 10.5px; text-align: center; }
-  .seg button:first-child { border-radius: 4px 0 0 4px; }
-  .seg button:last-child { border-radius: 0 4px 4px 0; border-left: 0; }
-  .seg button.on { background: #0f3a4e; border-color: var(--cyan); color: #e6f7fb; }
-
-  /* Form Elements */
-  button { 
-    background: #0a2230; 
-    color: var(--fg); 
-    border: 1px solid var(--line); 
-    border-radius: 4px; 
-    padding: 4px 8px; 
-    font: inherit; 
-    cursor: pointer; 
-    transition: all 0.15s ease;
-  }
-  button:hover { border-color: var(--cyan); color: #e6f7fb; }
-  
-  .btn-block { width: 100%; margin-top: 8px; background: #0f3a4e; border-color: var(--cyan); color: #e6f7fb; padding: 6px; }
-  .btn-block:hover { background: #144963; }
-
-  .trow { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-  .trow label { display: flex; flex-direction: column; gap: 4px; flex: 1; color: var(--dim); font-size: 10.5px; }
-  
-  input[type=text], input[type=number], select { 
-    width: 100%; 
-    background: #0a2230; 
-    color: var(--fg); 
-    border: 1px solid var(--line); 
-    border-radius: 4px; 
-    padding: 5px 7px; 
-    font: inherit; 
-    color-scheme: dark; 
-    outline: none;
-  }
-  input:focus, select:focus { border-color: var(--cyan); }
-
-  /* Dynamic Filter View Area */
-  #filter-container { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-  .filter-panel { display: none; flex-direction: column; gap: 8px; }
-  .filter-panel.active { display: flex; }
-
-  /* Item Lists */
-  .item-list { 
-    border: 1px solid var(--line); 
-    border-radius: 4px; 
-    background: #040a10; 
-    max-height: 140px; 
-    overflow-y: auto; 
-    list-style: none; 
-    padding: 2px; 
-    margin: 4px 0 0; 
-  }
-  .item-row { 
-    padding: 5px 8px; 
-    border-bottom: 1px solid #0c2230; 
-    cursor: pointer; 
-    border-radius: 3px; 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .item-row:hover { background: #0a2230; }
-  .item-row.sel { background: #0d3345; outline: 1px solid var(--cyan); }
-  .item-row .sub { color: var(--dim); font-size: 10px; }
-
-  /* Sidebar Details Panel */
-  #detail { border-top: 1px solid var(--line); background: #050d14; padding: 8px 12px; }
-  .d-head { display: flex; justify-content: space-between; color: var(--cyan); font-size: 11px; font-weight: bold; margin-bottom: 4px; }
-  .d-row { display: flex; justify-content: space-between; font-size: 10.5px; padding: 2px 0; border-bottom: 1px solid #0c2230; }
-  .d-row span { color: var(--dim); }
-
-  /* API Inspector Debugger */
-  details { border-top: 1px solid var(--line); padding: 6px 12px; background: #020508; }
-  summary { cursor: pointer; color: var(--dim); font-size: 10px; }
-  pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-all; color: #8fc3d3; font-size: 10px; }
-
-  /* --- GRAELLA HORÀRIA --- */
-  main.schedule-container {
-    flex: 1; 
-    background: var(--panel); 
-    border: 1px solid var(--line); 
-    border-radius: 4px; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: hidden;
-  }
-
-  .grid-tools {
-    padding: 8px 12px; 
-    border-bottom: 1px solid var(--line); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    background: #040a10;
-  }
-
-  .grid-tools .title-view { font-weight: bold; color: var(--cyan); letter-spacing: 0.05em; }
-
-  .grid-horari {
-    display: grid;
-    grid-template-columns: 55px repeat(5, 1fr);
-    grid-template-rows: 30px repeat(26, minmax(26px, 1fr));
-    flex: 1; 
-    overflow-y: auto; 
-    position: relative;
-  }
-
-  .header-dia {
-    position: sticky; 
-    top: 0; 
-    background: #040a10; 
-    z-index: 10;
-    border-bottom: 1px solid var(--line); 
-    border-right: 1px solid var(--line);
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    font-size: 11px; 
-    color: var(--cyan); 
-    text-transform: uppercase;
-  }
-
-  .hora-label {
-    border-right: 1px solid var(--line); 
-    border-bottom: 1px dashed #0c2230;
-    color: var(--dim); 
-    font-size: 10px; 
-    text-align: center;
-    display: flex; 
-    align-items: flex-start; 
-    justify-content: center;
-    padding-top: 2px; 
-    grid-column: 1; 
-    z-index: 1; 
-    background: var(--panel);
-  }
-
-  .grid-cell { border-right: 1px solid var(--line); border-bottom: 1px dashed #0c2230; z-index: 0; }
-
-  .classe-card {
-    margin: 2px 3px; 
-    padding: 4px 6px; 
-    border-radius: 3px;
-    font-size: 10px; 
-    line-height: 1.2; 
-    border: 1px solid var(--cyan);
-    border-left: 3px solid var(--cyan);
-    backdrop-filter: blur(4px); 
-    cursor: pointer; 
-    transition: transform 0.1s, box-shadow 0.1s;
-    z-index: 5; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: hidden;
-    color: #e6f7fb;
-  }
-  .classe-card:hover { transform: scale(1.01); z-index: 20; box-shadow: 0 0 10px rgba(58, 143, 176, 0.4); }
-  .classe-titol { font-weight: bold; color: #fff; }
-  .classe-info { color: var(--dim); font-size: 9px; margin-top: 2px; }
-
-  @media (max-width: 800px) { #app { flex-direction: column; } aside { width: 100%; height: 48%; } }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UAB · Graella d'horaris i aules</title>
+  <link rel="stylesheet" href="/comu/comu.css">
+  <link rel="stylesheet" href="graella.css">
+  <script type="module" src="graella.js"></script>
 </head>
 <body>
-
 <div id="app">
-  <!-- BARRA LATERAL HOLOGRAMA -->
+
+  <!-- Barra lateral: mode, setmana, filtres, detall i API -->
   <aside>
     <header>
-      <h1>UAB · GESTOR HORARIS <span id="counts">v2.0</span></h1>
-      <span id="status" class="pill warn">BACKEND READY</span>
-      
-      <!-- 4 MÈTODES DE FILTRATGE SOL·LICITATS -->
+      <h1>UAB · Gestor horaris <span id="counts"></span></h1>
+      <span id="status" class="pill warn">connectant…</span>
+
       <div class="seg" id="mode-selector">
         <button data-mode="assignatura" class="on">Assig</button>
         <button data-mode="aula">Aula</button>
-        <button data-mode="profe">Profe</button>
+        <button data-mode="docent">Profe</button>
         <button data-mode="lliures">Lliures</button>
+      </div>
+
+      <div class="trow" id="week-row">
+        <button id="w-prev" title="setmana anterior">◀</button>
+        <select id="sel-setmana" aria-label="Setmana"></select>
+        <button id="w-next" title="setmana següent">▶</button>
       </div>
     </header>
 
     <div id="filter-container">
-      
-      <!-- 1. FILTRE: ASSIGNATURA -->
-      <div id="panel-assignatura" class="filter-panel active">
-        <div class="trow">
-          <label>Cercar Assignatura
-            <input type="text" id="search-assig" placeholder="Ex: Programació 1, PG1...">
-          </label>
-        </div>
-        <ul class="item-list" id="list-assig">
-          <li class="item-row sel" data-code="PROG1">
-            <div><strong>Programació 1</strong><br><span class="sub">GEI · 1r Semestre</span></div>
-            <span class="pill ok">GEI</span>
-          </li>
-          <li class="item-row" data-code="EDA">
-            <div><strong>Estructura de Dades</strong><br><span class="sub">GEI · 2n Semestre</span></div>
-            <span class="pill ok">GEI</span>
-          </li>
-          <li class="item-row" data-code="FIS">
-            <div><strong>Física</strong><br><span class="sub">GEI · 1r Semestre</span></div>
-            <span class="pill ok">GEI</span>
-          </li>
-        </ul>
+      <section id="panel-assignatura" class="filter-panel">
+        <input type="search" id="search-assignatura" placeholder="Cerca per nom, codi o titulació…" aria-label="Cerca assignatura">
+        <ul class="item-list" id="list-assignatura"></ul>
         <div class="trow">
           <label>Grup
-            <select id="select-grup">
-              <option value="G10">Grup 10 (Matí)</option>
-              <option value="G20">Grup 20 (Tarda)</option>
-              <option value="G71">Grup 71 (Pràctiques)</option>
-            </select>
+            <select id="select-grup"><option value="">Tots els grups</option></select>
           </label>
         </div>
-        <button class="btn-block" onclick="carregarHorariAssignatura()">Carregar Horari</button>
-      </div>
+      </section>
 
-      <!-- 2. FILTRE: HORARI SETMANAL D'UNA AULA -->
-      <div id="panel-aula" class="filter-panel">
-        <div class="trow">
-          <label>Seleccionar Aula
-            <select id="select-aula">
-              <option value="Q2/1001">Q2/1001 (Aula Teoria - Cap: 80)</option>
-              <option value="Q2/1002">Q2/1002 (Aula Teoria - Cap: 60)</option>
-              <option value="Q2/0001">Q2/0001 (Laboratori PC - Cap: 30)</option>
-              <option value="Q2/0002">Q2/0002 (Laboratori PC - Cap: 30)</option>
-            </select>
-          </label>
-        </div>
-        <div class="trow">
-          <label>Setmana Concreta
-            <select id="aula-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-              <option value="3">Setmana 3 (29 Sep - 03 Oct)</option>
-            </select>
-          </label>
-        </div>
-        <button class="btn-block" onclick="carregarHorariAula()">Consultar Aula</button>
-      </div>
+      <section id="panel-aula" class="filter-panel" hidden>
+        <input type="search" id="search-aula" placeholder="Cerca aula, tipus o descripció…" aria-label="Cerca aula">
+        <ul class="item-list" id="list-aula"></ul>
+      </section>
 
-      <!-- 3. FILTRE: HORARI D'UN PROFESSOR -->
-      <div id="panel-profe" class="filter-panel">
-        <div class="trow">
-          <label>Professor / Docent
-            <input type="text" id="input-profe" placeholder="Ex: Dr. Jordi Petit...">
-          </label>
-        </div>
-        <ul class="item-list" id="list-profe">
-          <li class="item-row sel" data-prof="P01">
-            <div><strong>Dr. Jordi Petit</strong><br><span class="sub">Dept. Ciències de la Computació</span></div>
-          </li>
-          <li class="item-row" data-prof="P02">
-            <div><strong>Dra. Marta Gómez</strong><br><span class="sub">Dept. Arquitectura de Computadors</span></div>
-          </li>
-        </ul>
-        <div class="trow">
-          <label>Setmana
-            <select id="profe-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-            </select>
-          </label>
-        </div>
-        <button class="btn-block" onclick="carregarHorariProfessor()">Veure Agenda Profe</button>
-      </div>
+      <section id="panel-docent" class="filter-panel" hidden>
+        <input type="search" id="search-docent" placeholder="Cerca codi de docent o assignatura…" aria-label="Cerca docent">
+        <ul class="item-list" id="list-docent"></ul>
+      </section>
 
-      <!-- 4. FILTRE: AULES LLIURES EN UNA SETMANA CONCRETA -->
-      <div id="panel-lliures" class="filter-panel">
+      <section id="panel-lliures" class="filter-panel" hidden>
         <div class="trow">
-          <label>Setmana
-            <select id="lliures-setmana">
-              <option value="1">Setmana 1 (15 Sep - 19 Sep)</option>
-              <option value="2">Setmana 2 (22 Sep - 26 Sep)</option>
-            </select>
+          <label>Capacitat mínima
+            <input type="number" id="lliures-cap" value="30" min="0" step="5">
+          </label>
+          <label>Tipus d'aula
+            <select id="lliures-tipus"><option value="">Totes</option></select>
           </label>
         </div>
-        <div class="trow">
-          <label>Dia de la setmana
-            <select id="lliures-dia">
-              <option value="0">Dilluns</option>
-              <option value="1">Dimarts</option>
-              <option value="2">Dimecres</option>
-              <option value="3">Dijous</option>
-              <option value="4">Divendres</option>
-            </select>
-          </label>
-        </div>
-        <div class="trow">
-          <label>Franja Horària
-            <select id="lliures-hora">
-              <option value="08:00">08:00 - 10:00</option>
-              <option value="10:00">10:00 - 12:00</option>
-              <option value="12:00">12:00 - 14:00</option>
-              <option value="15:00">15:00 - 17:00</option>
-            </select>
-          </label>
-        </div>
-        <div class="trow">
-          <label>Capacitat Mínima
-            <input type="number" id="lliures-cap" value="30" min="10" step="5">
-          </label>
-        </div>
-        <button class="btn-block" onclick="cercarAulesLliures()">Cercar Aules Lliures</button>
-
-        <div style="margin-top: 6px;">
-          <span style="font-size:10px; color:var(--dim);">Aules Disponibles Trobades:</span>
-          <ul class="item-list" id="results-lliures" style="max-height: 90px;">
-            <li class="item-row"><span class="pill ok">Q2/1002</span> <span class="sub">Capacitat: 60</span></li>
-            <li class="item-row"><span class="pill ok">Q2/0001</span> <span class="sub">Capacitat: 30</span></li>
-          </ul>
-        </div>
-      </div>
-
+        <span class="hint" id="lliures-hint">Cada franja mostra quantes aules del catàleg estan lliures. Clica-la per veure quines.</span>
+        <ul class="item-list" id="results-lliures"></ul>
+      </section>
     </div>
 
-    <!-- PANEL DE DETALLS DE SELECCIÓ -->
     <div id="detail">
       <div class="d-head">
-        <span id="d-title">DETALLS SELECCIÓ</span>
-        <span class="pill ok" id="d-tag">ACTIVE</span>
+        <span id="d-title">DETALLS</span>
+        <span class="pill" id="d-tag"></span>
       </div>
-      <div class="d-row"><span>Consulta actual:</span> <b id="d-type" style="color:var(--fg)">Assignatura</b></div>
-      <div class="d-row"><span>Element:</span> <b id="d-target" style="color:var(--cyan)">Programació 1 (G10)</b></div>
+      <div id="d-rows"></div>
     </div>
 
-    <!-- INSPECTOR D'API I BACKEND PAYLOAD -->
     <details>
-      <summary>BACKEND API PAYLOAD</summary>
-      <pre id="api-payload">GET /api/v1/horari?type=assignatura&id=PROG1&grup=G10</pre>
+      <summary>BACKEND API</summary>
+      <pre id="api-payload"></pre>
     </details>
   </aside>
 
-  <!-- GRAELLA HORÀRIA -->
-  <main class="schedule-container">
+  <!-- Graella horària -->
+  <main>
     <div class="grid-tools">
-      <span class="title-view" id="grid-title">VISTA: HORARI ASSIGNATURA · PROG1 (G10)</span>
-      <div style="display:flex; gap:6px;">
-        <button onclick="alert('Exportant a PDF/CSV...')">Exportar</button>
-        <button onclick="resetGraella()">Netejar</button>
+      <nav id="versions" class="toolbar" aria-label="Versió de la base de dades"></nav>
+      <nav id="views" class="toolbar" aria-label="Pàgina"></nav>
+      <div class="tools">
+        <button id="btn-export" title="Descarrega el que es veu a la graella en CSV">Exportar CSV</button>
+        <button id="btn-reset" title="Treu la selecció d'aquesta vista">Netejar</button>
       </div>
     </div>
-
-    <div class="grid-horari" id="horari-dom">
-      <!-- Generat dinàmicament per JS -->
-    </div>
+    <div id="grid-title">VISTA</div>
+    <div class="legend" id="legend"></div>
+    <div id="horari"></div>
   </main>
+
 </div>
-
-<script>
-  const DIES = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres'];
-  const HORA_INICI = 8;
-  const TOTAL_FRANGES = 26; // Franges de 30 minuts (8:00 a 21:00)
-
-  // 1. GESTIÓ DEL CANVI DE SECTORS / VISTES DE MENÚ
-  document.querySelectorAll('#mode-selector button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('#mode-selector button').forEach(b => b.classList.remove('on'));
-      e.target.classList.add('on');
-
-      const mode = e.target.getAttribute('data-mode');
-      document.querySelectorAll('.filter-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(`panel-${mode}`).classList.add('active');
-
-      document.getElementById('d-type').textContent = mode.toUpperCase();
-      actualitzarApiPreview(`GET /api/v1/${mode}/list`);
-    });
-  });
-
-  // 2. CONSTRUCCIÓ DE LA GRAELLA HORÀRIA
-  function construirEstructura() {
-    const grid = document.getElementById('horari-dom');
-    grid.innerHTML = ''; 
-    
-    const raco = document.createElement('div');
-    raco.className = 'header-dia'; 
-    raco.style.gridColumn = '1'; 
-    grid.appendChild(raco);
-
-    DIES.forEach((dia, index) => {
-      const header = document.createElement('div');
-      header.className = 'header-dia'; 
-      header.style.gridColumn = index + 2; 
-      header.textContent = dia; 
-      grid.appendChild(header);
-    });
-
-    for (let i = 0; i < TOTAL_FRANGES; i++) {
-      const filaGrid = i + 2; 
-      const label = document.createElement('div');
-      label.className = 'hora-label'; 
-      label.style.gridRow = filaGrid;
-
-      if (i % 2 === 0) {
-        label.textContent = `${(HORA_INICI + (i / 2)).toString().padStart(2, '0')}:00`;
-      }
-      grid.appendChild(label);
-
-      for (let dia = 0; dia < 5; dia++) {
-        const cell = document.createElement('div');
-        cell.className = 'grid-cell'; 
-        cell.style.gridRow = filaGrid; 
-        cell.style.gridColumn = dia + 2;
-        grid.appendChild(cell);
-      }
-    }
-  }
-
-  function resetGraella() {
-    construirEstructura();
-  }
-
-  function afegirClasse(assignatura, infoExtra, aula, diaIndex, horaInici, duradaHores, color) {
-    const frangesOffset = (horaInici - HORA_INICI) * 2; 
-    const filaInici = 2 + frangesOffset; 
-    const frangesDurada = duradaHores * 2;
-
-    const card = document.createElement('div');
-    card.className = 'classe-card'; 
-    card.style.background = color;
-    card.style.gridColumn = diaIndex + 2; 
-    card.style.gridRow = `${filaInici} / span ${frangesDurada}`;
-    card.innerHTML = `
-      <div class="classe-titol">${assignatura}</div>
-      <div class="classe-info">${infoExtra}</div>
-      <div class="classe-info" style="margin-top:auto;">🚪 ${aula}</div>
-    `;
-    document.getElementById('horari-dom').appendChild(card);
-  }
-
-  function actualitzarApiPreview(url) {
-    document.getElementById('api-payload').textContent = url;
-  }
-
-  // --- HANDLERS PLACEHOLDER PER A CONNECTAR AMB EL BACKEND JAVA ---
-
-  // 1. CARREGAR HORARI D'UNA ASSIGNATURA
-  function carregarHorariAssignatura() {
-    resetGraella();
-    const grup = document.getElementById('select-grup').value;
-    document.getElementById('grid-title').textContent = `VISTA: ASSIGNATURA · PROG1 (${grup})`;
-    document.getElementById('d-target').textContent = `PROG1 - ${grup}`;
-    
-    // BACKEND HOOK: fetch(`/api/assignatura?code=PROG1&grup=${grup}`)
-    actualitzarApiPreview(`GET /api/v1/assignatura?code=PROG1&grup=${grup}`);
-
-    afegirClasse('Programació 1', `Teoria · ${grup}`, 'Q2/1001', 0, 8.5, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', `Lab · ${grup}`, 'Q2/0001', 2, 11.0, 2, 'var(--color-lab)');
-  }
-
-  // 2. CARREGAR HORARI SETMANAL D'UNA AULA
-  function carregarHorariAula() {
-    resetGraella();
-    const aula = document.getElementById('select-aula').value;
-    const setmana = document.getElementById('aula-setmana').value;
-
-    document.getElementById('grid-title').textContent = `VISTA: AULA · ${aula} (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `${aula} (S${setmana})`;
-
-    // BACKEND HOOK: fetch(`/api/aula?id=${aula}&week=${setmana}`)
-    actualitzarApiPreview(`GET /api/v1/aula?id=${encodeURIComponent(aula)}&week=${setmana}`);
-
-    afegirClasse('Física 1', 'Grup 10 · Prof. Gómez', aula, 0, 8.0, 2, 'var(--color-teoria)');
-    afegirClasse('Programació 1', 'Grup 10 · Prof. Petit', aula, 1, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Bases de Dades', 'Grup 20 · Prof. Soler', aula, 3, 15.0, 2, 'var(--color-sem)');
-  }
-
-  // 3. CARREGAR HORARI D'UN PROFESSOR
-  function carregarHorariProfessor() {
-    resetGraella();
-    const setmana = document.getElementById('profe-setmana').value;
-    
-    document.getElementById('grid-title').textContent = `VISTA: PROFESSOR · Dr. Jordi Petit (Setmana ${setmana})`;
-    document.getElementById('d-target').textContent = `Dr. Jordi Petit (S${setmana})`;
-
-    // BACKEND HOOK: fetch(`/api/professor?id=P01&week=${setmana}`)
-    actualitzarApiPreview(`GET /api/v1/professor?id=P01&week=${setmana}`);
-
-    afegirClasse('Programació 1', 'Teoria · Aula Q2/1001', 'Q2/1001', 0, 10.0, 2, 'var(--color-teoria)');
-    afegirClasse('Estructura Dades', 'Lab · Aula Q2/0001', 'Q2/0001', 2, 12.0, 2, 'var(--color-lab)');
-  }
-
-  // 4. CERCAR AULES LLIURES EN UNA SETMANA CONCRETA
-  function cercarAulesLliures() {
-    const setmana = document.getElementById('lliures-setmana').value;
-    const dia = document.getElementById('lliures-dia').value;
-    const hora = document.getElementById('lliures-hora').value;
-    const cap = document.getElementById('lliures-cap').value;
-
-    // BACKEND HOOK: fetch(`/api/aules/lliures?week=${setmana}&day=${dia}&time=${hora}&minCap=${cap}`)
-    actualitzarApiPreview(`GET /api/v1/aules/lliures?week=${setmana}&day=${dia}&time=${hora}&minCap=${cap}`);
-
-    document.getElementById('d-target').textContent = `Filtre Lliures (S${setmana}, Dia ${dia}, ${hora})`;
-
-    // Simulació de resposta del backend
-    const res = document.getElementById('results-lliures');
-    res.innerHTML = `
-      <li class="item-row" onclick="destacarAula('Q2/1002')"><span class="pill ok">Q2/1002</span> <span class="sub">Cap: 60</span></li>
-      <li class="item-row" onclick="destacarAula('Q2/0001')"><span class="pill ok">Q2/0001</span> <span class="sub">Cap: 30</span></li>
-      <li class="item-row" onclick="destacarAula('Q2/2005')"><span class="pill ok">Q2/2005</span> <span class="sub">Cap: 120</span></li>
-    `;
-  }
-
-  function destacarAula(aulaId) {
-    document.getElementById('select-aula').value = aulaId;
-    document.querySelector('[data-mode="aula"]').click();
-    carregarHorariAula();
-  }
-
-  // Inicialització automàtica
-  construirEstructura();
-  carregarHorariAssignatura();
-</script>
 </body>
 </html>

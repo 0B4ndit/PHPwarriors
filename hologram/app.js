@@ -6,10 +6,18 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { NEUTRAL, createHologramMaterial } from './hologram-material.js';
 import { Schedule, step, semOf, addWeekdays, isWeekend, hhmm, toMin, isoWeek } from './schedule.js';
+import { VERSION_VISTA, initVersions, initViews } from '/comu/nav.js';
 
 const COLOR_LERP_SECONDS = 0.35;
 const GHOST_LINE = 0x2c6478;
 const OVER_COLOR = '#ff4fd8'; // "too many students"
+
+// ---------- top bar: database version (each one reads a sessions view) and page links ----------
+let version = initVersions((v) => {
+  version = v;
+  loadSessions().catch((e) => { $('t-info').textContent = `Cannot load version ${v}: ${e.message}`; });
+});
+initViews('hologram');
 
 // ---------- scene ----------
 const canvasHost = document.getElementById('scene');
@@ -497,10 +505,30 @@ async function onStatus(s) {
   $('status').title = s.error ? `${s.db}: ${s.error}` : `${s.db} · ${s.count} sessions · version ${s.version}`;
   try {
     if (builtKey && roomsKey(await getJSON('layout')) !== builtKey) { location.reload(); return; } // rooms changed: rebuild
-    const ds = await getJSON('sessions');
-    sched = ds ? new Schedule(ds) : null;
-  } catch { /* keep what is shown */ }
+    await loadSessions();
+  } catch { applyView(); /* keep what is shown */ }
+}
+
+// sessions of the view picked with the version selector (BASE, 5.1..5.4)
+let sessionsReq = 0;
+async function loadSessions() {
+  const req = ++sessionsReq;
+  const ds = await getJSON(`sessions?vista=${VERSION_VISTA[version]}`);
+  if (req !== sessionsReq) return; // another version was picked meanwhile
+  sched = ds ? new Schedule(ds) : null;
+  fitViewToData();
   applyView();
+}
+
+// Some versions only cover one semester (5.1..5.4: the 2nd): if the date shown is outside the
+// data (or there is no date yet), jump to the start of the first semester the version has.
+function fitViewToData() {
+  if (!sched) return;
+  const sems = Object.entries(sched.semesters).sort((a, b) => a[1].start.localeCompare(b[1].start));
+  if (!sems.length || sems.some(([, s]) => s.start <= view.date && view.date <= s.end)) return;
+  const [sem, s] = sems[0];
+  view.sem = Number(sem);
+  view.date = isWeekend(s.start) ? addWeekdays(s.start, 1) : s.start;
 }
 
 function connect() {
@@ -569,7 +597,8 @@ curl ${origin}/api/status
 curl ${origin}/api/layout
 
 # sessions of the time views, from 'sessions' + 'calendari'
-curl ${origin}/api/sessions`;
+curl ${origin}/api/sessions
+curl "${origin}/api/sessions?vista=sessions51"   # versions: ${Object.values(VERSION_VISTA).join(', ')}`;
 }
 
 // ---------- focus / pick ----------
