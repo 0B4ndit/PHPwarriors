@@ -6,55 +6,18 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { NEUTRAL, createHologramMaterial } from './hologram-material.js';
 import { Schedule, step, semOf, addWeekdays, isWeekend, hhmm, toMin, isoWeek } from './schedule.js';
+import { VERSION_VISTA, initVersions, initViews } from '/comu/nav.js';
 
 const COLOR_LERP_SECONDS = 0.35;
 const GHOST_LINE = 0x2c6478;
 const OVER_COLOR = '#ff4fd8'; // "too many students"
 
-// ---------- database version selector ----------
-// Cada botó llegeix les sessions d'una vista de la BD (consultes.VISTES).
-const VERSION_VISTA = { BASE: 'sessions', '5.1': 'sessions51', '5.2': 'sessions52', '5.3': 'sessions53', '5.4': 'sessions54' };
-const VERSION_KEY = 'hologram.version';
-let window_seleccionat = 'BASE';
-try {
-  const saved = localStorage.getItem(VERSION_KEY);
-  if (saved in VERSION_VISTA) window_seleccionat = saved;
-} catch { /* no storage: BASE */ }
-
-function markVersion() {
-  document.querySelectorAll('[data-version]').forEach((btn) => {
-    btn.classList.toggle('on', btn.dataset.version === window_seleccionat);
-  });
-}
-markVersion();
-
-document.querySelectorAll('[data-version]').forEach((b) => {
-  b.addEventListener('click', () => {
-    if (b.dataset.version === window_seleccionat) return;
-    window_seleccionat = b.dataset.version;
-    markVersion();
-    try { localStorage.setItem(VERSION_KEY, window_seleccionat); } catch { /* not remembered */ }
-    loadSessions().catch((e) => {
-      $('t-info').textContent = `Cannot load version ${window_seleccionat}: ${e.message}`;
-    });
-  });
+// ---------- top bar: database version (each one reads a sessions view) and page links ----------
+let version = initVersions((v) => {
+  version = v;
+  loadSessions().catch((e) => { $('t-info').textContent = `Cannot load version ${v}: ${e.message}`; });
 });
-
-// ---------- main view selector ----------
-// Cada opció obre una pàgina independent del navegador.
-document.querySelectorAll('[data-view]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const mode = button.dataset.view;
-
-    if (mode === 'hologram') {
-      window.location.href = '/';
-    } else if (mode === 'home') {
-      window.location.href = '/home/home.html';
-    } else if (mode === 'graella') {
-      window.location.href = '/graella/graella.html';
-    }
-  });
-});
+initViews('hologram');
 
 // ---------- scene ----------
 const canvasHost = document.getElementById('scene');
@@ -550,7 +513,7 @@ async function onStatus(s) {
 let sessionsReq = 0;
 async function loadSessions() {
   const req = ++sessionsReq;
-  const ds = await getJSON(`sessions?vista=${VERSION_VISTA[window_seleccionat]}`);
+  const ds = await getJSON(`sessions?vista=${VERSION_VISTA[version]}`);
   if (req !== sessionsReq) return; // another version was picked meanwhile
   sched = ds ? new Schedule(ds) : null;
   fitViewToData();
@@ -558,9 +521,9 @@ async function loadSessions() {
 }
 
 // Some versions only cover one semester (5.1..5.4: the 2nd): if the date shown is outside the
-// data, jump to the start of the first semester the version has.
+// data (or there is no date yet), jump to the start of the first semester the version has.
 function fitViewToData() {
-  if (!sched || !view.date) return;
+  if (!sched) return;
   const sems = Object.entries(sched.semesters).sort((a, b) => a[1].start.localeCompare(b[1].start));
   if (!sems.length || sems.some(([, s]) => s.start <= view.date && view.date <= s.end)) return;
   const [sem, s] = sems[0];
@@ -723,80 +686,3 @@ function animate() {
   animate();
   connect();
 })();
-
-// ---------- ORNITH CHATBOT ----------
-
-const ornithButton = document.getElementById('chatbot-btn');
-const ornithChat = document.getElementById('ornith-chat');
-const ornithClose = document.getElementById('ornith-close');
-const ornithForm = document.getElementById('ornith-form');
-const ornithInput = document.getElementById('ornith-input');
-const ornithMessages = document.getElementById('ornith-messages');
-const ornithSend = document.getElementById('ornith-send');
-
-function ornithMessage(text, type = 'bot') {
-  const message = document.createElement('div');
-  message.className = `ornith-message ${type}`;
-  message.textContent = text;
-
-  ornithMessages.appendChild(message);
-  ornithMessages.scrollTop = ornithMessages.scrollHeight;
-
-  return message;
-}
-
-ornithButton?.addEventListener('click', () => {
-  ornithChat.hidden = !ornithChat.hidden;
-
-  if (!ornithChat.hidden) {
-    ornithInput.focus();
-  }
-});
-
-ornithClose?.addEventListener('click', () => {
-  ornithChat.hidden = true;
-});
-
-ornithForm?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const question = ornithInput.value.trim();
-
-  if (!question) return;
-
-  ornithMessage(question, 'user');
-  ornithInput.value = '';
-  ornithInput.disabled = true;
-  ornithSend.disabled = true;
-
-  const waiting = ornithMessage('Ornith està consultant...', 'bot');
-
-  try {
-    const response = await fetch('/api/ornith', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ question })
-    });
-
-    const data = await response.json();
-
-    waiting.remove();
-
-    if (!response.ok || !data.ok) {
-      throw new Error(data.error || 'No s’ha pogut obtenir una resposta.');
-    }
-
-    ornithMessage(data.answer || 'Ornith no ha retornat cap resposta.', 'bot');
-
-  } catch (error) {
-    waiting.remove();
-    ornithMessage(`Error: ${error.message}`, 'error');
-
-  } finally {
-    ornithInput.disabled = false;
-    ornithSend.disabled = false;
-    ornithInput.focus();
-  }
-});

@@ -1,0 +1,118 @@
+/* Portada (home.html). */
+
+:root {
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, .4);
+  --glass: rgba(15, 23, 42, .6);
+  --text-dim: #94a3b8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #05080f;   /* mentre no carrega el fons */
+  color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------- fons: tot ell és un enllaç al visor 3D ---------- */
+.hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, #1e293b 0%, #05080f 70%);
+}
+
+/* lloc reservat per a un model 3D o un vídeo */
+.placeholder-3d {
+  width: 60vh;
+  height: 60vh;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, var(--accent), transparent);
+  opacity: .3;
+  filter: blur(40px);
+  animation: spin 10s linear infinite;
+}
+
+.click-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, .5);
+  font-size: .9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: pulse 2s infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: .3; } 50% { opacity: .8; } }
+
+/* ---------- contingut: títol a dalt, targetes a baix ---------- */
+.content-layer {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  pointer-events: none;   /* els clics passen al fons, menys als elements que els tornen a activar */
+}
+
+.hero-header { margin-top: 4vh; text-align: center; pointer-events: auto; }
+
+.title {
+  margin-bottom: 10px;
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #fff 0%, var(--text-dim) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+}
+
+.subtitle { max-width: 600px; margin: 0 auto; font-size: 1.2rem; color: var(--text-dim); }
+
+.bottom-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-bottom: 20px; pointer-events: auto; }
+
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 280px;
+  padding: 24px 32px;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 16px;
+  color: #fff;
+  text-decoration: none;
+  transition: all .3s ease;
+}
+.nav-card:hover {
+  transform: translateY(-5px);
+  background: rgba(30, 41, 59, .8);
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px var(--accent-glow);
+}
+.nav-card h2 { margin-bottom: 8px; font-size: 1.2rem; }
+.nav-card p { font-size: .85rem; color: var(--text-dim); text-align: center; }
+
+@media (max-width: 700px) {
+  .content-layer { padding: 24px 16px; }
+  .title { font-size: 2.6rem; }
+  .subtitle { font-size: 1rem; }
+}

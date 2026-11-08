@@ -10,6 +10,8 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 from agent_tools import consultar_sessio, buscar_aules
 
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
+TIMEOUT = 90       # segons d'espera per resposta del model
+MAX_PASSOS = 8     # rondes d'eines com a màxim per pregunta
 
 
 # ============================================================
@@ -101,12 +103,12 @@ def cridar_ornith(messages):
         method="POST"
     )
 
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
 # ============================================================
-# BUCLE DE L'EAGENT
+# BUCLE DE L'AGENT
 # ============================================================
 
 def parlar(pregunta):
@@ -129,7 +131,7 @@ def parlar(pregunta):
         }
     ]
 
-    while True:
+    for _ in range(MAX_PASSOS):
 
         resultat = cridar_ornith(messages)
         message = resultat["choices"][0]["message"]
@@ -164,9 +166,12 @@ def parlar(pregunta):
                 "tool_call_id": call["id"],
                 "content": json.dumps(
                     resposta_eina,
-                    ensure_ascii=False
+                    ensure_ascii=False,
+                    default=str
                 )
             })
+
+    return "No he pogut acabar la consulta: massa passos amb les eines."
 
 
 # ============================================================

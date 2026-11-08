@@ -1,0 +1,90 @@
+/* Xatbot Ornith: botó rodó a baix a la dreta i finestra de xat (ornith.js). */
+
+#chatbot-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid var(--cyan);
+  background: #071b27;
+  font-size: 25px;
+  box-shadow: 0 0 18px rgba(58, 143, 176, .25);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+#chatbot-btn:hover {
+  transform: scale(1.1);
+  background: #103447;
+  border-color: var(--hi);
+  box-shadow: 0 0 18px rgba(58, 143, 176, .7);
+}
+
+#ornith-chat {
+  position: fixed;
+  right: 24px;
+  bottom: 94px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  width: 350px;
+  height: 440px;
+  max-height: calc(100vh - 125px);
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 35px rgba(0, 0, 0, .55);
+}
+
+.ornith-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 15px;
+  background: #0a202c;
+  border-bottom: 1px solid var(--line);
+}
+.ornith-header strong { display: block; letter-spacing: 2px; font-size: 13px; }
+.ornith-header small { display: block; margin-top: 4px; color: var(--dim); font-size: 10px; }
+.ornith-status { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--green); }
+#ornith-close { border: 0; background: transparent; color: var(--dim); font-size: 23px; }
+
+#ornith-messages { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px; overflow-y: auto; }
+
+.ornith-message {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ornith-message.bot { align-self: flex-start; background: #102b39; border: 1px solid #194355; }
+.ornith-message.user { align-self: flex-end; background: #12445a; border: 1px solid var(--cyan); color: #e5f8ff; }
+.ornith-message.error { border-color: var(--red); color: #ff9aa8; }
+
+#ornith-form { display: flex; gap: 8px; padding: 11px; border-top: 1px solid var(--line); background: #091923; }
+#ornith-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: none;
+  background: #030c12;
+  color: var(--fg);
+  font: inherit;
+}
+#ornith-input:focus { border-color: var(--cyan); }
+#ornith-send { width: 38px; border-color: var(--cyan); border-radius: 7px; background: #103447; }
+#ornith-send:disabled { opacity: .45; cursor: wait; }
+
+@media (max-width: 480px) {
+  #ornith-chat { right: 10px; bottom: 82px; width: calc(100vw - 20px); height: min(440px, calc(100vh - 110px)); }
+  #chatbot-btn { right: 16px; bottom: 16px; }
+}
