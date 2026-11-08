@@ -10,7 +10,7 @@ import sys
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, unquote
+from urllib.parse import parse_qs, urlparse, unquote
 
 import db
 
@@ -51,8 +51,10 @@ state = {
     "dataset": None,
     "version": 0,
     "snapshot": False,
-    "error": None
+    "error": None,
+    "others": {}   # vista -> (version, dataset) for the views other than --vista, loaded on demand
 }
+load_lock = threading.Lock()   # one on-demand load at a time
 
 
 def status():
@@ -62,7 +64,8 @@ def status():
         "count": len(d["sessions"]) if d else 0,
         "snapshot": state["snapshot"],
         "error": state["error"],
-        "db": os.path.relpath(DB_PATH, PROJECT_ROOT)
+        "db": os.path.relpath(DB_PATH, PROJECT_ROOT),
+        "vista": args.vista
     }
 
 
@@ -133,6 +136,7 @@ def reload():
             error=None
         )
         state["version"] += 1
+        state["others"] = {}   # the database changed: the other views are read again when asked for
 
     s = status()
 
@@ -146,6 +150,28 @@ def reload():
     )
 
     emit("status", s)
+
+
+def dataset_for(vista):
+    """Sessions dataset of a view (sessions, sessions51..54).
+
+    --vista is the one loaded (and reloaded) by reload(); the others are read the first time
+    they are asked for and kept until the database changes.
+    """
+    if vista == args.vista:
+        return state["dataset"]
+    with load_lock:
+        with lock:
+            version = state["version"]
+            cached = state["others"].get(vista)
+        if cached and cached[0] == version:
+            return cached[1]
+        res = db.load(DB_PATH, ROOM_IDS, args.criteri_informe, vista)
+        with lock:
+            if state["version"] == version:   # not reloaded meanwhile
+                state["others"][vista] = (version, res["dataset"])
+        print(f"database: view {vista} loaded ({len(res['dataset']['sessions']) if res['dataset'] else 0} sessions)", flush=True)
+        return res["dataset"]
 
 
 def watch():
@@ -243,7 +269,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(state["layout"])
 
         if parts == ["api", "sessions"]:
-            return self.send_json(state["dataset"])
+            qs = parse_qs(urlparse(self.path).query)
+            vista = qs.get("vista", [args.vista])[0]
+            if vista not in db.VISTES:
+                return self.send_json({
+                    "ok": False,
+                    "errors": [f"unknown vista {vista!r}; options: {', '.join(db.VISTES)}"]
+                }, 400)
+            try:
+                return self.send_json(dataset_for(vista))
+            except Exception as e:   # view missing from the database, file locked...
+                return self.send_json({"ok": False, "errors": [str(e)]}, 503)
 
         if parts == ["api", "status"]:
             return self.send_json(status())
