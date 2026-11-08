@@ -12,17 +12,31 @@ const GHOST_LINE = 0x2c6478;
 const OVER_COLOR = '#ff4fd8'; // "too many students"
 
 // ---------- database version selector ----------
-let window_seleccionat = '5.1';
+// Cada botó llegeix les sessions d'una vista de la BD (consultes.VISTES).
+const VERSION_VISTA = { BASE: 'sessions', '5.1': 'sessions51', '5.2': 'sessions52', '5.3': 'sessions53', '5.4': 'sessions54' };
+const VERSION_KEY = 'hologram.version';
+let window_seleccionat = 'BASE';
+try {
+  const saved = localStorage.getItem(VERSION_KEY);
+  if (saved in VERSION_VISTA) window_seleccionat = saved;
+} catch { /* no storage: BASE */ }
+
+function markVersion() {
+  document.querySelectorAll('[data-version]').forEach((btn) => {
+    btn.classList.toggle('on', btn.dataset.version === window_seleccionat);
+  });
+}
+markVersion();
 
 document.querySelectorAll('[data-version]').forEach((b) => {
   b.addEventListener('click', () => {
+    if (b.dataset.version === window_seleccionat) return;
     window_seleccionat = b.dataset.version;
-
-    document.querySelectorAll('[data-version]').forEach((btn) => {
-      btn.classList.toggle('on', btn === b);
+    markVersion();
+    try { localStorage.setItem(VERSION_KEY, window_seleccionat); } catch { /* not remembered */ }
+    loadSessions().catch((e) => {
+      $('t-info').textContent = `Cannot load version ${window_seleccionat}: ${e.message}`;
     });
-
-    console.log('Versió seleccionada:', window_seleccionat);
   });
 });
 
@@ -528,10 +542,30 @@ async function onStatus(s) {
   $('status').title = s.error ? `${s.db}: ${s.error}` : `${s.db} · ${s.count} sessions · version ${s.version}`;
   try {
     if (builtKey && roomsKey(await getJSON('layout')) !== builtKey) { location.reload(); return; } // rooms changed: rebuild
-    const ds = await getJSON('sessions');
-    sched = ds ? new Schedule(ds) : null;
-  } catch { /* keep what is shown */ }
+    await loadSessions();
+  } catch { applyView(); /* keep what is shown */ }
+}
+
+// sessions of the view picked with the version selector (BASE, 5.1..5.4)
+let sessionsReq = 0;
+async function loadSessions() {
+  const req = ++sessionsReq;
+  const ds = await getJSON(`sessions?vista=${VERSION_VISTA[window_seleccionat]}`);
+  if (req !== sessionsReq) return; // another version was picked meanwhile
+  sched = ds ? new Schedule(ds) : null;
+  fitViewToData();
   applyView();
+}
+
+// Some versions only cover one semester (5.1..5.4: the 2nd): if the date shown is outside the
+// data, jump to the start of the first semester the version has.
+function fitViewToData() {
+  if (!sched || !view.date) return;
+  const sems = Object.entries(sched.semesters).sort((a, b) => a[1].start.localeCompare(b[1].start));
+  if (!sems.length || sems.some(([, s]) => s.start <= view.date && view.date <= s.end)) return;
+  const [sem, s] = sems[0];
+  view.sem = Number(sem);
+  view.date = isWeekend(s.start) ? addWeekdays(s.start, 1) : s.start;
 }
 
 function connect() {
@@ -600,7 +634,8 @@ curl ${origin}/api/status
 curl ${origin}/api/layout
 
 # sessions of the time views, from 'sessions' + 'calendari'
-curl ${origin}/api/sessions`;
+curl ${origin}/api/sessions
+curl "${origin}/api/sessions?vista=sessions51"   # versions: ${Object.values(VERSION_VISTA).join(', ')}`;
 }
 
 // ---------- focus / pick ----------
