@@ -4,6 +4,8 @@ Garanties:
   * Les dades surten sempre de les eines (ornith/eines.py), mai del LLM.
   * Comprovació posterior: si la resposta cita una aula o una sessió que no ha sortit de cap eina en aquesta
     conversa, es demana al LLM que la refaci; si torna a passar, la resposta surt marcada com a NO VERIFICADA.
+    Només surt com a verificada si alguna eina ha respost; si no, surt com a SENSE DADES. Les xifres de 3 o més
+    dígits que no surten de cap eina també fan refer la resposta, i si hi tornen surten com a avís.
   * La sortida de les eines (i la del verificador) s'entrega dins <dades>...</dades> i el prompt diu que és
     informació, no instruccions.
   * Cap dada surt del DCC: només es crida el gateway LLM de l'event (dcc-llm-gw.uab.cat).
@@ -181,6 +183,49 @@ def comprova(resposta: str, resultats: list[dict], pregunta: str = "") -> set[st
     return falten
 
 
+# Xifres de 3 o més dígits («128», «5.722», «48735»). Els codis d'aula i de sessió es treuen abans, i els decimals
+# («69,6») i les hores («10:00») no compten: l'objectiu és atrapar un recompte inventat, no l'aritmètica.
+RE_XIFRA = re.compile(r"(?<![\w/.,:-])(\d{1,3}(?:\.\d{3})+|\d+)(?![\w/:]|[.,]\d)")
+
+
+def xifres(text: str) -> set[str]:
+    """Nombres enters ≥ 100 que surten al text, sense separador de milers («5.722» → «5722»)."""
+    net = RE_SESSIO.sub(" ", _re_aules().sub(" ", text or ""))
+    return {n for n in (x.replace(".", "") for x in RE_XIFRA.findall(net)) if int(n) >= 100}
+
+
+def _xifres_conegudes(resultats: list[dict], pregunta: str) -> set[str]:
+    """Tot nombre que surt d'un resultat d'eina (i la mida de cada llista que retorna) o de la pregunta."""
+    conegudes = set(re.findall(r"\d+", pregunta or ""))
+
+    def recorre(x):
+        if isinstance(x, dict):
+            for v in x.values():
+                recorre(v)
+        elif isinstance(x, (list, tuple)):
+            conegudes.add(str(len(x)))
+            for v in x:
+                recorre(v)
+    for r in resultats:
+        conegudes.update(re.findall(r"\d+", json.dumps(r, ensure_ascii=False, default=str)))
+        recorre(r)
+    return conegudes
+
+
+def xifres_sense_font(resposta: str, resultats: list[dict], pregunta: str = "") -> set[str]:
+    """Les xifres de la resposta que no surten literalment de cap eina (ni de la pregunta)."""
+    return xifres(resposta) - _xifres_conegudes(resultats, pregunta)
+
+
+def estat(falten: set[str], resultats: list[dict]) -> str:
+    """«verificada»: com a mínim una eina ha respost sense error i no cita res que no en surti.
+    «sense_dades»: no cita res inventat, però tampoc s'ha consultat cap dada (negatives, salutacions...).
+    «no_verificada»: cita aules o sessions que no surten de les eines."""
+    if falten:
+        return "no_verificada"
+    return "verificada" if any("error" not in r for r in resultats) else "sense_dades"
+
+
 def _crida_llm(messages):
     clau = clau_api()
     payload = {"model": MODEL, "messages": messages, "tools": TOOLS, "tool_choice": "auto", "stream": False,
@@ -194,7 +239,10 @@ def _crida_llm(messages):
 
 
 def respon(pregunta: str, historial: list[dict] | None = None, llm=_crida_llm) -> dict:
-    """Resposta completa: {answer, verificada, no_verificades, fonts, eines}. `llm` es pot substituir (proves)."""
+    """Resposta completa: {answer, estat, verificada, no_verificades, xifres_sense_font, fonts, eines}.
+
+    estat: «verificada», «sense_dades» o «no_verificada» (vegeu `estat`); verificada = estat == «verificada».
+    xifres_sense_font: avís, no bloqueja (el LLM pot sumar o arrodonir). `llm` es pot substituir (proves)."""
     messages = [{"role": "system", "content": SISTEMA}, *(historial or []), {"role": "user", "content": pregunta}]
     resultats, traca, reintent = [], [], False
     for _ in range(MAX_PASSOS):
@@ -203,18 +251,22 @@ def respon(pregunta: str, historial: list[dict] | None = None, llm=_crida_llm) -
         if not crides:
             text = (msg.get("content") or "").strip()
             falten = comprova(text, resultats, pregunta)
-            if falten and not reintent:
+            sense_font = xifres_sense_font(text, resultats, pregunta)
+            if (falten or sense_font) and not reintent:
                 reintent = True
+                que = [f"cita {', '.join(sorted(falten))}, que no surt de cap eina"] if falten else []
+                if sense_font:
+                    que.append(f"dona les xifres {', '.join(sorted(sense_font, key=int))}, que no surten de cap eina")
                 messages += [{"role": "assistant", "content": text},
                              {"role": "user", "content":
-                              f"Comprovació automàtica: la resposta cita {', '.join(sorted(falten))}, que no surt de cap "
-                              f"eina. Torna a escriure la resposta sencera fent servir només dades de les eines (crida-les "
-                              f"si cal). L'usuari no ha vist la resposta anterior: no la mencionis, no et disculpis i no "
-                              f"parlis d'aquesta comprovació."}]
+                              f"Comprovació automàtica: la resposta {' i '.join(que)}. Torna a escriure la resposta "
+                              f"sencera fent servir només dades de les eines (crida-les si cal). L'usuari no ha vist la "
+                              f"resposta anterior: no la mencionis, no et disculpis i no parlis d'aquesta comprovació."}]
                 continue
             fonts = list(dict.fromkeys(f for r in resultats for f in r.get("fonts", [])))
-            return {"answer": text, "verificada": not falten, "no_verificades": sorted(falten),
-                    "fonts": fonts, "eines": traca}
+            e = estat(falten, resultats)
+            return {"answer": text, "estat": e, "verificada": e == "verificada", "no_verificades": sorted(falten),
+                    "xifres_sense_font": sorted(sense_font, key=int), "fonts": fonts, "eines": traca}
         messages.append({"role": "assistant", "content": msg.get("content") or "", "tool_calls": crides})
         for c in crides:
             nom = c["function"]["name"]
@@ -232,16 +284,21 @@ def respon(pregunta: str, historial: list[dict] | None = None, llm=_crida_llm) -
                 per_llm["fonts_mostra"] = res["fonts"][:20]
             messages.append({"role": "tool", "tool_call_id": c.get("id", nom),
                              "content": "<dades>" + json.dumps(per_llm, ensure_ascii=False, default=str) + "</dades>"})
-    return {"answer": "No ho he pogut resoldre amb les eines disponibles (massa passos).", "verificada": True,
-            "no_verificades": [], "fonts": [], "eines": traca}
+    return {"answer": "No ho he pogut resoldre amb les eines disponibles (massa passos).", "estat": "sense_dades",
+            "verificada": False, "no_verificades": [], "xifres_sense_font": [], "fonts": [], "eines": traca}
 
 
 def format_text(r: dict) -> str:
     """La resposta com a text pla, amb les fonts al peu (per al xat actual, que mostra text)."""
     text = r["answer"]
-    if not r["verificada"]:
+    if r["estat"] == "no_verificada":
         text = ("⚠️ NO VERIFICADA: cita " + ", ".join(r["no_verificades"]) +
                 ", que no surt de les dades. Comprova-ho abans de fer-ne cas.\n\n" + text)
+    elif r["estat"] == "sense_dades":
+        text = "○ SENSE DADES: aquesta resposta no surt de cap consulta a les dades.\n\n" + text
+    if r.get("xifres_sense_font"):
+        text += ("\n\n⚠️ Xifres que no surten literalment de cap eina (pot ser una suma o un arrodoniment): "
+                 + ", ".join(r["xifres_sense_font"]))
     if r["fonts"]:
         mostra = ", ".join(r["fonts"][:MAX_FONTS_TEXT])
         mes = f" i {len(r['fonts']) - MAX_FONTS_TEXT} més" if len(r["fonts"]) > MAX_FONTS_TEXT else ""

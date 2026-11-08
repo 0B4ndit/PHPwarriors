@@ -17,6 +17,7 @@ import pandas as pd
 
 from . import eines
 from .agent import comprova, respon
+from .agent import xifres as agent_xifres
 from .dades import PAQUET, SOLVER
 
 DIES = ["L", "M", "X", "J", "V"]
@@ -210,6 +211,34 @@ def _():
     assert not r["verificada"] and r["no_verificades"] == ["Q1/1011"], r
 
 
+@prova("segell: sense cap eina, la resposta surt «sense dades», no «verificada»")
+def _():
+    for text in ["N'hi ha 9.999, sobretot de GEI 3r.", "El grup 81 té classe dimarts a les 9:00 i a les 11:00.",
+                 "No ho puc saber sense consultar les dades."]:
+        r = respon("pregunta", llm=_llm_fals([{"content": text}, {"content": text}]))
+        assert r["estat"] == "sense_dades" and not r["verificada"], (text, r)
+
+
+@prova("segell: una eina que només retorna error no fa la resposta verificada")
+def _():
+    crida = {"tool_calls": [{"id": "1", "function": {"name": "eina_que_no_existeix", "arguments": "{}"}}]}
+    r = respon("pregunta", llm=_llm_fals([crida, {"content": "No ho he pogut consultar."}]))
+    assert r["estat"] == "sense_dades", r
+
+
+@prova("segell: una xifra inventada es fa refer, i si hi torna surt com a avís")
+def _():
+    assert agent_xifres("N'hi ha 9.999 (5.722 al 2n), 69,6 %, a les 10:00 l'11/3/2027 a Q1/1003, S01234.") \
+        == {"9999", "5722"}
+    crida = {"tool_calls": [{"id": "1", "function": {"name": "horari", "arguments": '{"grup": "81", "dia": "M"}'}}]}
+    r = respon("on té classe el grup 81 dimarts?", llm=_llm_fals([
+        crida, {"content": "Té 999 sessions."}, {"content": "Té 128 sessions."}]))
+    assert r["estat"] == "verificada" and r["xifres_sense_font"] == [], r
+    r = respon("on té classe el grup 81 dimarts?", llm=_llm_fals([
+        crida, {"content": "Té 999 sessions."}, {"content": "Té 999 sessions."}]))
+    assert r["estat"] == "verificada" and r["xifres_sense_font"] == ["999"], r
+
+
 PREGUNTES_LLM = [
     "On té classe el grup 81 dimarts?",
     "Quina aula de 60 places està lliure dijous a les 10?",
@@ -226,10 +255,14 @@ def proves_llm():
     for p in PREGUNTES_LLM:
         t = time.time()
         r = respon(p)
-        estat = "verificada" if r["verificada"] else "NO VERIFICADA " + ", ".join(r["no_verificades"])
+        estat = {"verificada": "verificada", "sense_dades": "sense dades"}.get(
+            r["estat"], "NO VERIFICADA " + ", ".join(r["no_verificades"]))
+        if r["xifres_sense_font"]:
+            estat += f", xifres sense font: {', '.join(r['xifres_sense_font'])}"
         print(f"\n> {p}\n  [{estat}, {len(r['fonts'])} fonts, eines: "
               f"{', '.join(e['eina'] for e in r['eines']) or '-'}, {time.time() - t:.0f}s]\n  {r['answer']}")
-        resultats.append((f"LLM: {p}", r["verificada"], ""))
+        # una negativa sense eines («sense dades») és la resposta bona per a les preguntes trampa
+        resultats.append((f"LLM: {p}", r["estat"] != "no_verificada", ""))
 
 
 if __name__ == "__main__":

@@ -90,10 +90,18 @@ function resposta(data) {
   const m = document.createElement('div');
   m.className = 'ornith-message bot';
 
-  if (data.verificada === false) {
+  // estat: verificada | sense_dades | no_verificada (respostes antigues només porten «verificada»)
+  const estat = data.estat || (data.verificada === false ? 'no_verificada' : data.verificada ? 'verificada' : null);
+  if (estat === 'no_verificada') {
     const av = document.createElement('div');
     av.className = 'ornith-avis';
     av.textContent = `⚠️ No verificada: ${(data.no_verificades || []).join(', ')} no surt de les dades. Comprova-ho abans de fer-ne cas.`;
+    m.append(av);
+  }
+  if ((data.xifres_sense_font || []).length) {
+    const av = document.createElement('div');
+    av.className = 'ornith-avis xifres';
+    av.textContent = `⚠️ Xifres que no surten literalment de cap eina (pot ser una suma o un arrodoniment): ${data.xifres_sense_font.join(', ')}`;
     m.append(av);
   }
 
@@ -105,10 +113,17 @@ function resposta(data) {
 
   const peu = document.createElement('div');
   peu.className = 'ornith-peu';
-  if (data.verificada !== undefined) {
+  const SEGELLS = {
+    verificada: ['ok', '✓ verificada amb les dades', 'Les aules i sessions que cita surten de les eines; comprova-les amb les fonts'],
+    sense_dades: ['buit', '○ sense dades', 'No s\'ha consultat cap dada: la resposta no es pot comprovar amb el CSV'],
+    no_verificada: ['ko', '✗ no verificada', 'Cita aules o sessions que no surten de cap eina'],
+  };
+  if (SEGELLS[estat]) {
+    const [cls, txt, ajuda] = SEGELLS[estat];
     const v = document.createElement('span');
-    v.className = `ornith-segell ${data.verificada ? 'ok' : 'ko'}`;
-    v.textContent = data.verificada ? '✓ verificada amb les dades' : '✗ no verificada';
+    v.className = `ornith-segell ${cls}`;
+    v.textContent = txt;
+    v.title = ajuda;
     peu.append(v);
   }
   const fonts = data.fonts || [];

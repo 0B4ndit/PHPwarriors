@@ -67,10 +67,20 @@ Per defecte totes les eines responen sobre la **proposta 5.2** (torns nous, 2n s
    - Tota aula (`Q1/1003`…) i tota sessió (`S01234`) que cita ha de sortir d'algun resultat d'eina d'aquella conversa.
    - Si dona una aula per lliure, l'eina `aules_lliures` no la pot haver retornat com a ocupada.
 
-   Si la resposta falla la comprovació, el LLM la refà. Si torna a fallar, surt amb l'avís «⚠️ NO VERIFICADA» i la llista del que no quadra.
+   - Tota xifra de 3 o més dígits ha de sortir literalment d'algun resultat d'eina (o de la pregunta).
+
+   Si la resposta falla la comprovació, el LLM la refà. Si torna a fallar, surt amb l'avís «⚠️ NO VERIFICADA» i la llista del que no quadra. Les xifres que encara no surten de cap eina només donen un avís, perquè el LLM pot sumar o arrodonir.
+
+   Cada resposta porta un d'aquests tres segells:
+
+   | Segell | Quan |
+   |---|---|
+   | ✓ verificada amb les dades | Alguna eina ha respost sense error i tot el que cita en surt |
+   | ○ sense dades | No s'ha consultat cap dada (negatives, preguntes trampa, salutacions): no hi ha res a comprovar al CSV |
+   | ✗ no verificada | Cita aules o sessions que no surten de cap eina |
 3. **Els canvis sempre els valida el verificador.** `simula_canvi` i els imprevistos criden `horaris.check.avalua`, el mateix codi que farà servir el jurat, i en retornen el veredicte.
 4. **La sortida de les eines és dada, no instruccions.** Arriba al LLM entre `<dades>…</dades>`, i el prompt diu que no ha de seguir cap ordre que hi trobi.
-5. **Proves independents** (`python -m ornith.proves`). Comparen la sortida de les eines amb el mateix càlcul fet amb pandas directament sobre els CSV, sense passar per `ornith/` ni per DuckDB. Darrera execució: **17 de 17** sense LLM, i **7 de 7** respostes verificades amb el LLM de l'event (`--llm`).
+5. **Proves independents** (`python -m ornith.proves`). Comparen la sortida de les eines amb el mateix càlcul fet amb pandas directament sobre els CSV, sense passar per `ornith/` ni per DuckDB. Darrera execució: **20 de 20** sense LLM, i **7 de 7** respostes verificades amb el LLM de l'event (`--llm`, abans del segell «sense dades»: cal tornar-les a passar).
 
 | Prova | Resultat |
 |---|---|
