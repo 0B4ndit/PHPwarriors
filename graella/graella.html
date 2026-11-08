@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/comu/comu.css">
   <link rel="stylesheet" href="graella.css">
   <script type="module" src="graella.js"></script>
+  <link rel="stylesheet" href="/ornith.css">
+  <script type="module" src="/ornith.js"></script>
 </head>
 <body>
 <div id="app">
@@ -96,5 +98,62 @@
   </main>
 
 </div>
+  <!-- Xatbot Ornith -->
+  <button
+    id="chatbot-btn"
+    title="Obrir l'assistent Chiikawa"
+    aria-controls="ornith-chat"
+  >💬</button>
+
+  <section id="ornith-chat" aria-label="Chiikawa" hidden>
+
+    <!-- Capçalera -->
+    <div class="ornith-header">
+      <div>
+        <strong>CHIIKAWA</strong>
+        <small>
+          <span class="ornith-status"></span>
+          Assistent universitari
+        </small>
+      </div>
+
+      <button id="ornith-close" title="Tancar">×</button>
+    </div>
+
+    <!-- Missatges -->
+    <div id="ornith-messages">
+
+      <!-- Salutació inicial amb avatar -->
+      <div class="ornith-fila-bot">
+        <img
+          src="/chiikawa.png"
+          alt="Chiikawa"
+          class="ornith-avatar"
+        >
+
+        <div class="ornith-message bot">
+          Hola! Soc Chiikawa. Et puc ajudar en alguna consulta?
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Formulari -->
+    <form id="ornith-form">
+      <input
+        id="ornith-input"
+        type="text"
+        placeholder="Escriu la teva consulta..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        id="ornith-send"
+        type="submit"
+        title="Enviar"
+      >➤</button>
+    </form>
+
 </body>
 </html>
