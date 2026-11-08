@@ -5,10 +5,9 @@ import urllib.request
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
-
 from agent_tools import consultar_sessio, buscar_aules
 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
 TIMEOUT = 90       # segons d'espera per resposta del model
 MAX_PASSOS = 8     # rondes d'eines com a màxim per pregunta
@@ -78,6 +77,17 @@ def executar_eina(nom, arguments):
 # CRIDA A ORNITH
 # ============================================================
 
+def clau_api():
+    """La clau UTH_KEY, de l'entorn o del .env de l'arrel (es torna a llegir a cada crida: no cal reiniciar)."""
+    load_dotenv(ENV_PATH)
+    clau = os.environ.get("UTH_KEY", "").strip()
+    if not clau:
+        raise RuntimeError(
+            f"Falta la clau UTH_KEY. Crea {ENV_PATH} (copia .env.example) amb la línia UTH_KEY=la_teva_clau."
+        )
+    return clau
+
+
 def cridar_ornith(messages):
 
     payload = {
@@ -97,7 +107,7 @@ def cridar_ornith(messages):
         URL,
         data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": f"Bearer {os.environ['UTH_KEY']}",
+            "Authorization": f"Bearer {clau_api()}",
             "Content-Type": "application/json"
         },
         method="POST"

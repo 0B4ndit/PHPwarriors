@@ -75,3 +75,6 @@ hologram/*.tmp
 # solver (generated: facts, solutions, proposta, verifier report)
 
 planols/*
+
+# ornith: registre de canvis dels imprevistos (python -m ornith ... --desa)
+dades/registre_canvis.csv

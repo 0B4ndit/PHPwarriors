@@ -294,8 +294,11 @@ class Handler(SimpleHTTPRequestHandler):
             if not pregunta:
                 return self.fail("Escriu una pregunta.", 400)
 
-            from test_tools import parlar   # aquí: carrega les dades i la clau només quan algú pregunta
-            return self.send_json({"ok": True, "answer": parlar(pregunta)})
+            from ornith.agent import format_text, respon   # aquí: carrega les dades i la clau només quan algú pregunta
+            r = respon(pregunta)
+            # text: la resposta (markdown) que ornith.js pinta amb les fonts a part; answer: tot en text pla
+            return self.send_json({"ok": True, "text": r["answer"], "answer": format_text(r), "verificada": r["verificada"],
+                                   "no_verificades": r["no_verificades"], "fonts": r["fonts"], "eines": r["eines"]})
         except Exception as e:
             print(f"Ornith error: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
             return self.fail(f"{type(e).__name__}: {e}", 500)

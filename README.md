@@ -109,3 +109,13 @@ con.execute("""
 ```
 
 Note: DuckDB 2.0 removed `fetchone()` / `fetchall()` on `con.sql(...)` relations. Use `con.execute(...).fetchone()` or `.df()` instead.
+
+## Level 3 (AI): Ornith
+
+The assistant for Gestió Acadèmica lives in `ornith/` and is documented in [NIVELL3.md](NIVELL3.md): tools, the
+post-check that rejects answers citing rooms or sessions no tool returned, contingencies with notices, and tests.
+
+```bash
+python -m ornith "On té classe el grup 81 dimarts?"   # needs UTH_KEY in .env (see .env.example)
+python -m ornith.proves                              # tests against pandas on the CSVs (--llm: also asks the LLM)
+```
