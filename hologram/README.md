@@ -29,7 +29,18 @@ Weekends, holidays, non-teaching days and the assessment weeks are excluded from
 
 Controls: scope buttons, semester select, date and time pickers (type or pick) with step buttons, and the keyboard (when no field has focus): hour `← →` ±30 min, `↑ ↓` ±1 day; day `← →` ±1 day, `↑ ↓` ±1 week; week `← →` ±1 week; semester `← →` switch. The floating **Planta** buttons over the scene (P3-P0 / Totes) keep one floor bright and fade the rooms, labels and corridors of the others (the room list fades them too). Selecting a room focuses its floor; while a floor is focused, a click in 3D prefers its rooms over faded ones in front.
 
-Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters come from `sessions.sem` (computed by `migra_duckdb.py`: September-January = 1). `db.py` holds the queries; `schedule.js` holds the time logic and has no browser dependencies.
+Every session with a room of the hologram counts. A shared class (`id_compartida`) is one physical session; students of its cohorts are added. Semesters come from `sessions.sem` (computed by `migra_duckdb.py`: September-January = 1). `db.py` builds the dataset from the queries in `database/consultes.py`; `schedule.js` holds the time logic and has no browser dependencies.
+
+## Files
+
+The server also serves the other pages of the project, all with the same API:
+
+| Path | Folder | Files |
+|---|---|---|
+| `/` | `hologram/` | `index.html` (markup only), `hologram.css`, `app.js` (scene + panel), `schedule.js`, `hologram-material.js`, `ornith.css` / `ornith.js` (chatbot) |
+| `/home/home.html` | `home/` | `home.html`, `home.css` |
+| `/graella/graella.html` | `graella/` | `graella.html` (markup only), `graella.css`, `graella.js` |
+| `/comu/` | `comu/` | `comu.css` (colours, buttons, pills, toolbars shared by the hologram and the graella), `nav.js` (database-version and page bars; the version picked is shared by every page) |
 
 ## API
 
@@ -40,9 +51,13 @@ Read-only; everything comes from the database.
 | Path | Returns |
 |---|---|
 | `/api/layout` | `layout.json` with `capacity`, `tipus` and `descripcio` of every room from `aules` (`503` until the database has been read once) |
-| `/api/sessions` | the session dataset (below), or `null` |
+| `/api/sessions?vista=` | the session dataset (below) of a sessions view (`sessions`, `sessions51`..`sessions54`; default `--vista`), or `null` |
 | `/api/status` | `{version, count, snapshot, error, db}` |
 | `/api/events` | Server-Sent Events: `status` on connect and on every reload |
+| `/api/graella/<consulta>` | weekly timetables for the graella: `opcions`, `assignatura?setmana=&codi=[&grup=]`, `aula?setmana=&aula=`, `docent?setmana=&docent=`, `lliures?setmana=` (`setmana` = Monday, `AAAA-MM-DD`; all take `vista=`) |
+| `POST /api/ornith` | `{"question": "..."}` → `{"ok": true, "answer": "..."}`: the Ornith chatbot (`test_tools.py`, needs `UTH_KEY` in `.env`) |
+
+Errors are `{"ok": false, "errors": ["..."]}` with a 4xx / 5xx status.
 
 Dataset shape: `{window:{start,end}, semesters:{"1":{start,end}}, calendar:[{date,tipus,h_ini,h_fi,motiu}], sessions:[[date,startMin,durMin,roomId,students,labelIdx]], labels:[[className,group,teachers]]}`.
 

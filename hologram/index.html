@@ -1,392 +1,32 @@
-
 <!doctype html>
-<html lang="en">
+<html lang="ca">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UAB Hologram</title>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<style>
-  :root { --bg:#03070c; --panel:#07121a; --line:#123846; --fg:#bfe3ec; --dim:#6a98a8;
-          --red:#d8364f; --green:#34c97c; --cyan:#3a8fb0; }
-  * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:12px/1.4 ui-monospace, Consolas, monospace; }
-  #app { display:flex; height:100%; position:relative; }
-  
-  /* BARRA LATERAL FIXADA A LA ESQUERRA */
-  aside { 
-    width:280px; 
-    background:var(--panel); 
-    border-right:1px solid var(--line); 
-    display:flex; 
-    flex-direction:column; 
-    z-index:1; 
-    flex-shrink:0;
-  }
-  
-  #scene { flex:1; min-width:0; position:relative; }
-  #scene canvas { display:block; width:100%; height:100%; }
-
-  header { padding:12px; border-bottom:1px solid var(--line); }
-  header h1 { margin:0 0 8px; font-size:13px; letter-spacing:.12em; color:var(--cyan); }
-  .btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-  button { background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 8px; font:inherit; cursor:pointer; }
-  button:hover { border-color:var(--cyan); }
-  .pill { display:inline-block; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
-  .pill.ok { color:var(--green); border-color:var(--green); }
-  .pill.warn { color:#e0b04a; border-color:#e0b04a; }
-  .pill.bad { color:var(--red); border-color:var(--red); }
-  #counts { display:block; margin:4px 0 8px; font-size:11px; font-weight:normal; letter-spacing:0; color:var(--dim); }
-  .seg { display:flex; margin-top:10px; } .seg button { flex:1; border-radius:0; }
-  .seg button:first-child { border-radius:4px 0 0 4px; } .seg button:last-child { border-radius:0 4px 4px 0; border-left:0; }
-  .seg button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
-  .row.off, h3.off { opacity:.35; }
-
-  /* SELECTOR DE PLANTES A LA DRETA DINS DE L'ESCENA 3D */
-  #floors { 
-    position:absolute; 
-    top:12px; 
-    right:12px; 
-    z-index:2; 
-    display:flex; 
-    flex-direction:column; 
-    gap:4px;
-    padding:8px; 
-    background:rgba(7,18,26,.72); 
-    border:1px solid var(--line); 
-    border-radius:6px; 
-    backdrop-filter:blur(4px); 
-  }
-  #floors span { color:var(--dim); font-size:10px; letter-spacing:.1em; text-transform:uppercase; text-align:center; margin-bottom:2px; }
-  #floors button { min-width:56px; padding:5px 8px; }
-  #floors button.on { background:#0f3a4e; border-color:var(--cyan); color:#e6f7fb; }
-  #floors button:last-child { margin-top:4px; }
-
-  .trow[hidden] { display:none; }
-  .trow { display:flex; align-items:center; gap:6px; margin-top:8px; }
-  .trow input, .trow select { flex:1; min-width:0; background:#0a2230; color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; font:inherit; color-scheme:dark; }
-  .trow label { display:flex; align-items:center; gap:8px; flex:1; color:var(--dim); }
-  #t-info { margin-top:8px; font-size:11px; color:var(--fg); }
-  #t-hint { margin-top:4px; font-size:10px; color:var(--dim); }
-  #legend { margin-top:10px; }
-  #legend-bar { height:10px; border-radius:3px; }
-  .legend-ends { display:flex; justify-content:space-between; color:var(--dim); font-size:10px; margin:2px 0 8px; }
-  #legend label { display:block; color:var(--dim); margin-bottom:6px; }
-  #legend label b { float:right; color:var(--fg); font-weight:normal; }
-  input[type=range].hue { display:block; width:100%; height:8px; margin:6px 0 0; border-radius:4px; -webkit-appearance:none; appearance:none; outline:none; }
-  input[type=range].hue::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
-  input[type=range].hue::-moz-range-thumb { width:12px; height:16px; border-radius:3px; background:#e6f7fb; border:1px solid #03070c; cursor:pointer; }
-  #detail { border-top:1px solid var(--line); max-height:38%; display:flex; flex-direction:column; }
-  #detail[hidden] { display:none; }
-  .d-head { display:flex; align-items:center; justify-content:space-between; padding:8px 12px 4px; color:var(--cyan); font-size:11px; }
-  .d-head button { padding:0 6px; }
-  #d-list { overflow-y:auto; padding:0 12px 8px; }
-  .d-row { display:flex; gap:8px; padding:3px 0; border-bottom:1px solid #0c2230; font-size:11px; }
-  .d-when { flex:none; width:104px; color:var(--cyan); }
-  .d-name { flex:1; } .d-name i { color:var(--dim); font-style:normal; }
-  .d-n { flex:none; color:var(--dim); }
-  .d-empty { color:var(--dim); padding:6px 0; font-size:11px; }
-  .val { color:var(--fg); min-width:34px; text-align:right; }
-  #room-list { overflow-y:auto; flex:1; padding:0 12px 8px; }
-  h3 { margin:12px 0 3px; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
-  .row { display:flex; align-items:center; gap:8px; padding:2px 4px; border-radius:4px; cursor:pointer; }
-  .row:hover { background:#0a2230; }
-  .row.sel { background:#0d3345; outline:1px solid var(--cyan); }
-  .code { flex:1; } .cap { color:var(--dim); }
-  .tag { color:var(--dim); font-size:10px; }
-  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; flex:none; background:var(--cyan); }
-  details { border-top:1px solid var(--line); padding:8px 12px; }
-  summary { cursor:pointer; color:var(--dim); }
-  pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fc3d3; font-size:10.5px; }
-
-  /* BOTÓ RODÓ DEL CHATBOT (SOTA-DRETA) */
-  #chatbot-btn {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    z-index: 100;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: #0f3a4e;
-    border: 1px solid var(--cyan);
-    color: #e6f7fb;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 12px rgba(58, 143, 176, 0.4);
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  }
-  #chatbot-btn:hover {
-    transform: scale(1.1);
-    background: #144963;
-    box-shadow: 0 0 18px rgba(58, 143, 176, 0.7);
-    border-color: #e6f7fb;
-  }
-
-  @media (max-width: 700px) { 
-    #app { flex-direction:column; } 
-    aside { width:100%; height:42%; border-right:0; border-bottom:1px solid var(--line); } 
-    #chatbot-btn { bottom: 12px; right: 12px; width: 40px; height: 40px; font-size: 16px; }
-  }
-
-  /* SELECTORS GLOBALS */
-  #versions {
-    position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
-    display: flex;
-    gap: 3px;
-    padding: 4px;
-    background: rgba(7,18,26,.85);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-  }
-
-  #versions button {
-    min-width: 38px;
-    padding: 4px 7px;
-    font-size: 11px;
-  }
-
-  #versions button.on {
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
-
-  #views {
-    position: absolute;
-    top: 12px;
-    left: calc(50% + 125px);
-    z-index: 4;
-    display: flex;
-    gap: 3px;
-    padding: 4px;
-    background: rgba(7,18,26,.85);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-  }
-
-  #views button {
-    min-width: 42px;
-    padding: 4px 7px;
-    font-size: 11px;
-  }
-
-  #views button.on {
-    background: #0f3a4e;
-    border-color: var(--cyan);
-    color: #e6f7fb;
-  }
-
-  @media (max-width: 900px) {
-    #versions {
-      top: 12px;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UAB Hologram</title>
+  <link rel="stylesheet" href="/comu/comu.css">
+  <link rel="stylesheet" href="hologram.css">
+  <link rel="stylesheet" href="ornith.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
     }
-
-    #views {
-      top: 52px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-  }
-
-  /* ---------- ORNITH CHAT ---------- */
-
-#chatbot-btn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  border: 1px solid var(--cyan);
-  background: #071b27;
-  color: var(--fg);
-  font-size: 25px;
-  cursor: pointer;
-  z-index: 1001;
-  box-shadow: 0 0 18px rgba(58, 143, 176, .25);
-}
-
-#chatbot-btn:hover {
-  background: #103447;
-}
-
-#ornith-chat {
-  position: fixed;
-  right: 24px;
-  bottom: 94px;
-  width: 350px;
-  height: 440px;
-  max-height: calc(100vh - 125px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #07121a;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: 0 8px 35px rgba(0, 0, 0, .55);
-  z-index: 1000;
-}
-
-#ornith-chat[hidden] {
-  display: none;
-}
-
-.ornith-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 13px 15px;
-  background: #0a202c;
-  border-bottom: 1px solid var(--line);
-  color: var(--fg);
-}
-
-.ornith-header strong {
-  display: block;
-  letter-spacing: 2px;
-  font-size: 13px;
-}
-
-.ornith-header small {
-  display: block;
-  margin-top: 4px;
-  color: var(--dim);
-  font-size: 10px;
-}
-
-.ornith-status {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 5px;
-  border-radius: 50%;
-  background: var(--green);
-}
-
-#ornith-close {
-  border: 0;
-  background: transparent;
-  color: var(--dim);
-  font-size: 23px;
-  cursor: pointer;
-}
-
-#ornith-messages {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  overflow-y: auto;
-}
-
-.ornith-message {
-  max-width: 85%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.ornith-message.bot {
-  align-self: flex-start;
-  background: #102b39;
-  border: 1px solid #194355;
-  color: var(--fg);
-}
-
-.ornith-message.user {
-  align-self: flex-end;
-  background: #12445a;
-  border: 1px solid var(--cyan);
-  color: #e5f8ff;
-}
-
-.ornith-message.error {
-  border-color: var(--red);
-  color: #ff9aa8;
-}
-
-#ornith-form {
-  display: flex;
-  gap: 8px;
-  padding: 11px;
-  border-top: 1px solid var(--line);
-  background: #091923;
-}
-
-#ornith-input {
-  flex: 1;
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  outline: none;
-  background: #030c12;
-  color: var(--fg);
-  font-size: 12px;
-}
-
-#ornith-input:focus {
-  border-color: var(--cyan);
-}
-
-#ornith-send {
-  width: 38px;
-  border: 1px solid var(--cyan);
-  border-radius: 7px;
-  background: #103447;
-  color: var(--fg);
-  cursor: pointer;
-}
-
-#ornith-send:disabled {
-  opacity: .45;
-  cursor: wait;
-}
-
-@media (max-width: 480px) {
-  #ornith-chat {
-    right: 10px;
-    bottom: 82px;
-    width: calc(100vw - 20px);
-    height: min(440px, calc(100vh - 110px));
-  }
-
-  #chatbot-btn {
-    right: 16px;
-    bottom: 16px;
-  }
-}
-
-</style>
+  </script>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="ornith.js"></script>
 </head>
 <body>
 <div id="app">
-  <!-- PANEL LATERAL ESQUERRA (SELECCIÓ D'AULES I FILTRES) -->
+
+  <!-- Barra lateral: temps, llegenda, llista d'aules i classes de l'aula triada -->
   <aside>
     <header>
       <h1>UAB · AULES EDIFICI Q <span id="counts"></span></h1>
       <span id="status" class="pill warn">connecting…</span>
+
       <div id="time-controls">
         <div class="seg">
           <button data-scope="semester">Semester</button>
@@ -394,49 +34,59 @@
           <button data-scope="day">Day</button>
           <button data-scope="hour" class="on">Hour</button>
         </div>
-        <div class="trow" id="row-sem" hidden><label>Semester <select id="t-sem"><option value="1">1r · Sep–Jan</option><option value="2">2n · Feb–May</option></select></label></div>
-        <div class="trow" id="row-date"><button id="d-prev" title="previous">◀</button><input type="date" id="t-date"><button id="d-next" title="next">▶</button></div>
-        <div class="trow" id="row-time"><button id="h-prev" title="−30 min">◀</button><input type="time" id="t-time" step="900"><button id="h-next" title="+30 min">▶</button></div>
+        <div class="trow" id="row-sem" hidden>
+          <label>Semester
+            <select id="t-sem">
+              <option value="1">1r · Sep–Jan</option>
+              <option value="2">2n · Feb–May</option>
+            </select>
+          </label>
+        </div>
+        <div class="trow" id="row-date">
+          <button id="d-prev" title="previous">◀</button>
+          <input type="date" id="t-date">
+          <button id="d-next" title="next">▶</button>
+        </div>
+        <div class="trow" id="row-time">
+          <button id="h-prev" title="−30 min">◀</button>
+          <input type="time" id="t-time" step="900">
+          <button id="h-next" title="+30 min">▶</button>
+        </div>
         <div id="t-info"></div>
         <div id="t-hint"></div>
       </div>
+
       <div id="legend">
         <div id="legend-bar"></div>
         <div class="legend-ends"><span>0%</span><span id="legend-hi">100%</span></div>
         <label>hue <b id="hue-n"></b><input id="hue" class="hue" type="range" min="0" max="360"></label>
       </div>
+
       <div class="btns">
         <button id="btn-labels">Toggle labels</button>
       </div>
     </header>
+
     <div id="room-list"></div>
+
     <div id="detail" hidden>
       <div class="d-head"><b id="d-title"></b><button id="d-close" title="close">✕</button></div>
       <div id="d-list"></div>
     </div>
+
     <details>
       <summary>API</summary>
       <pre id="api-example"></pre>
     </details>
   </aside>
 
-  <!-- ESCENA 3D A LA DRETA -->
-  <div id="scene">
-    <nav id="versions" aria-label="Versió de la base de dades">
-      <button data-version="BASE" class="on">BASE</button>
-      <button data-version="5.1">5.1</button>
-      <button data-version="5.2">5.2</button>
-      <button data-version="5.3">5.3</button>
-      <button data-version="5.4">5.4</button>
-    </nav>
+  <!-- Escena 3D amb els panells flotants -->
+  <main id="scene">
+    <div id="topbar">
+      <nav id="versions" class="toolbar" aria-label="Versió de la base de dades"></nav>
+      <nav id="views" class="toolbar" aria-label="Pàgina"></nav>
+    </div>
 
-    <nav id="views" aria-label="Vista">
-      <button data-view="hologram" class="on">3D</button>
-      <button data-view="home">Home</button>
-      <button data-view="graella">Graella</button>
-    </nav>
-
-    <!-- SELECTOR DE PLANTES A LA DRETA DINS L'ESCENA -->
     <nav id="floors" aria-label="Planta">
       <span>Planta</span>
       <button data-floor="3" title="planta tercera">P3</button>
@@ -445,37 +95,27 @@
       <button data-floor="0" title="planta baixa">P0</button>
       <button data-floor="" class="on" title="totes les plantes">Totes</button>
     </nav>
-  </div>
+  </main>
 
-  <!-- BOTÓ RODÓ CHATBOT (SOTA-DRETA) -->
-  <button id="chatbot-btn" title="Obrir Chatbot Assistant">💬</button>
-  <div id="ornith-chat" hidden>
-  <div class="ornith-header">
-    <div>
-      <strong>ORNITH</strong>
-      <small><span class="ornith-status"></span> Assistent universitari</small>
+  <!-- Xatbot Ornith (ornith.js) -->
+  <button id="chatbot-btn" title="Obrir l'assistent Ornith" aria-controls="ornith-chat">💬</button>
+  <section id="ornith-chat" aria-label="Ornith" hidden>
+    <div class="ornith-header">
+      <div>
+        <strong>ORNITH</strong>
+        <small><span class="ornith-status"></span> Assistent universitari</small>
+      </div>
+      <button id="ornith-close" title="Tancar">×</button>
     </div>
-    <button id="ornith-close" title="Tancar">×</button>
-  </div>
-
-  <div id="ornith-messages">
-    <div class="ornith-message bot">
-      Hola! Soc l'Ornith. Et puc ajudar en alguna consulta?
+    <div id="ornith-messages">
+      <div class="ornith-message bot">Hola! Soc l'Ornith. Et puc ajudar en alguna consulta?</div>
     </div>
-  </div>
+    <form id="ornith-form">
+      <input id="ornith-input" type="text" placeholder="Escriu la teva consulta..." autocomplete="off" required>
+      <button id="ornith-send" type="submit" title="Enviar">➤</button>
+    </form>
+  </section>
 
-  <form id="ornith-form">
-    <input
-      id="ornith-input"
-      type="text"
-      placeholder="Escriu la teva consulta..."
-      autocomplete="off"
-      required
-    >
-    <button id="ornith-send" type="submit">➤</button>
-  </form>
 </div>
-</div>
-<script type="module" src="app.js"></script>
 </body>
 </html>

@@ -1,10 +1,11 @@
 // Time-aware occupancy: pure functions, no DOM / three.js.
 //
-// Dataset (pushed by nivell1.py to /api/sessions):
+// Dataset (GET /api/sessions, built by db.py from the DuckDB database):
 //   { window: {start, end}              minutes of the day that count as "open" (e.g. 510..1260 = 08:30..21:00)
 //     semesters: {"1": {start, end}, "2": {...}}   ISO dates of the first/last teaching day
 //     calendar: [{date, tipus, h_ini, h_fi, motiu}]  festiu | no_lectiu | avaluacio | aturada
-//     sessions: [[date, startMin, durMin, roomId, students], ...]   only sessions in rooms shown by the hologram }
+//     sessions: [[date, startMin, durMin, roomId, students, labelIdx], ...]   only sessions in rooms shown by the hologram
+//     labels: [[className, group, teachers], ...] }
 //
 // Views:
 //   hour     -> students in each room at that minute (colour = students / capacity, flag when over capacity)
