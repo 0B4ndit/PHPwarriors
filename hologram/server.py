@@ -9,6 +9,7 @@ import queue
 import sys
 import threading
 import time
+from datetime import date
 
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse, unquote
@@ -20,6 +21,8 @@ PROJECT_ROOT = os.path.dirname(ROOT)
 
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+from database import consultes  # noqa: E402  (after the sys.path line)
 
 DEFAULT_DB = os.path.join(ROOT, "..", "dades", "paquet.duckdb")
 WATCH_SECONDS = 2
@@ -247,7 +250,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_json(self, obj, status_code=200):
-        body = json.dumps(obj).encode()
+        body = json.dumps(obj, default=str).encode()   # default=str: dates / times from the database
 
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
@@ -294,10 +297,55 @@ class Handler(SimpleHTTPRequestHandler):
         if parts == ["api", "events"]:
             return self.sse()
 
+        if parts[:2] == ["api", "graella"] and len(parts) == 3:
+            return self.graella(parts[2])
+
         self.send_json({
             "ok": False,
             "errors": ["not found"]
         }, 404)
+
+    # GET /api/graella/<consulta>: weekly timetables for graella.html (read-only queries in database/consultes.py)
+    #   opcions      ?vista=                          weeks, subjects, rooms and teachers of the view
+    #   assignatura  ?vista=&setmana=&codi=[&grup=]   a subject's sessions that week
+    #   aula         ?vista=&setmana=&aula=           sessions in a room that week
+    #   docent       ?vista=&setmana=&docent=         a teacher's sessions that week
+    #   lliures      ?vista=&setmana=                 catalogue rooms and their busy slots that week
+    # setmana = the Monday of the week, AAAA-MM-DD.
+    def graella(self, consulta):
+        qs = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()}
+        vista = qs.get("vista", args.vista)
+        if vista not in db.VISTES:
+            return self.send_json({"ok": False, "errors": [f"unknown vista {vista!r}; options: {', '.join(db.VISTES)}"]}, 400)
+
+        needs = {"opcions": [], "assignatura": ["setmana", "codi"], "aula": ["setmana", "aula"],
+                 "docent": ["setmana", "docent"], "lliures": ["setmana"]}
+        if consulta not in needs:
+            return self.send_json({"ok": False, "errors": [f"unknown query {consulta!r}; options: {', '.join(needs)}"]}, 404)
+        missing = [p for p in needs[consulta] if not qs.get(p)]
+        if missing:
+            return self.send_json({"ok": False, "errors": [f"missing parameter(s): {', '.join(missing)}"]}, 400)
+        if "setmana" in qs:
+            try:
+                date.fromisoformat(qs["setmana"])
+            except ValueError:
+                return self.send_json({"ok": False, "errors": ["setmana must be the Monday of the week, AAAA-MM-DD"]}, 400)
+
+        try:
+            with consultes.obrir_db(DB_PATH) as (con, _):
+                if consulta == "opcions":
+                    out = consultes.consultar_opcions_graella(vista, con=con)
+                elif consulta == "assignatura":
+                    out = consultes.consultar_horari_assignatura(qs["codi"], qs["setmana"], qs.get("grup"), vista, con=con)
+                elif consulta == "aula":
+                    out = consultes.consultar_horari_aula(qs["aula"], qs["setmana"], vista, con=con)
+                elif consulta == "docent":
+                    out = consultes.consultar_horari_docent(qs["docent"], qs["setmana"], vista, con=con)
+                else:
+                    out = consultes.consultar_ocupacio_aules(qs["setmana"], vista, con=con)
+        except Exception as e:   # view missing from the database, bad date, file locked...
+            return self.send_json({"ok": False, "errors": [str(e)]}, 503)
+        return self.send_json({"ok": True, "vista": vista, **out})
 
     # POST: chatbot Ornith
     def do_POST(self):
