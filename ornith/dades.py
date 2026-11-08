@@ -5,7 +5,7 @@ Es carrega amb `horaris.model.carrega_base` i `horaris.check._col_loca`, és a d
 verificador del jurat (data real de cada sessió, escenari aplicat), i es bolca en una DuckDB en memòria
 (taules `horari`, `aules`, `calendari`) per a les consultes.
 
-No depèn de dades/paquet.duckdb: només dels CSV del paquet i de solver/out/, que són el que avalua el jurat.
+No depèn de dades/paquet.duckdb: només dels CSV del paquet i de final/solver/out/, que són el que avalua el jurat.
 """
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ from horaris.check import Colocada, Informe, _col_loca, avalua, passadis
 from horaris.model import DIES, Base, Fila, carrega_base, fmt, llegeix_proposta, llegeix_relaxacions, semestre_de
 
 PROJECTE = Path(__file__).resolve().parent.parent
-PAQUET = PROJECTE / "paquet"
-SOLVER = PROJECTE / "solver" / "out"
+PAQUET = PROJECTE / "final" / "paquet"
+SOLVER = PROJECTE / "final" / "solver" / "out"
 
 # nom -> (proposta, semestre, escenari, relaxacions, descripció)
 VISTES = {

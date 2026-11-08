@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 ARREL = Path(__file__).resolve().parents[1]   # arrel del projecte: funciona des de qualsevol carpeta
-PAQUET = ARREL / "paquet"
+PAQUET = ARREL / "final" / "paquet"
 
 s = pd.read_csv(PAQUET / "sessions.csv", parse_dates=["data"])
 

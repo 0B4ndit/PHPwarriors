@@ -26,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest='cmd', required=True)
     c = sub.add_parser('check', help='verifica una proposta d\'horari')
     c.add_argument('proposta')
-    c.add_argument('--paquet', default=str(Path(__file__).resolve().parents[1] / 'paquet'))
+    c.add_argument('--paquet', default=str(Path(__file__).resolve().parents[1] / 'final' / 'paquet'))
     c.add_argument('--relaxacions')
     c.add_argument('--json', help='escriu l\'informe complet en JSON')
     c.add_argument('--violacions', help='escriu totes les violacions en CSV')

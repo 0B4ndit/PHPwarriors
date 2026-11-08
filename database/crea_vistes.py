@@ -3,10 +3,10 @@
     python database/crea_vistes.py              # totes les preguntes que tinguin proposta
     python database/crea_vistes.py 5.2 5.4      # només aquestes
     python database/crea_vistes.py --proposta 5.2=altra/proposta.csv   # una proposta d'un altre lloc
-    python database/crea_vistes.py [--dir solver/out] [--db dades/paquet.duckdb]
+    python database/crea_vistes.py [--dir final/solver/out] [--db dades/paquet.duckdb]
 
 Cada proposta és un CSV `id_sessio,dia,h_ini,aula` (+ `data` a la 5.3, la data de la sessió recuperada), el que
-escriu el solver a solver/out/<pregunta>/proposta.csv. Per a cada pregunta:
+escriu el solver a final/solver/out/<pregunta>/proposta.csv. Per a cada pregunta:
 
   - la proposta es desa a la taula `proposta_5X` (es reemplaça cada vegada);
   - la vista `sessions5X` té exactament les columnes de `sessions`, amb les sessions de la proposta i:
@@ -120,7 +120,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("preguntes", nargs="*", metavar="PREGUNTA",
                     help=f"preguntes a actualitzar ({', '.join(PREGUNTES)}); per defecte totes")
-    ap.add_argument("--dir", type=Path, default=ARREL / "solver" / "out", help="carpeta out/ del solver")
+    ap.add_argument("--dir", type=Path, default=ARREL / "final" / "solver" / "out", help="carpeta out/ del solver")
     ap.add_argument("--db", type=Path, default=ARREL / "dades" / "paquet.duckdb")
     ap.add_argument("--proposta", action="append", default=[], metavar="PREGUNTA=CSV",
                     help="fes servir aquest CSV per a la pregunta (es pot repetir)")

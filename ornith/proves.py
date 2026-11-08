@@ -3,7 +3,7 @@
     python -m ornith.proves            # eines + comprovació posterior (sense LLM)
     python -m ornith.proves --llm      # a més, preguntes reals al LLM de l'event (cal UTH_KEY a .env)
 
-Els càlculs «esperats» no fan servir ni ornith/ ni DuckDB: llegeixen paquet/*.csv i solver/out/5.2/proposta.csv
+Els càlculs «esperats» no fan servir ni ornith/ ni DuckDB: llegeixen paquet/*.csv i final/solver/out/5.2/proposta.csv
 amb pandas, que és com el jurat comprovarà les respostes.
 """
 from __future__ import annotations

@@ -1,0 +1,1 @@
+hores_mortes_min=0.520,canvis_franja=1.000,desplacaments_aula=0.169,desplacaments_edifici=0.270,r6_aules_te_extra_per_grup=0.776,r6_canvis_te_paul_fora_passadis=0.536,canvis_aula=0.489

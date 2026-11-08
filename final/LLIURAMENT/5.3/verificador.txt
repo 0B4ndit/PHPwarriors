@@ -1,0 +1,44 @@
+-m horaris check LLIURAMENT/5.3/proposta.csv --semestre 2 --json LLIURAMENT/5.3/informe.json --violacions LLIURAMENT/5.3/violacions.csv --escenari paquet/escenaris/contingencies --referencia LLIURAMENT/5.2/proposta.csv --relaxacions LLIURAMENT/5.3/relaxacions.csv
+
+Semestre 2: 0 files de l'altre semestre ignorades
+Escenari: contingencies
+Veredicte: VALIDA AMB RELAXACIONS DECLARADES (1 incompliments declarats com a relaxació)
+Sessions a la base: 7739 · a la proposta: 7739
+
+Restriccions dures          compten  declarades  heretades
+  [OK ] R0-FORMAT             0           0          0  Proposta mal formada (sessió desconeguda o repetida, dia o hora il·legibles)
+  [OK ] R0-HORARI             0           0          0  Mode només aules: s'ha canviat el dia o l'hora d'una sessió
+  [OK ] R1-FIXADA             0           0          0  Sessió de GEI o GEET+GEST de 1r o 2n moguda (no es toca)
+  [REL] R1-TORN               0           1       1238  1r i 2n al matí; 3r, 4t, 5è, dobles i màsters a la tarda
+  [OK ] R2-FINESTRA           0           0          0  Fora de les finestres 8.30-14.30 i 14.30-21.00 (o creuant-les)
+  [OK ] R2-CALENDARI          0           0          0  Sessió moguda a un festiu, dia no lectiu o aturada del calendari (o a un dia sense classes)
+  [OK ] R3-AULA               0           0          0  Aula que no és a l'aulari (ni és la de partida, o és una J, que es porta a l'aulari)
+  [OK ] R3-AFORAMENT          0           0         57  Més alumnes que la capacitat de l'aula
+  [OK ] R3-TIPUS              0           0          0  Espai d'un tipus diferent del que demana la sessió
+  [OK ] R3-TANCADA            0           0          0  Aula tancada per l'escenari (contingència) en aquella data i hora
+  [OK ] R4-AULA               0           0          0  Dues activitats a la mateixa aula alhora
+  [OK ] R4-DOCENT             0           0        441  Un mateix docent en dues activitats alhora
+  [OK ] R4-ALUMNAT            0           0        204  Un mateix grup d'alumnes en dues activitats alhora
+  [OK ] R4-PLAB               0           0        143  TE o PAUL alhora que un PLAB de la mateixa assignatura
+  [OK ] R4-COMPARTIDA         0           0          0  Una sessió compartida entre titulacions separada
+  [OK ] R5-FALTA              0           0          0  Sessió de la base que no surt a la proposta
+  [OK ] R5-SENSE-AULA         0           0          0  Sessió (no PLAB) sense aula assignada
+  [OK ] R5-RECUPERACIO        0           0          0  Sessió cancel·lada per l'escenari sense recuperar dins el termini
+  [OK ] R7-PLAB               0           0          0  Laboratori PLAB mogut del seu horari o aula fixats
+  [OK ] R8-RESERVA            0           0          0  Menys de dues aules ordinàries lliures en una franja
+  (heretades = no imputables a la proposta: només hi intervenen sessions fixades sense moure, o
+   solapaments de docent/alumnat que ja hi eren a l'horari de partida; es llisten però no compten)
+
+No avaluades (dades de partida incompletes, o regla no aplicable en aquest mode): ESPAI-DOBLE: 415 sessions
+
+Objectius (restricció 9, com més baix millor)
+  hores_mortes_min         50070
+  desplacaments_aula       1329
+  desplacaments_edifici    0
+  canvis_franja            2058
+  canvis_aula              193
+  r6_aules_te_extra_per_grup 18
+  r6_canvis_te_paul_fora_passadis 257
+  sessions_avaluades       7739
+  canvis_franja_vs_referencia 2
+  canvis_aula_vs_referencia 47

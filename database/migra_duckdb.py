@@ -14,7 +14,7 @@ Tipus:
 Columnes afegides a `sessions` i `escenari_sessions_extra`: `sem` (semestre per data) i `torn_actual`
 (per l'hora d'inici).
 
-En acabar crida crea_vistes.py: les vistes sessions51..54 de les propostes de solver/out/, si ja n'hi ha.
+En acabar crida crea_vistes.py: les vistes sessions51..54 de les propostes de final/solver/out/, si ja n'hi ha.
 """
 from __future__ import annotations
 
@@ -165,7 +165,7 @@ def migra(paquet: Path, db: Path) -> None:
         afegeix_derivades(con)
 
         from crea_vistes import crea_vistes   # (és a la mateixa carpeta, database/) vistes sessions51..54 de les propostes del solver, si n'hi ha
-        vistes = crea_vistes(con, ARREL / "solver" / "out")
+        vistes = crea_vistes(con, ARREL / "final" / "solver" / "out")
 
         for taula, clau in CLAUS.items():
             n, dist, nuls = con.execute(f"SELECT count(*), count(DISTINCT {clau}), count(*) - count({clau}) "
@@ -181,7 +181,7 @@ def migra(paquet: Path, db: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--paquet", type=Path, default=ARREL / "paquet")
+    ap.add_argument("--paquet", type=Path, default=ARREL / "final" / "paquet")
     ap.add_argument("--db", type=Path, default=ARREL / "dades" / "paquet.duckdb")
     a = ap.parse_args()
     migra(a.paquet, a.db)
