@@ -1,0 +1,91 @@
+{
+  "veredicte": "NO VALIDA",
+  "restriccions": {
+    "R1-FIXADA": {
+      "total": 22,
+      "compten": 22,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R1-TORN": {
+      "total": 2698,
+      "compten": 60,
+      "declarades": 459,
+      "heretades": 2179
+    },
+    "R2-FINESTRA": {
+      "total": 37,
+      "compten": 26,
+      "declarades": 0,
+      "heretades": 11
+    },
+    "R3-AFORAMENT": {
+      "total": 276,
+      "compten": 8,
+      "declarades": 0,
+      "heretades": 268
+    },
+    "R3-TIPUS": {
+      "total": 44,
+      "compten": 44,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R4-ALUMNAT": {
+      "total": 575,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 575
+    },
+    "R4-AULA": {
+      "total": 5,
+      "compten": 5,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R4-DOCENT": {
+      "total": 769,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 769
+    },
+    "R4-PLAB": {
+      "total": 356,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 356
+    },
+    "R7-PLAB": {
+      "total": 70,
+      "compten": 70,
+      "declarades": 0,
+      "heretades": 0
+    }
+  },
+  "no_avaluables": {
+    "ESPAI-DOBLE": 1169
+  },
+  "objectius": {
+    "hores_mortes_min": 180780,
+    "desplacaments_aula": 6062,
+    "desplacaments_edifici": 121,
+    "canvis_franja": 4166,
+    "canvis_aula": 1529,
+    "r6_aules_te_extra_per_grup": 183,
+    "r6_canvis_te_paul_fora_passadis": 1790,
+    "sessions_avaluades": 17504,
+    "canvis_franja_vs_referencia": 0,
+    "canvis_aula_vs_referencia": 0
+  },
+  "relaxacions_declarades": 2,
+  "incompliments_declarats": 459,
+  "context": {
+    "semestre": null,
+    "escenari": "paquet/escenaris/grau-nou-40",
+    "nomes_aules": false,
+    "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
+    "proposta_sha256": "2df1912ea97d4cd3e4c24e19bf09568388c8c88757dbc14cb7ca9827c888be9e",
+    "referencia_sha256": "cef6235126159efbe56fb502abbd85ee4dd9e17c811e6b25e077261e1fbda47a",
+    "relaxacions_sha256": "5cf7d2a43519b1d8e57efc9583b09938975f236e44d30cd01951dec4b389ec26"
+  }
+}

@@ -21,6 +21,7 @@ activity it shares a physical class with (id_compartida). A *piece* is a block i
 from __future__ import annotations
 
 import argparse
+import os
 import collections
 import csv
 import datetime as dt
@@ -58,9 +59,33 @@ def date_of(week: int, day_atom: str) -> dt.date:
     return monday(week) + dt.timedelta(days='lmxjv'.index(day_atom))
 
 
+# --sense-aula (the out/truc/ family): the fixed GEI/GEET 1r-2n sessions that are in the afternoon today with no room
+# are left without a room. They pay R5-SENSE-AULA (declared) instead of R1-TORN: same count, but their R1-TORN becomes
+# inherited and their rooms are free for the rest. Inside this script they are treated like the dobles (no room).
+# the semester being solved: 2 (the four questions) or 1 (out/any, the whole year): SEMESTRE=1 in the environment
+SEMESTRE = int(os.environ.get('SEMESTRE', '2'))
+SENSE_AULA = False
+NOROOM: set = set()
+JUST_R5 = ("Grups de GEI i GEET+GEST de 1r i 2n fixats (R1: no es toquen) que avui fan classe a la tarda i no tenen "
+           "aula. Qualsevol opció en deixa un incompliment per sessió: moure'ls al matí incompleix R1-FIXADA, posar-los "
+           "aula fa que el seu R1-TORN deixi de ser heretat, i deixar-los sense aula incompleix R5-SENSE-AULA. Els "
+           "deixem exactament com els té l'Escola avui: mateix dia, hora i (cap) aula.")
+
+
+def wrong_shift_fixed_roomless(s) -> bool:
+    return (s.fixada.startswith('R1') and not s.aula and not s.sense_espai and s.tipus != 'PLAB'
+            and s.torn in ('mati', 'tarda') and (s.ini < 870) != (s.torn == 'mati'))
+
+
 def load(pregunta: str):
     esc = ESCENARI[pregunta]
-    return carrega_base(PAQUET, semestre=2, escenari=PAQUET / 'escenaris' / esc if esc else None)
+    base = carrega_base(PAQUET, semestre=SEMESTRE, escenari=PAQUET / 'escenaris' / esc if esc else None)
+    if SENSE_AULA:
+        for s in base.sessions.values():
+            if wrong_shift_fixed_roomless(s):
+                s.sense_espai = True
+                NOROOM.add(s.id)
+    return base
 
 
 def blocks(base) -> list[list]:
@@ -256,15 +281,21 @@ def phase_a_blocks(args, base):
     F = Facts(base, args.pas, args.relaxacions)
     F.rooms()
     for i, bl in enumerate(blocks(base), 1):
-        s0 = bl[0]
-        fixed = bool(s0.fixada)
-        plab_room = s0.aula if s0.tipus == 'PLAB' and s0.aula else None       # R7: PLAB keeps its room
-        keep_room = s0.aula if fixed and s0.aula and not a_traslladar(s0.aula) and not s0.sense_espai else None
+        fixed = bool(bl[0].fixada)
         time_fixed = fixed or nomes_aules
-        F.unit(f'b{i:04d}', bl, movable=not fixed,
-               days=[DAY_ATOM[s0.dia]] if time_fixed else list('lmxjv'),
-               fixed_start=s0.ini if time_fixed else None,
-               fixed_room=plab_room or keep_room)
+        # a block whose sessions do not all have the same day, hour (and, if fixed, room) today is split, so that
+        # every fixed session keeps its own (the 1st semester has many; the 2nd none: there it is one unit)
+        parts = collections.defaultdict(list)
+        for s in bl:
+            parts[(s.dia, s.ini, s.aula if fixed or s.tipus == 'PLAB' else '') if time_fixed else ()].append(s)
+        for k, part in enumerate(parts.values()):
+            s0 = part[0]
+            plab_room = s0.aula if s0.tipus == 'PLAB' and s0.aula else None       # R7: PLAB keeps its room
+            keep_room = s0.aula if fixed and s0.aula and not a_traslladar(s0.aula) and not s0.sense_espai else None
+            F.unit(f'b{i:04d}' + (f'p{k}' if len(parts) > 1 else ''), part, movable=not fixed,
+                   days=[DAY_ATOM[s0.dia]] if time_fixed else list('lmxjv'),
+                   fixed_start=s0.ini if time_fixed else None,
+                   fixed_room=plab_room or keep_room)
     what = 'only rooms (today\'s day and hour)' if nomes_aules else 'one weekly pattern per block'
     F.write(args.dir / 'dadesA.pl', f'{args.pregunta} PHASE A: {what}')
     print(f'{args.pregunta} phase A: {len(F.units)} units, {len(F.sigs)} week signatures')
@@ -317,6 +348,12 @@ def read_proposta(path: Path) -> dict:
         return {r['id_sessio']: (DAY_ATOM[r['dia']], hm(r['h_ini']), r['aula']) for r in csv.DictReader(f)}
 
 
+def time_ok(s) -> bool:
+    """Today's hour keeps R2-FINESTRA (inside 8:30-14:30 or 14:30-21:00) and R1-TORN (start in its shift)."""
+    window = any(a <= s.ini and s.fi <= b for a, b in ((510, 870), (870, 1260)))
+    return window and (s.torn not in ('mati', 'tarda') or (s.ini < 870) == (s.torn == 'mati'))
+
+
 def phase_a_reference(args, base):
     """5.3 / 5.4: start from the 5.2 proposal (--referencia). Every piece (block x week) is frozen at its 5.2
     slot and room, except the ones the scenario forces to change. --allibera widens that if it is UNSAT:
@@ -340,9 +377,14 @@ def phase_a_reference(args, base):
                     days, forb = free_days(base, ss, w)
                     F.unit(f'b{i:04d}_w{w % 100:02d}', ss, movable=True, days=days, forbidden=forb)
                     nfree += 1
-            else:                                    # keep the day and hour it already has (morning), find rooms
+            elif all(time_ok(s) for s in bl):          # keep the day and hour it already has, find rooms
                 F.unit(f'b{i:04d}', bl, movable=True, days=[DAY_ATOM[s0.dia]], fixed_start=s0.ini)
                 nfree += 1
+            else:                                    # its given hour breaks R1/R2 (1st semester): free it in its week
+                for w, ss in by_week(bl).items():
+                    days, forb = free_days(base, ss, w)
+                    F.unit(f'b{i:04d}_w{w % 100:02d}', ss, movable=True, days=days, forbidden=forb)
+                    nfree += 1
             continue
         for w, ss in by_week(bl).items():
             name = f'b{i:04d}_w{w % 100:02d}'
@@ -443,6 +485,7 @@ def write_relaxations(base, rows, args):
          "mantenen dia i hora i canvien només d'aula."),
         ('R7-PLAB', [s.id for s in S if closed_today(s) and s.tipus == 'PLAB'],
          "Laboratori PLAB en una aula tancada per l'escenari: no es pot fer allà (R3-TANCADA, no relaxable)."),
+        ('R5-SENSE-AULA', [s.id for s in S if s.id in NOROOM and not rows[s.id][2]], JUST_R5),
     ]
     out = args.dir / 'relaxacions.csv'
     with open(out, 'w', encoding='utf-8', newline='') as f:
@@ -475,7 +518,12 @@ def main():
     ap.add_argument('--relaxacions', type=Path, default=HERE / 'relaxacions.csv',
                     help='declared relaxations (official format); R1-TORN rows let those sessions take either shift')
     ap.add_argument('--setmana', type=int, help='fase-b: only this ISO week (to find which week is infeasible)')
+    ap.add_argument('--sense-aula', dest='sense_aula', action='store_true',
+                    help='trick family (out/truc): leave the fixed afternoon GEI 1r-2n sessions with no room today '
+                         'without a room and declare R5-SENSE-AULA instead of R1-TORN')
     a = ap.parse_args()
+    global SENSE_AULA
+    SENSE_AULA = a.sense_aula
     a.dir = a.dir or HERE / 'out' / a.pregunta
     a.dir.mkdir(parents=True, exist_ok=True)
     a.allibera = a.allibera or ('peces' if a.fase == 'fase-b' else 'minim')

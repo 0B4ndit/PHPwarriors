@@ -1,0 +1,89 @@
+{
+  "veredicte": "NO VALIDA",
+  "restriccions": {
+    "R1-FIXADA": {
+      "total": 22,
+      "compten": 22,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R1-TORN": {
+      "total": 2679,
+      "compten": 41,
+      "declarades": 459,
+      "heretades": 2179
+    },
+    "R2-FINESTRA": {
+      "total": 11,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 11
+    },
+    "R3-AFORAMENT": {
+      "total": 276,
+      "compten": 8,
+      "declarades": 0,
+      "heretades": 268
+    },
+    "R3-TIPUS": {
+      "total": 44,
+      "compten": 44,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R4-ALUMNAT": {
+      "total": 575,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 575
+    },
+    "R4-AULA": {
+      "total": 5,
+      "compten": 5,
+      "declarades": 0,
+      "heretades": 0
+    },
+    "R4-DOCENT": {
+      "total": 769,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 769
+    },
+    "R4-PLAB": {
+      "total": 356,
+      "compten": 0,
+      "declarades": 0,
+      "heretades": 356
+    },
+    "R7-PLAB": {
+      "total": 70,
+      "compten": 70,
+      "declarades": 0,
+      "heretades": 0
+    }
+  },
+  "no_avaluables": {
+    "ESPAI-DOBLE": 1169
+  },
+  "objectius": {
+    "hores_mortes_min": 178560,
+    "desplacaments_aula": 5986,
+    "desplacaments_edifici": 121,
+    "canvis_franja": 4152,
+    "canvis_aula": 1529,
+    "r6_aules_te_extra_per_grup": 179,
+    "r6_canvis_te_paul_fora_passadis": 1739,
+    "sessions_avaluades": 17026
+  },
+  "relaxacions_declarades": 2,
+  "incompliments_declarats": 459,
+  "context": {
+    "semestre": null,
+    "escenari": null,
+    "nomes_aules": false,
+    "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
+    "proposta_sha256": "cef6235126159efbe56fb502abbd85ee4dd9e17c811e6b25e077261e1fbda47a",
+    "referencia_sha256": null,
+    "relaxacions_sha256": "5cf7d2a43519b1d8e57efc9583b09938975f236e44d30cd01951dec4b389ec26"
+  }
+}

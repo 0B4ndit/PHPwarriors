@@ -19,7 +19,12 @@ make 5.3        # contingencies, on top of out/5.2                  ~30 s   (run
 make 5.4        # grau-nou-40, on top of out/5.2                    ~30 s   (runs 5.2 first if needed)
 make graella    # rule 10: weekly grid per room of the most advanced proposal -> out/graella.html
 make tot        # all of it
+make derivades  # 5.2 changed (millora run, bucle, a file you copied in): rebuild 5.3 and 5.4 on it   ~5 min
 ```
+
+**5.3 and 5.4 are scored by their changes with respect to *your* 5.2.** Every time `out/5.2/proposta.csv` changes,
+run `make derivades`. Otherwise 5.3/5.4 still sit on the old 5.2 and show thousands of "changes". It never rebuilds
+5.2 itself. Order to submit: 5.2 first, then 5.3 and 5.4 built on that same file.
 
 What to hand in for each question is in `out/<q>/`:
 
@@ -97,6 +102,60 @@ the verifier's, and `make` runs the official verifier on the result. The SAT pro
 Scope: 5.1 rooms only (times are fixed) · 5.2 everything that may move · 5.4 only the new degree (5.2 stays as it
 is: 0 changes w.r.t. the reference) · 5.3 nothing (its criterion is the fewest changes w.r.t. 5.2).
 
+## Learning what the xaman values: `variants.py` + `pesos.py`
+
+**The easy way — one interactive command:**  `make bucle Q=5.2`. Each round it builds 10 new verified proposals,
+asks you in the terminal for the xaman score of each one, refits and prints the weights (what the xaman values), and
+copies the best-scored proposal so far to `out/<q>/proposta.csv` and `../entregues/`. Then it asks for another round.
+Everything below is what it does step by step.
+
+The xaman's score formula is not published (enunciat §9: "una estimació, no la nota"; §7: objectives are compared
+between teams). Instead of guessing the priority order, measure it:
+
+```bash
+make variants Q=5.1            # ~4 min: 12 different, verified proposals in out/5.1/variants/ + ronda1.csv
+#   upload out/5.1/variants/r1-v*.csv to the xaman, write each score in the "puntuacio" column of ronda1.csv
+make pesos Q=5.1               # least-squares fit: how many points each objective costs -> pesos-5.1.txt
+make 5.1                       # millora.py now minimises that weighted sum (delete pesos-5.1.txt to undo)
+```
+
+Each round contains v00 (raw SAT), v01 (current proposal), one variant per objective with that objective alone
+(the extreme points) and random mixes; all start from the same SAT proposal, run in parallel (one core each) and are
+checked by the official verifier. More rounds (`make variants` again) add points to the same fit. Model:
+score ≈ a − Σ wₖ · objectiveₖ / (its value in the SAT proposal), with light ridge regularisation; on a synthetic
+test with known weights it recovered them with R² 0.99 from 12 points. `millora.py --pesos "canvis_aula=1,…"`
+also takes weights by hand. Works for 5.1, 5.2 and 5.4 (5.3 follows 5.2).
+
+**Results accumulate.** `millora.py --des-de millor` (the default in `make`, `DESDE=millor`) starts from the best
+proposal known: the variants tied for the best xaman score, the previous `proposta.csv` (kept as
+`proposta-anterior.csv` before a rebuild) and the SAT one, whichever is best by the current weights; it never ends
+worse than where it started. Once `pesos-<q>.txt` exists, new rounds of `make variants` refine: they use the fitted
+weights and random perturbations of them, starting from that best proposal. Every objective keeps at least 10 % of
+the largest weight (`pesos.py --minim`), so one the scores could not measure is not left free to get much worse.
+Long run:  `python3 millora.py --pregunta 5.2 --temps 1800 --fils 12 --des-de millor`, then `make tot`.
+After submitting it: `make registra Q=5.2 PUNT=74` adds that proposal and its score to the fit (and as a start point).
+
+## The `out/truc/` family: paying R5-SENSE-AULA instead of R1-TORN (a test for the xaman)
+
+The 458 fixed GEI / GEET+GEST 1r–2n sessions that are in the afternoon today with no room cost one declared violation
+each, whatever we do. Leaving them **without a room** declares R5-SENSE-AULA (the verifier allows relaxing it). Their
+R1-TORN then becomes inherited, and their rooms are free for the rest. The count is the same (459 in 5.2), and the room
+objectives get slightly better. Risk: rule 5 says *"Totes les sessions amb aula"*, so the jury may reject the
+justification. Use it only if the xaman clearly scores it higher.
+
+```bash
+make truc                                   # out/truc/5.1..5.4 from the current out/5.1 and out/5.2 (never rebuilt)
+make bucle Q=5.2 DIR=out/truc/5.2           # the learning loop for the truc 5.2 (own rounds, own pesos.txt)
+make truc-derivades                         # truc 5.2 changed: rebuild truc 5.3 and 5.4 on it
+```
+
+- **5.1:** has no such trick. It is VALIDA with nothing declared, so `out/truc/5.1` is the normal 5.1.
+- **5.3 / 5.4:** rebuilt by the SAT on top of `out/truc/5.2` (`exporta.py --sense-aula`).
+- **Submitting:** the truc 5.2 first, then its 5.3 and 5.4. Never mix the families: a normal 5.3 checked against a
+  truc 5.2 shows 458 room changes.
+
+`make derivades` and `make truc` never rebuild `out/5.1` or `out/5.2` (`make -o`), even after a script changes.
+
 ## Files
 
 | File | What it is |
@@ -106,6 +165,7 @@ is: 0 changes w.r.t. the reference) · 5.3 nothing (its criterion is the fewest 
 | `exporta.py` | CSV → facts per question (through the verifier's own loader), solution → `proposta.csv` + relaxations |
 | `resol.sh` | Solve with a bound on changes, loosening it until SAT |
 | `millora.py` | Local search on the rule-9 objectives, in priority order, keeping every hard rule |
+| `variants.py`, `pesos.py` | Diverse verified proposals to submit, and the weight fit from their xaman scores |
 | `resum.py`, `graella.py` | Junta summary (5.2) and weekly grid per room (rule 10) |
 | `nucli.py` | Minimal UNSAT core: which classes, together, make a facts file impossible |
 | `relaxacions.csv` | Hand-written relaxations that were proved necessary (see below) |
