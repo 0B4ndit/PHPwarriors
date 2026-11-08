@@ -198,7 +198,12 @@ def _per_sessio(base: Base, col: dict[str, Colocada], inf: Informe, nomes_aules:
         canviada = (c.data != s.data or c.ini != s.ini or c.aula != s.aula if s.tipus == 'PLAB'
                     else c.data != s.data or c.ini != s.ini or
                     (bool(s.aula) and not a_traslladar(s.aula) and not s.sense_espai and c.aula != s.aula))
-        if s.fixada and canviada and not recuperada:
+        # si l'escenari tanca l'aula de partida d'una fixada aquell dia i hora, canviar-li NOMÉS l'aula no és moure-la:
+        # quedar-s'hi seria R3-TANCADA (no relaxable) i el 5.3 no podia sortir mai VALIDA (equip participant, 07/11/2026)
+        aula_tancada = (c.data, c.ini) == (s.data, s.ini) and bool(s.aula) and any(
+            t.aula == s.aula and t.data_ini <= c.data <= t.data_fi and s.ini < t.fi and s.fi > t.ini
+            for t in base.tancaments)
+        if s.fixada and canviada and not recuperada and not aula_tancada:
             regla = 'R7-PLAB' if s.fixada.startswith('R7') else 'R1-FIXADA'
             inf.violacions.append(Violacio(regla, (sid,), f'{s.dia} {fmt(s.ini)} {s.aula or "-"} -> '
                                                           f'{DIES[c.data.weekday()]} {fmt(c.ini)} {c.aula or "-"}'))
@@ -393,10 +398,15 @@ def _marca_heretades(base: Base, col: dict[str, Colocada], inf: Informe) -> None
         cs = [col.get(sid) for sid in v.sessions]
         # posar aula on no n'hi ha sí que és cosa de la proposta, també per a les fixades
         # una doble titulació no té espai propi: treure-li l'aula no la fa deixar de ser «sense moure» (07/11/2026)
+        # l'aula només decideix l'herència a les regles d'espai: el torn, la finestra, el calendari i els solapaments
+        # de docent/alumnat/PLAB d'una fixada sense moure no depenen de l'aula que la proposta li posa. Sense això,
+        # una fixada a la tarda sense aula (458 al 2n semestre) era R5-SENSE-AULA sense aula i R1-TORN amb aula: cap
+        # proposta del 5.2 podia sortir VALIDA (equip participant, 07/11/2026)
+        aula_importa = v.regla.startswith('R3') or v.regla in ('R4-AULA', 'R8-RESERVA')
         if v.regla not in ('R5-SENSE-AULA', 'R3-AULA', 'R3-TANCADA') and cs and all(
                 c is not None and c.s.fixada and (c.data, c.ini) == (c.s.data, c.s.ini)
-                and (c.s.sense_espai or c.aula == c.s.aula)
-                for c in cs):  # /challenge H1: si la proposta hi ha posat l'aula, no és heretat
+                and (not aula_importa or c.s.sense_espai or c.aula == c.s.aula)
+                for c in cs):  # /challenge H1: si la proposta hi ha posat l'aula, el que en depèn no és heretat
             v.heretada = 'fixada'
         elif v.regla in ('R4-DOCENT', 'R4-ALUMNAT', 'R4-PLAB') and (v.regla, v.sessions) in de_partida:
             v.heretada = 'partida'
