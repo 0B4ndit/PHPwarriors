@@ -204,6 +204,180 @@
       transform: translateX(-50%);
     }
   }
+
+  /* ---------- ORNITH CHAT ---------- */
+
+#chatbot-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid var(--cyan);
+  background: #071b27;
+  color: var(--fg);
+  font-size: 25px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 0 18px rgba(58, 143, 176, .25);
+}
+
+#chatbot-btn:hover {
+  background: #103447;
+}
+
+#ornith-chat {
+  position: fixed;
+  right: 24px;
+  bottom: 94px;
+  width: 350px;
+  height: 440px;
+  max-height: calc(100vh - 125px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #07121a;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 35px rgba(0, 0, 0, .55);
+  z-index: 1000;
+}
+
+#ornith-chat[hidden] {
+  display: none;
+}
+
+.ornith-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 15px;
+  background: #0a202c;
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
+}
+
+.ornith-header strong {
+  display: block;
+  letter-spacing: 2px;
+  font-size: 13px;
+}
+
+.ornith-header small {
+  display: block;
+  margin-top: 4px;
+  color: var(--dim);
+  font-size: 10px;
+}
+
+.ornith-status {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+#ornith-close {
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font-size: 23px;
+  cursor: pointer;
+}
+
+#ornith-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.ornith-message {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ornith-message.bot {
+  align-self: flex-start;
+  background: #102b39;
+  border: 1px solid #194355;
+  color: var(--fg);
+}
+
+.ornith-message.user {
+  align-self: flex-end;
+  background: #12445a;
+  border: 1px solid var(--cyan);
+  color: #e5f8ff;
+}
+
+.ornith-message.error {
+  border-color: var(--red);
+  color: #ff9aa8;
+}
+
+#ornith-form {
+  display: flex;
+  gap: 8px;
+  padding: 11px;
+  border-top: 1px solid var(--line);
+  background: #091923;
+}
+
+#ornith-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  outline: none;
+  background: #030c12;
+  color: var(--fg);
+  font-size: 12px;
+}
+
+#ornith-input:focus {
+  border-color: var(--cyan);
+}
+
+#ornith-send {
+  width: 38px;
+  border: 1px solid var(--cyan);
+  border-radius: 7px;
+  background: #103447;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+#ornith-send:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+@media (max-width: 480px) {
+  #ornith-chat {
+    right: 10px;
+    bottom: 82px;
+    width: calc(100vw - 20px);
+    height: min(440px, calc(100vh - 110px));
+  }
+
+  #chatbot-btn {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -274,7 +448,33 @@
   </div>
 
   <!-- BOTÓ RODÓ CHATBOT (SOTA-DRETA) -->
-  <button id="chatbot-btn" title="Obrir Chatbot Assistant" onclick="alert('Obrint assistent virtual...')">💬</button>
+  <button id="chatbot-btn" title="Obrir Chatbot Assistant">💬</button>
+  <div id="ornith-chat" hidden>
+  <div class="ornith-header">
+    <div>
+      <strong>ORNITH</strong>
+      <small><span class="ornith-status"></span> Assistent universitari</small>
+    </div>
+    <button id="ornith-close" title="Tancar">×</button>
+  </div>
+
+  <div id="ornith-messages">
+    <div class="ornith-message bot">
+      Hola! Soc l'Ornith. Et puc ajudar en alguna consulta?
+    </div>
+  </div>
+
+  <form id="ornith-form">
+    <input
+      id="ornith-input"
+      type="text"
+      placeholder="Escriu la teva consulta..."
+      autocomplete="off"
+      required
+    >
+    <button id="ornith-send" type="submit">➤</button>
+  </form>
+</div>
 </div>
 <script type="module" src="app.js"></script>
 </body>

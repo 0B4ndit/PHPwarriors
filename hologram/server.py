@@ -9,6 +9,7 @@ import queue
 import sys
 import threading
 import time
+
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse, unquote
 
@@ -16,6 +17,9 @@ import db
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(ROOT)
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 DEFAULT_DB = os.path.join(ROOT, "..", "dades", "paquet.duckdb")
 WATCH_SECONDS = 2
@@ -30,6 +34,7 @@ ap.add_argument(
     choices=db.VISTES,
     help="sessions view to read"
 )
+
 args = ap.parse_args()
 DB_PATH = os.path.abspath(args.db)
 
@@ -108,6 +113,7 @@ def reload():
             args.criteri_informe,
             args.vista
         )
+
     except Exception as e:
         with lock:
             changed = state["error"] != str(e)
@@ -249,6 +255,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    # GET: pàgines i API
     def do_GET(self):
         parts = [
             p for p in urlparse(self.path).path.split("/") if p
@@ -292,6 +299,59 @@ class Handler(SimpleHTTPRequestHandler):
             "errors": ["not found"]
         }, 404)
 
+    # POST: chatbot Ornith
+    def do_POST(self):
+        parts = [
+            p for p in urlparse(self.path).path.split("/") if p
+        ]
+
+        if parts != ["api", "ornith"]:
+            return self.send_json({
+                "ok": False,
+                "error": "not found"
+            }, 404)
+
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+
+            if length <= 0 or length > 100_000:
+                return self.send_json({
+                    "ok": False,
+                    "error": "Peticio buida o massa gran."
+                }, 400)
+
+            body = self.rfile.read(length)
+            data = json.loads(body.decode("utf-8"))
+            pregunta = str(data.get("question", "")).strip()
+
+            if not pregunta:
+                return self.send_json({
+                    "ok": False,
+                    "error": "Escriu una pregunta."
+                }, 400)
+
+            from test_tools import parlar
+
+            resposta = parlar(pregunta)
+
+            return self.send_json({
+                "ok": True,
+                "answer": resposta
+            })
+
+        except Exception as e:
+            print(
+                f"Ornith error: {type(e).__name__}: {e}",
+                file=sys.stderr,
+                flush=True
+            )
+
+            return self.send_json({
+                "ok": False,
+                "error": f"{type(e).__name__}: {e}"
+            }, 500)
+
+    # Server Sent Events
     def sse(self):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
@@ -310,6 +370,7 @@ class Handler(SimpleHTTPRequestHandler):
                     self.wfile.write(
                         f"event: {event}\ndata: {data}\n\n".encode()
                     )
+
                 except queue.Empty:
                     self.wfile.write(b": keepalive\n\n")
 
@@ -349,6 +410,7 @@ if __name__ == "__main__":
 
     try:
         srv.serve_forever()
+
     except KeyboardInterrupt:
         pass
 

@@ -723,3 +723,80 @@ function animate() {
   animate();
   connect();
 })();
+
+// ---------- ORNITH CHATBOT ----------
+
+const ornithButton = document.getElementById('chatbot-btn');
+const ornithChat = document.getElementById('ornith-chat');
+const ornithClose = document.getElementById('ornith-close');
+const ornithForm = document.getElementById('ornith-form');
+const ornithInput = document.getElementById('ornith-input');
+const ornithMessages = document.getElementById('ornith-messages');
+const ornithSend = document.getElementById('ornith-send');
+
+function ornithMessage(text, type = 'bot') {
+  const message = document.createElement('div');
+  message.className = `ornith-message ${type}`;
+  message.textContent = text;
+
+  ornithMessages.appendChild(message);
+  ornithMessages.scrollTop = ornithMessages.scrollHeight;
+
+  return message;
+}
+
+ornithButton?.addEventListener('click', () => {
+  ornithChat.hidden = !ornithChat.hidden;
+
+  if (!ornithChat.hidden) {
+    ornithInput.focus();
+  }
+});
+
+ornithClose?.addEventListener('click', () => {
+  ornithChat.hidden = true;
+});
+
+ornithForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const question = ornithInput.value.trim();
+
+  if (!question) return;
+
+  ornithMessage(question, 'user');
+  ornithInput.value = '';
+  ornithInput.disabled = true;
+  ornithSend.disabled = true;
+
+  const waiting = ornithMessage('Ornith està consultant...', 'bot');
+
+  try {
+    const response = await fetch('/api/ornith', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ question })
+    });
+
+    const data = await response.json();
+
+    waiting.remove();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'No s’ha pogut obtenir una resposta.');
+    }
+
+    ornithMessage(data.answer || 'Ornith no ha retornat cap resposta.', 'bot');
+
+  } catch (error) {
+    waiting.remove();
+    ornithMessage(`Error: ${error.message}`, 'error');
+
+  } finally {
+    ornithInput.disabled = false;
+    ornithSend.disabled = false;
+    ornithInput.focus();
+  }
+});
