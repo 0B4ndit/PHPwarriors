@@ -2,6 +2,11 @@ import os
 import json
 import urllib.request
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
 from agent_tools import consultar_sessio, buscar_aules
 
 URL = "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
