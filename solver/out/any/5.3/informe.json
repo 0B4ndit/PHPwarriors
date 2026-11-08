@@ -2,16 +2,16 @@
   "veredicte": "NO VALIDA",
   "restriccions": {
     "R1-FIXADA": {
-      "total": 30,
-      "compten": 22,
+      "total": 8,
+      "compten": 0,
       "declarades": 8,
       "heretades": 0
     },
     "R1-TORN": {
       "total": 2679,
-      "compten": 41,
+      "compten": 0,
       "declarades": 459,
-      "heretades": 2179
+      "heretades": 2220
     },
     "R2-FINESTRA": {
       "total": 11,
@@ -20,28 +20,22 @@
       "heretades": 11
     },
     "R3-AFORAMENT": {
-      "total": 275,
-      "compten": 8,
+      "total": 267,
+      "compten": 0,
       "declarades": 0,
       "heretades": 267
     },
     "R3-TIPUS": {
-      "total": 44,
-      "compten": 44,
+      "total": 4,
+      "compten": 4,
       "declarades": 0,
       "heretades": 0
     },
     "R4-ALUMNAT": {
-      "total": 575,
+      "total": 599,
       "compten": 0,
       "declarades": 0,
-      "heretades": 575
-    },
-    "R4-AULA": {
-      "total": 5,
-      "compten": 5,
-      "declarades": 0,
-      "heretades": 0
+      "heretades": 599
     },
     "R4-DOCENT": {
       "total": 769,
@@ -56,8 +50,8 @@
       "heretades": 356
     },
     "R7-PLAB": {
-      "total": 72,
-      "compten": 70,
+      "total": 2,
+      "compten": 0,
       "declarades": 2,
       "heretades": 0
     }
@@ -66,13 +60,13 @@
     "ESPAI-DOBLE": 1169
   },
   "objectius": {
-    "hores_mortes_min": 178560,
-    "desplacaments_aula": 6023,
-    "desplacaments_edifici": 121,
+    "hores_mortes_min": 176010,
+    "desplacaments_aula": 6166,
+    "desplacaments_edifici": 111,
     "canvis_franja": 4153,
-    "canvis_aula": 1571,
-    "r6_aules_te_extra_per_grup": 184,
-    "r6_canvis_te_paul_fora_passadis": 1749,
+    "canvis_aula": 1705,
+    "r6_aules_te_extra_per_grup": 200,
+    "r6_canvis_te_paul_fora_passadis": 2007,
     "sessions_avaluades": 17026,
     "canvis_franja_vs_referencia": 1,
     "canvis_aula_vs_referencia": 50
@@ -84,8 +78,8 @@
     "escenari": "paquet/escenaris/contingencies",
     "nomes_aules": false,
     "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
-    "proposta_sha256": "bbfd630a4c7ba007e1fc35653e08b46a0f80f2a8cc50f096f8c774187c065711",
-    "referencia_sha256": "cef6235126159efbe56fb502abbd85ee4dd9e17c811e6b25e077261e1fbda47a",
+    "proposta_sha256": "492f32b7e7442befd771f81c68a5e3f5f0e5f34d5dcba46f8a82632256e3b824",
+    "referencia_sha256": "bb252277f95a19323015774ba1f70694a107cf7d60dbdb96de94d6e009d7aacd",
     "relaxacions_sha256": "f274a259a856395642c246c2aad6c8313b4b8f668d5e03802759ba0c13ebc304"
   }
 }

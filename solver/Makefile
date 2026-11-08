@@ -5,6 +5,7 @@
 #   make 5.1       only rooms, today's day and hour            -> out/5.1/  (checked with --nomes-aules)
 #   make 5.2       new shifts (1r/2n morning, 3r/4t afternoon)  -> out/5.2/  (+ resum-junta.md)
 #   make any       the whole year (xaman: Curs complet): semester 1 by the SAT alone + out/5.x -> out/any/
+#   make all       the same, with semester 1 also improved by millora.py (ATEMPS s)   -> out/all/
 #   make truc      the same four questions in out/truc/, paying R5-SENSE-AULA instead of R1-TORN (test only)
 #   make derivades out/5.2/proposta.csv is final (or you replaced it): rebuild 5.3 and 5.4 on it, never 5.2
 #   make truc-derivades   the same for out/truc (after a truc 5.2 loop)
@@ -45,7 +46,7 @@ SOLVER    := horaris.pl satlib.pl resol.sh
 Q         ?= 5.2
 UNIT      ?= b0400
 
-.PHONY: tot 5.1 5.2 5.3 5.4 derivades any truc truc-derivades truc-resum graella simbolic variants pesos registra bucle clean clean-5.1 clean-5.2 clean-5.3 clean-5.4
+.PHONY: tot 5.1 5.2 5.3 5.4 derivades any all truc truc-derivades truc-resum graella simbolic variants pesos registra bucle clean clean-5.1 clean-5.2 clean-5.3 clean-5.4
 tot: 5.1 5.2 5.3 5.4 graella
 
 # ---- 5.1 · rooms only -----------------------------------------------------------------------------------
@@ -208,6 +209,36 @@ $(A1)/5.4/solucioA.csv: $(A1)/5.4/dadesA.pl $(SOLVER)
 	  && $(RESOL) $< $@ $(WORK)/any5.4; }
 $(A1)/5.4/proposta.csv: $(A1)/5.4/solucioA.csv
 	$(S1) $(EXP) proposta --pregunta 5.4 --dir $(@D) --referencia $(A1)/5.2/proposta.csv
+
+# ---- out/all · the whole year, semester 1 = the SAT solution of out/any/s1 + a short millora.py run ---------
+# (the learnt weights pesos-<q>.txt if they exist). 5.4's semester 1 is rebuilt on the improved 5.2, so that it
+# keeps 0 changes w.r.t. it. Semester 2 is out/5.x as it is (already improved).
+L1     := out/all/s1
+ATEMPS ?= 60
+SETUP1  = mkdir -p $(@D) && cp $< $@ && cp $@ $(@D)/proposta-sat.csv && \
+          { [ ! -f $(<D)/relaxacions.csv ] || cp $(<D)/relaxacions.csv $(@D)/; } && \
+          { [ ! -f pesos-$(1).txt ] || cp pesos-$(1).txt $(@D)/pesos.txt; }
+IMPROVE1 = $(S1) $(PY) millora.py --pregunta $(1) --dir $(@D) --temps $(ATEMPS) --fils $(FILS) --des-de sat
+all: $(L1)/5.1/proposta.csv $(L1)/5.2/proposta.csv $(L1)/5.4/proposta.csv
+	$(MAKE) derivades
+	$(PY) any.py --s1 $(L1) --sortida out/all --nom curs-complet-millora
+
+$(L1)/5.1/proposta.csv: $(A1)/5.1/proposta.csv millora.py
+	$(call SETUP1,5.1)
+	$(call IMPROVE1,5.1)
+$(L1)/5.2/proposta.csv: $(A1)/5.2/proposta.csv millora.py
+	$(call SETUP1,5.2)
+	$(call IMPROVE1,5.2)
+$(L1)/5.4/dadesA.pl: $(L1)/5.2/proposta.csv exporta.py
+	$(S1) $(EXP) fase-a --pregunta 5.4 --pas $(PAS) --allibera minim --dir $(@D) --referencia $(L1)/5.2/proposta.csv
+$(L1)/5.4/solucioA.csv: $(L1)/5.4/dadesA.pl $(SOLVER)
+	$(RESOL) $< $@ $(WORK)/all5.4 || { \
+	  $(S1) $(EXP) fase-a --pregunta 5.4 --pas $(PAS) --allibera temps --dir $(@D) --referencia $(L1)/5.2/proposta.csv \
+	  && $(RESOL) $< $@ $(WORK)/all5.4; }
+$(L1)/5.4/proposta.csv: $(L1)/5.4/solucioA.csv millora.py
+	$(S1) $(EXP) proposta --pregunta 5.4 --dir $(@D) --referencia $(L1)/5.2/proposta.csv
+	cp $@ $(@D)/proposta-sat.csv
+	$(call IMPROVE1,5.4)
 
 # ---- rule 10 · weekly grid per room, of the most advanced proposal -------------------------------------
 graella: out/graella.html
