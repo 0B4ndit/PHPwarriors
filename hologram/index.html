@@ -1,12 +1,15 @@
+
 <!doctype html>
 <html lang="ca">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>UAB Hologram</title>
+
   <link rel="stylesheet" href="/comu/comu.css">
   <link rel="stylesheet" href="hologram.css">
   <link rel="stylesheet" href="ornith.css">
+
   <script type="importmap">
     {
       "imports": {
@@ -15,13 +18,15 @@
       }
     }
   </script>
+
   <script type="module" src="app.js"></script>
   <script type="module" src="ornith.js"></script>
 </head>
+
 <body>
 <div id="app">
 
-  <!-- Barra lateral: temps, llegenda, llista d'aules i classes de l'aula triada -->
+  <!-- Barra lateral -->
   <aside>
     <header>
       <h1>UAB · AULES EDIFICI Q <span id="counts"></span></h1>
@@ -34,6 +39,7 @@
           <button data-scope="day">Day</button>
           <button data-scope="hour" class="on">Hour</button>
         </div>
+
         <div class="trow" id="row-sem" hidden>
           <label>Semester
             <select id="t-sem">
@@ -42,24 +48,34 @@
             </select>
           </label>
         </div>
+
         <div class="trow" id="row-date">
           <button id="d-prev" title="previous">◀</button>
           <input type="date" id="t-date">
           <button id="d-next" title="next">▶</button>
         </div>
+
         <div class="trow" id="row-time">
           <button id="h-prev" title="−30 min">◀</button>
           <input type="time" id="t-time" step="900">
           <button id="h-next" title="+30 min">▶</button>
         </div>
+
         <div id="t-info"></div>
         <div id="t-hint"></div>
       </div>
 
       <div id="legend">
         <div id="legend-bar"></div>
-        <div class="legend-ends"><span>0%</span><span id="legend-hi">100%</span></div>
-        <label>hue <b id="hue-n"></b><input id="hue" class="hue" type="range" min="0" max="360"></label>
+        <div class="legend-ends">
+          <span>0%</span>
+          <span id="legend-hi">100%</span>
+        </div>
+
+        <label>
+          hue <b id="hue-n"></b>
+          <input id="hue" class="hue" type="range" min="0" max="360">
+        </label>
       </div>
 
       <div class="btns">
@@ -70,7 +86,10 @@
     <div id="room-list"></div>
 
     <div id="detail" hidden>
-      <div class="d-head"><b id="d-title"></b><button id="d-close" title="close">✕</button></div>
+      <div class="d-head">
+        <b id="d-title"></b>
+        <button id="d-close" title="close">✕</button>
+      </div>
       <div id="d-list"></div>
     </div>
 
@@ -80,7 +99,7 @@
     </details>
   </aside>
 
-  <!-- Escena 3D amb els panells flotants -->
+  <!-- Escena 3D -->
   <main id="scene">
     <div id="topbar">
       <nav id="versions" class="toolbar" aria-label="Versió de la base de dades"></nav>
@@ -97,25 +116,66 @@
     </nav>
   </main>
 
-  <!-- Xatbot Ornith (ornith.js) -->
-  <button id="chatbot-btn" title="Obrir l'assistent Ornith" aria-controls="ornith-chat">💬</button>
+  <!-- Xatbot Ornith -->
+  <button
+    id="chatbot-btn"
+    title="Obrir l'assistent Chiikawa"
+    aria-controls="ornith-chat"
+  >💬</button>
+
   <section id="ornith-chat" aria-label="Ornith" hidden>
+
+    <!-- Capçalera -->
     <div class="ornith-header">
       <div>
-        <strong>ORNITH</strong>
-        <small><span class="ornith-status"></span> Assistent universitari</small>
+        <strong>CHIIKAWA</strong>
+        <small>
+          <span class="ornith-status"></span>
+          Assistent universitari
+        </small>
       </div>
+
       <button id="ornith-close" title="Tancar">×</button>
     </div>
+
+    <!-- Missatges -->
     <div id="ornith-messages">
-      <div class="ornith-message bot">Hola! Soc l'Ornith. Et puc ajudar en alguna consulta?</div>
+
+      <!-- Salutació inicial amb avatar -->
+      <div class="ornith-fila-bot">
+        <img
+          src="/chiikawa.png"
+          alt="Ornith"
+          class="ornith-avatar"
+        >
+
+        <div class="ornith-message bot">
+          Hola! Soc Chiikawa. Et puc ajudar en alguna consulta?
+        </div>
+      </div>
+
     </div>
+
+    <!-- Formulari -->
     <form id="ornith-form">
-      <input id="ornith-input" type="text" placeholder="Escriu la teva consulta..." autocomplete="off" required>
-      <button id="ornith-send" type="submit" title="Enviar">➤</button>
+      <input
+        id="ornith-input"
+        type="text"
+        placeholder="Escriu la teva consulta..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        id="ornith-send"
+        type="submit"
+        title="Enviar"
+      >➤</button>
     </form>
+
   </section>
 
 </div>
 </body>
 </html>
+

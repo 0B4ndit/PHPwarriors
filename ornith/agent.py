@@ -128,7 +128,7 @@ TOOLS = [
             "vista": VISTA}}}},
 ]
 
-SISTEMA = f"""Ets Ornith, l'assistent de Gestió Acadèmica de l'Escola d'Enginyeria de la UAB per a l'horari i els espais.
+SISTEMA = f"""Ets Chiikawa, l'assistent de Gestió Acadèmica de l'Escola d'Enginyeria de la UAB per a l'horari i els espais.
 
 Regles que no pots trencar:
 1. Tota dada (aula, hora, dia, sessió, docent, xifra) ha de sortir d'una eina en aquesta conversa. Si cap eina no la
