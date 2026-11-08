@@ -33,12 +33,12 @@
   },
   "objectius": {
     "hores_mortes_min": 72930,
-    "desplacaments_aula": 2119,
-    "desplacaments_edifici": 0,
+    "desplacaments_aula": 3283,
+    "desplacaments_edifici": 6,
     "canvis_franja": 0,
-    "canvis_aula": 518,
+    "canvis_aula": 410,
     "r6_aules_te_extra_per_grup": 31,
-    "r6_canvis_te_paul_fora_passadis": 804,
+    "r6_canvis_te_paul_fora_passadis": 743,
     "sessions_avaluades": 7739
   },
   "relaxacions_declarades": 0,
@@ -48,7 +48,7 @@
     "escenari": null,
     "nomes_aules": true,
     "paquet_sha256": "6d1588ddfb55cc264b8bdeb00a05d7725dc76ced135fdcf8f3153ec71177041f",
-    "proposta_sha256": "c7673489fec7de8b4c6a26421a963da726bc1417dbff91bf287223fb39a69339",
+    "proposta_sha256": "68ed83127e3e2b42dc6a3420ed8e44b1732291bdc7a73761c860bf3c2da66487",
     "referencia_sha256": null,
     "relaxacions_sha256": null
   }
